@@ -1,0 +1,55 @@
+const mongoose = require('mongoose')
+
+const distributerSchema = mongoose.Schema({
+    distributer_name : {
+        type: String,
+        required:[true,'please enter distributer name']
+    },
+    distributer_mobile :{
+        type: Number,
+        required:[true,'please enter mobile number'],
+        validate: {
+            validator: function (v) {
+            return /^\d{10}$/.test(v); // Only allows 10 digits
+            },
+            message: 'Mobile number must be exactly 10 digits'
+        }
+    },
+    distributer_email : {
+        type : String,
+        required:[true,'please enter email address'],
+        unique: true,
+        match: [/\S+@\S+\.\S+/, 'Please use a valid email address']
+    },
+    distributer_password : {
+        type : String,
+        required:[true,'Password id is required'],
+        minlength:[6,'password must be atleast 6 characters']
+    },
+    distributer_firms:{
+        type : [String]
+    },
+    distributer_city: {
+        type : String
+    },
+    distributer_username:{
+        type : String,
+        required:[true,'please enter username']
+    },
+    distributer_plan:{
+        type : String,
+        required:[true,'please enter the plan name'],
+        enum:['bronze','silver','gold','platinum']
+    },
+    user_role:{
+        type:String,
+        enum:['distributer','seller','salesman'],
+        required: true,
+        lowercase: true, // optional: ensures value is stored in lowercase
+        trim: true,
+        default:"distributer"
+    }
+},{  timestamps: true  });
+
+
+module.exports = distributerSchema ;

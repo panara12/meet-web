@@ -20,7 +20,7 @@ function Header() {
       <div className='flex justify-between px-24 max-[768px]:px-20 max-[426px]:px-10 py-3 items-center'>
         {/* client title */}
         <div className='lg:pr-3'>
-            <h1 className='text-6xl mr-5 max-[768px]:text-5xl'>Bhavya</h1>
+            <h1 className='text-6xl mr-5 max-[768px]:text-5xl max-[425px]:text-3xl'>Bhavya</h1>
         </div>
         {/* search div */}
         <div className='bg-white flex relative text-black px-3 max-[1024px]:hidden  py-2 items-center rounded-lg'>
@@ -45,7 +45,7 @@ function Header() {
         </div>
         </div>
         {/* navigation for small screen */}
-        <div className={dropdown ? 'w-full absolute mt-[75px] bg-[#0f0f0f] min-[1025px]:hidden' : 'hidden absolute max-[1024px]:hidden'} id='dropdown'>
+        <div className={dropdown ? 'w-full absolute mt-[72px] max-[768px]:72px max-[425px]:mt-[59px] max-[1024]:mt-[84px] bg-[#0f0f0f] min-[1025px]:hidden' : 'hidden absolute max-[1024px]:hidden'} id='dropdown'>
           <div className='flex flex-col space-y-5 p-5 items-center justify-center'>
               <div className='bg-white flex text-black px-3  py-2 items-center rounded-lg'>
                 <Icon icon="material-symbols-light:search" className='' width="28" height="28" />
