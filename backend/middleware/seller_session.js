@@ -1,6 +1,7 @@
 const seller_session_checker =(req,res,next)=>{
-    if(req.session && req.session.user_id){
-        if(req.session.user_role =="seller"){
+    const domain = req.headers['x-tenent-domain']||'abcmarketing' || req.headers.host.split(":")[0];
+    if(req.session && req.session.user.user_id  && req.session.user.tenent_domain == domain){
+        if(req.session.user.user_role =="seller"){
             next()
         }else{
             res.status(401).json({messsage:"User not authorized"})

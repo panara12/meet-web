@@ -1,7 +1,7 @@
-const distributer_session_checker =(req,res,next)=>{
+const salesman_session_checker =(req,res,next)=>{
     const domain = req.headers['x-tenent-domain']||'abcmarketing' || req.headers.host.split(":")[0];
-    if(req.session && req.session.user.user_id && req.session.user.tenent_domain == domain){
-        if(req.session.user.user_role =="distributer"){
+    if(req.session && req.session.user.user_id  && req.session.user.tenent_domain == domain){
+        if(req.session.user.user_role =="salesman"){
             next()
         }else{
             res.status(401).json({messsage:"User not authorized"})
@@ -11,4 +11,4 @@ const distributer_session_checker =(req,res,next)=>{
     }
 }
 
-module.exports = distributer_session_checker
+module.exports = salesman_session_checker

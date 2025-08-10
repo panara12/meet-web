@@ -5,12 +5,17 @@ const distributer = require('./routes/distributer');
 const app = express();
 const cors = require('cors');
 const tenent_middleware = require('./middleware/tenent_middleware');
+const getTenentList = require('./utils/tenentgeter');
 const seller = require('./routes/seller');
+const product = require('./routes/product')
 const auth = require('./routes/auth');
-const session = require('express-session');
-const MongoStore = require('connect-mongo');
+const session_setter = require('./middleware/session_middleware');
 const salesman = require('./routes/salesman');
 const tenent = require('./routes/tenent');
+const tenentCache = require('./cache/tenent_list');
+const errorHandler = require('./utils/errorHandler'); // adjust path accordingly
+const manualLog = require('./utils/manuallogger'); 
+
 
 app.use(cors())
 // Body parser for JSON
@@ -21,32 +26,39 @@ app.use(express.urlencoded({ extended: true }));
 
 
 mongoose.connect(process.env.MONGODB_URL)
-.then(()=>{
+.then(async ()=>{
     console.log('db connected');
+    //get all  the tenents list on server starts
+    const tenent_list = await getTenentList();
+    tenentCache.tenent = tenent_list;
+    manualLog('db is connected broooo');
 })
 .catch(()=>{
     console.log('db not connected');
+    manualLog('db is connected broooo');
 })
 
-//settings up the session
-app.use(session({
-    secret:"iamajavascriptLover",
-    resave:false,
-    saveUninitialized:false,
-    store:MongoStore.create({
-        //this used because we don't have to make the second connection request
-        client:mongoose.connection.getClient(),
-        collectionName:"user_sessions",
-        ttl: 60 * 2,
-        autoRemove: 'native',
-        touchAfter: 60
-    }),
-    cookie:{
-        maxAge:1000*60*2, //2 mins
-        httpOnly:true,
-        secure:false
-    }
-}))
+manualLog('session is ready to go');
+
+app.use(session_setter)
+
+app.use('/tenent',tenent);
+
+app.use('/auth',tenent_middleware,auth);
+app.use('/distributer',tenent_middleware,distributer);
+app.use('/seller',tenent_middleware,seller)
+app.use('/salesman',tenent_middleware,salesman)
+app.use('/product',tenent_middleware,product);
+
+app.get('/error', (req, res, next) => {
+  // This will throw an error and be caught by your error handler
+  throw new Error('Test error for logging!');
+});
+
+// Your routes go above this
+app.use(errorHandler); 
+
+
 
 app.get('/',(req,res)=>{
     res.send('running')
@@ -55,10 +67,3 @@ app.get('/',(req,res)=>{
 app.listen(process.env.PORT,()=>{
     console.log('server is running');
 })
-
-app.use('/tenent',tenent);
-
-app.use('/auth',tenent_middleware,auth);
-app.use('/distributer',tenent_middleware,distributer);
-app.use('/seller',tenent_middleware,seller)
-app.use('/salesman',tenent_middleware,salesman)

@@ -1,5 +1,16 @@
 const mongoose = require('mongoose')
 
+const imageSchema = mongoose.Schema({
+    url:{
+        type:String,
+        required:[true,'please enter img url']
+    },
+    public_id:{
+        type:String,
+        required:[true,"please enter the public id"]
+    }
+})
+
 const productSchema = mongoose.Schema({
     product_name:{
         type:String,
@@ -25,7 +36,7 @@ const productSchema = mongoose.Schema({
         type:String
     },
     product_photos:{
-        type:[String]
+        type:[imageSchema]
     },
     product_firm:{
         type:String

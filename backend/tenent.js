@@ -5,6 +5,14 @@ const connectionCache ={};
 
 const gettenentDb = async (dbName)=>{
     //if the connection is in cache
+    // console.log("----- DB Cache Tenants -----");
+    // Object.keys(connectionCache).forEach((tenantKey) => {
+    //     console.log(`✅ Cached tenant: ${tenantKey}`);
+    // });
+
+    console.log('enterd in gettenetdbname code ',dbName)
+
+    //db already have connection active than use it
     if (connectionCache[dbName]) {
             console.log("✅ Using cached DB connection:", dbName);
             return connectionCache[dbName];
