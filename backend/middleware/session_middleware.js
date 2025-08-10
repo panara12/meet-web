@@ -1,10 +1,15 @@
 const session = require('express-session')
 const MongoStore = require('connect-mongo')
-const { v4: uuidv4 } = require('uuid');
+const crypto = require('crypto');
 
-module.exports = (req,res,next)=>{
+module.exports =  (req,res,next)=>{
+    console.time('enterd in session middleware')
     const tenent = req.headers['x-tenent-domain'];
-    const cookieName = `sid_${ uuidv4()}`;
+    const {username} = req.body;
+    const userIdHash = crypto.createHash('md5').update(username).digest('hex');
+    const cookieName = `sid_${tenent}_${userIdHash}`;
+    console.log(cookieName);
+    console.timeEnd('enterd in session middleware')
     session({
         name:cookieName,
         secret:process.env.SESSION_SECRET,
