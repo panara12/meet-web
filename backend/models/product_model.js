@@ -17,8 +17,9 @@ const productSchema = mongoose.Schema({
         required:[true,'product name is required']
     },
     product_company:{
-        type:String,
-        required:[true,'company name is required']
+        type:mongoose.Schema.Types.ObjectId,
+        ref:"Company",
+        required:[true,"please enter the company name"]
     },
     product_size:{
         type:[String]

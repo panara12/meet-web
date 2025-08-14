@@ -9,13 +9,14 @@ const getTenentList = require('./utils/tenentgeter');
 const seller = require('./routes/seller');
 const product = require('./routes/product')
 const auth = require('./routes/auth');
-const session_setter = require('./middleware/session_middleware');
 const salesman = require('./routes/salesman');
 const tenent = require('./routes/tenent');
 const tenentCache = require('./cache/tenent_list');
 const errorHandler = require('./utils/errorHandler'); // adjust path accordingly
 const manualLog = require('./utils/manuallogger'); 
-
+const company = require('./routes/company')
+const sessionLoader = require('./utils/sessionlodder');
+const Location = require('./routes/location');
 
 app.use(cors())
 // Body parser for JSON
@@ -40,15 +41,16 @@ mongoose.connect(process.env.MONGODB_URL)
 
 manualLog('session is ready to go');
 
-app.use(session_setter)
+app.use(sessionLoader); 
 
 app.use('/tenent',tenent);
-
+app.use("/company",tenent_middleware,company);
 app.use('/auth',tenent_middleware,auth);
 app.use('/distributer',tenent_middleware,distributer);
 app.use('/seller',tenent_middleware,seller)
 app.use('/salesman',tenent_middleware,salesman)
 app.use('/product',tenent_middleware,product);
+app.use('/location',tenent_middleware,Location);
 
 app.get('/error', (req, res, next) => {
   // This will throw an error and be caught by your error handler

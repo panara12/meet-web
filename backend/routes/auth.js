@@ -2,13 +2,14 @@ const express = require('express')
 const bcrypt = require('bcrypt')
 const router = express.Router()
 const tenent_checker = require('../middleware/tenent_middleware');
-const session_setter = require('../middleware/session_middleware')
+const { generateCookieName, attachCustomCookie} = require('../middleware/session_middleware')
 const manualLog = require('../utils/manuallogger');
+const Store_location = require("../utils/Store_location");
 
 router.use(tenent_checker);
 
 //seller login
-router.post('/sellerlogin',session_setter,async(req,res)=>{
+router.post('/sellerlogin',async(req,res)=>{
     manualLog(`entered in seller login route`)
     try {
         const {username,password} = req.body
@@ -22,26 +23,32 @@ router.post('/sellerlogin',session_setter,async(req,res)=>{
         
         if(user_data == null){
             res.send("user not Found");
-        }else{
-            const isMatch = await bcrypt.compare(password, user_data.seller_password);
-            if(isMatch){
-                req.session.user = {
-                    user_id : user_data._id,
-                    user_role : user_data.user_role,
-                    username : user_data.username,
-                    tenent_domain : req.tenent.D_domain
-                }
-                // console.log("session data"+req.session.user_id)
-                manualLog(`seller login seccesfully :: ${req.session.user.user_id}`)
-                res.status(200).json({
-                    message:"user login seccusfull",
-                    user_data:req.session
-                });
-            }else{
-                manualLog(`seller username  and password does not match`);
-                res.send('username and password does not match');
-            }
         }
+
+        const isMatch = await bcrypt.compare(password, user_data.seller_password);
+        if (!isMatch) {
+            return res.status(401).send('Username or password does not match');
+        }
+
+        // Step 1: Generate cookie name
+        const cookieName = generateCookieName(req.tenent.D_domain, user_data.user_role, username);
+        const result = attachCustomCookie(req, cookieName);
+        if(!result){
+            console.log('cookie is not setted')
+            res.status(500).send({message:"error in setting session"})
+        }
+
+        req.session.user = {
+            user_id: user_data._id,
+            user_role: user_data.user_role,
+            username,
+            tenant: req.tenent.D_domain
+        };
+        res.status(200).send({
+            message:'seller logged in succesfully',
+            user:req.session.user.username
+        })
+
     } catch (error) {
         manualLog(`there is error in seller login :: ${error}`)
         console.log('there is an error in seller loggin')
@@ -50,41 +57,49 @@ router.post('/sellerlogin',session_setter,async(req,res)=>{
  })
 
 //distributer login
-router.post('/distributerlogin',session_setter,async(req,res)=>{
+router.post('/distributerlogin',async(req,res)=>{
     manualLog(`entered in distributer login`)
     // console.log(req.tenent);
     try {
         const {username,password} = req.body
         const Distributer = req.db.model("Distributer");
+        // console.log("get data from req and model")
         const user_data = await Distributer.findOne({
             $or: [
                 { distributer_email: username },
                 { distributer_username: username }
             ]
         });
+        // console.log("get user from db",user_data)
 
         if(user_data == null){
             res.send("user not Found");
-        }else{
-            const isMatch = await bcrypt.compare(password, user_data.distributer_password);
-            if(isMatch){
-                req.session.user = {
-                    user_id : user_data._id,
-                    user_role : user_data.user_role,
-                    username : user_data.username,
-                    tenent_domain : req.tenent.D_domain
-                }
-                console.log("session data"+req.session.user)
-                manualLog(`distributer login succesfully :: ${req.session.user.user_id}`)
-                res.status(200).json({
-                    message:"user login seccusfull",
-                    user_data:req.session
-                });
-            }else{
-                manualLog('distributer username password not match')
-                res.send('username and password does not match');
-            }
         }
+
+        const isMatch = await bcrypt.compare(password, user_data.distributer_password);
+        if (!isMatch) {
+            return res.status(401).send('Username or password does not match');
+        }
+        // console.log('password matched and go fro the cookie name')
+        // Step 1: Generate cookie name
+        const cookieName = generateCookieName(req.tenent.D_domain, user_data.user_role, username);
+        const result = attachCustomCookie(req, cookieName);
+        if(!result){
+            console.log('cookie is not setted')
+            res.status(500).send({message:"error in setting session"})
+        }
+
+        req.session.user = {
+            user_id: user_data._id,
+            user_role: user_data.user_role,
+            username,
+            tenant: req.tenent.D_domain
+        };
+        res.status(200).send({
+            message:'distributer logged in succesfully',
+            user:req.session.user.username
+        })
+
     } catch (error) {
         console.log("there is error in distributer login")
         manualLog(`there is error in distributer login :: ${JSON.stringify(error)}`)
@@ -107,26 +122,37 @@ router.post('/salesmanlogin',async(req,res)=>{
         
         if(user_data == null){
             res.send("user not Found");
-        }else{
-            const isMatch = await bcrypt.compare(password, user_data.salesman_password);
-            if(isMatch){
-                req.session.user = {
-                    user_id : user_data._id,
-                    user_role : user_data.user_role,
-                    username : user_data.username,
-                    tenent_domain : req.tenent.D_domain
-                }
-                console.log("session data"+req.session.user.user_role)
-                manualLog(`salesman login succesfully :: ${req.session.user.user_id}`)
-                res.status(200).json({
-                    message:"user login seccusfull",
-                    user_data:req.session
-                });
-            }else{
-                manualLog(`salesman username and password not found`);
-                res.send('username and password does not match');
-            }
         }
+        const isMatch = await bcrypt.compare(password, user_data.salesman_password);
+        if (!isMatch) {
+            return res.status(401).send('Username or password does not match');
+        }
+        const cookieName = generateCookieName(req.tenent.D_domain, user_data.user_role, username);
+        const result = attachCustomCookie(req, cookieName);
+        if(!result){
+            console.log('cookie is not setted')
+            res.status(500).send({message:"error in setting session"})
+        }
+
+        req.session.user = {
+            user_id: user_data._id,
+            user_role: user_data.user_role,
+            username,
+            tenant: req.tenent.D_domain
+        };
+
+        const user_location_stored = await Store_location(req,user_data._id,req.tenent.D_domain);
+        if(!user_location_stored){
+            res.status(200).send({
+                message:'salesman logged in succesfully but not with location',
+                user:req.session
+            })
+        }
+        res.status(200).send({
+            message:'salesman logged in succesfully with location ',
+            user:req.session
+        })
+
     } catch (error) {
         console.log("there is error in distributer login")
         manualLog(`there is error in distributer login :: ${JSON.stringify(error)}`)

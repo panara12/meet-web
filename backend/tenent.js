@@ -18,7 +18,6 @@ const gettenentDb = async (dbName)=>{
             return connectionCache[dbName];
     }
 
-    console.log("Using cached connection:"+connectionCache[dbName]);
     //get new connection for each tenent 
     const mongoose_uri =  process.env.DYNAMIC_MONGOOSE_URL_FIRST+dbName+process.env.DYNAMIC_MONGOOSE_URL_LAST;
 
@@ -32,6 +31,8 @@ const gettenentDb = async (dbName)=>{
         conn.model('Salesman',require('./models/salesman_model'));
         conn.model('Product',require('./models/product_model'));
         conn.model('Seller',require('./models/seller_model'));
+        conn.model('Company',require('./models/company_model'));
+        conn.model('Location',require('./models/location_model'));
         connectionCache[dbName] = conn;
         return conn;
 
