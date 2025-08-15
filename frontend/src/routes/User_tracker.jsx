@@ -18,6 +18,11 @@ function User_tracker() {
       },
       (error) => {
         console.error("Error getting location:", error);
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 5000,
+        maximumAge: 0
       }
     );
   }, []);
@@ -37,7 +42,7 @@ function User_tracker() {
   return (
     <div>
       <h2>Get User Location</h2>
-      <MapContainer center={position} zoom={15} style={{ height: '800px', width: '70%' }}>
+      <MapContainer center={position} zoom={5} style={{ height: '800px', width: '70%' }}>
         <TileLayer
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           attribution="© OpenStreetMap contributors"
