@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Phone, Mail, MapPin } from 'lucide-react';
+import { ArrowLeft, Phone, Mail, MapPin, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
+import { emailService } from '../utils/emailService';
 
 const Contact = () => {
   const location = useLocation();
@@ -13,6 +14,8 @@ const Contact = () => {
     message: '',
     productInterest: ''
   });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitStatus, setSubmitStatus] = useState(null); // 'success', 'error', null
 
   // Get product info from navigation state
   const productInfo = location.state;
@@ -35,11 +38,43 @@ const Contact = () => {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Handle form submission here
-    console.log('Contact form submitted:', formData);
-    // Reset form
+    setIsSubmitting(true);
+    setSubmitStatus(null);
+
+    try {
+      const result = await emailService.sendContactEmail(formData);
+      
+      if (result.success) {
+        setSubmitStatus('success');
+        // Reset form
+        setFormData({
+          name: '',
+          email: '',
+          phone: '',
+          company: '',
+          message: '',
+          productInterest: ''
+        });
+        
+        // Auto-hide success message after 5 seconds
+        setTimeout(() => {
+          setSubmitStatus(null);
+        }, 5000);
+      } else {
+        setSubmitStatus('error');
+        console.error('Email sending failed:', result.message);
+      }
+    } catch (error) {
+      setSubmitStatus('error');
+      console.error('Form submission error:', error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const resetForm = () => {
     setFormData({
       name: '',
       email: '',
@@ -48,8 +83,7 @@ const Contact = () => {
       message: '',
       productInterest: ''
     });
-    // Show success message or redirect
-    alert('Thank you for your message! We will get back to you soon.');
+    setSubmitStatus(null);
   };
 
   return (
@@ -136,6 +170,31 @@ const Contact = () => {
           <div className="bg-white rounded-2xl p-8 shadow-lg">
             <h2 className="text-2xl font-bold text-[#1e293b] mb-6">Send us a Message</h2>
             
+            {/* Status Messages */}
+            {submitStatus === 'success' && (
+              <div className="bg-[#f0fdf4] border border-[#10b981] rounded-lg p-4 mb-6">
+                <div className="flex items-center space-x-3">
+                  <CheckCircle className="w-5 h-5 text-[#10b981]" />
+                  <div>
+                    <p className="text-[#065f46] font-medium">Message sent successfully!</p>
+                    <p className="text-[#047857] text-sm">We'll get back to you within 24 hours.</p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {submitStatus === 'error' && (
+              <div className="bg-[#fef2f2] border border-[#ef4444] rounded-lg p-4 mb-6">
+                <div className="flex items-center space-x-3">
+                  <AlertCircle className="w-5 h-5 text-[#ef4444]" />
+                  <div>
+                    <p className="text-[#991b1b] font-medium">Failed to send message</p>
+                    <p className="text-[#b91c1c] text-sm">Please try again or contact us directly.</p>
+                  </div>
+                </div>
+              </div>
+            )}
+            
             {productInfo && (
               <div className="bg-[#f0f9ff] border border-[#3b82f6] rounded-lg p-4 mb-6">
                 <p className="text-[#1e293b] font-medium">
@@ -156,7 +215,8 @@ const Contact = () => {
                     value={formData.name}
                     onChange={handleInputChange}
                     required
-                    className="w-full px-4 py-3 border border-[#e2e8f0] rounded-lg focus:outline-none focus:border-[#3b82f6] transition-colors duration-200"
+                    disabled={isSubmitting}
+                    className="w-full px-4 py-3 border border-[#e2e8f0] rounded-lg focus:outline-none focus:border-[#3b82f6] transition-colors duration-200 disabled:bg-[#f1f5f9] disabled:cursor-not-allowed"
                     placeholder="Enter your full name"
                   />
                 </div>
@@ -170,7 +230,8 @@ const Contact = () => {
                     value={formData.email}
                     onChange={handleInputChange}
                     required
-                    className="w-full px-4 py-3 border border-[#e2e8f0] rounded-lg focus:outline-none focus:border-[#3b82f6] transition-colors duration-200"
+                    disabled={isSubmitting}
+                    className="w-full px-4 py-3 border border-[#e2e8f0] rounded-lg focus:outline-none focus:border-[#3b82f6] transition-colors duration-200 disabled:bg-[#f1f5f9] disabled:cursor-not-allowed"
                     placeholder="Enter your email"
                   />
                 </div>
@@ -187,7 +248,8 @@ const Contact = () => {
                     value={formData.phone}
                     onChange={handleInputChange}
                     required
-                    className="w-full px-4 py-3 border border-[#e2e8f0] rounded-lg focus:outline-none focus:border-[#3b82f6] transition-colors duration-200"
+                    disabled={isSubmitting}
+                    className="w-full px-4 py-3 border border-[#e2e8f0] rounded-lg focus:outline-none focus:border-[#3b82f6] transition-colors duration-200 disabled:bg-[#f1f5f9] disabled:cursor-not-allowed"
                     placeholder="Enter your phone number"
                   />
                 </div>
@@ -200,7 +262,8 @@ const Contact = () => {
                     name="company"
                     value={formData.company}
                     onChange={handleInputChange}
-                    className="w-full px-4 py-3 border border-[#e2e8f0] rounded-lg focus:outline-none focus:border-[#3b82f6] transition-colors duration-200"
+                    disabled={isSubmitting}
+                    className="w-full px-4 py-3 border border-[#e2e8f0] rounded-lg focus:outline-none focus:border-[#3b82f6] transition-colors duration-200 disabled:bg-[#f1f5f9] disabled:cursor-not-allowed"
                     placeholder="Enter your company name"
                   />
                 </div>
@@ -215,7 +278,8 @@ const Contact = () => {
                   name="productInterest"
                   value={formData.productInterest}
                   onChange={handleInputChange}
-                  className="w-full px-4 py-3 border border-[#e2e8f0] rounded-lg focus:outline-none focus:border-[#3b82f6] transition-colors duration-200"
+                  disabled={isSubmitting}
+                  className="w-full px-4 py-3 border border-[#e2e8f0] rounded-lg focus:outline-none focus:border-[#3b82f6] transition-colors duration-200 disabled:bg-[#f1f5f9] disabled:cursor-not-allowed"
                   placeholder="What product are you interested in?"
                 />
               </div>
@@ -230,17 +294,38 @@ const Contact = () => {
                   onChange={handleInputChange}
                   required
                   rows="4"
-                  className="w-full px-4 py-3 border border-[#e2e8f0] rounded-lg focus:outline-none focus:border-[#3b82f6] transition-colors duration-200 resize-none"
+                  disabled={isSubmitting}
+                  className="w-full px-4 py-3 border border-[#e2e8f0] rounded-lg focus:outline-none focus:border-[#3b82f6] transition-colors duration-200 resize-none disabled:bg-[#f1f5f9] disabled:cursor-not-allowed"
                   placeholder="Tell us about your requirements..."
                 ></textarea>
               </div>
 
-              <button
-                type="submit"
-                className="w-full bg-[#3b82f6] hover:bg-[#2563eb] text-white py-4 px-6 rounded-xl text-lg font-semibold transition-all duration-300 transform hover:scale-105 hover:shadow-lg shadow-md"
-              >
-                Send Message
-              </button>
+              <div className="flex space-x-4">
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="flex-1 bg-[#3b82f6] hover:bg-[#2563eb] disabled:bg-[#94a3b8] text-white py-4 px-6 rounded-xl text-lg font-semibold transition-all duration-300 transform hover:scale-105 hover:shadow-lg shadow-md disabled:transform-none disabled:cursor-not-allowed flex items-center justify-center space-x-2"
+                >
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                      <span>Sending...</span>
+                    </>
+                  ) : (
+                    <span>Send Message</span>
+                  )}
+                </button>
+
+                {submitStatus === 'success' && (
+                  <button
+                    type="button"
+                    onClick={resetForm}
+                    className="px-6 py-4 border border-[#3b82f6] text-[#3b82f6] hover:bg-[#3b82f6] hover:text-white rounded-xl font-semibold transition-all duration-300"
+                  >
+                    Send Another
+                  </button>
+                )}
+              </div>
             </form>
           </div>
         </div>
