@@ -12,7 +12,7 @@ const ProductSection = ({ title, products, bgColor = "bg-white", textColor = "te
           <div className="w-24 h-1 bg-[#3b82f6] mx-auto rounded-full"></div>
         </div>
         
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-3 gap-6 sm:gap-8 max-w-6xl mx-auto">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-3 gap-4 sm:gap-6 md:gap-8 max-w-6xl mx-auto">
           {products.map((product) => (
             <ProductCard key={product.id} product={product} />
           ))}
