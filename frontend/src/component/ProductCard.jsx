@@ -1,7 +1,13 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const ProductCard = ({ product }) => {
-  const { photo, name, company } = product;
+  const { photo, name, company, id } = product;
+  const navigate = useNavigate();
+
+  const handleViewDetails = () => {
+    navigate(`/product/${id}`);
+  };
 
   return (
     <div className="group bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 border border-[#e2e8f0] hover:border-[#3b82f6] overflow-hidden mx-2 sm:mx-0">
@@ -27,15 +33,13 @@ const ProductCard = ({ product }) => {
           {company}
         </p>
 
-        {/* Action Buttons */}
-        <div className="flex flex-col sm:flex-row gap-1 sm:gap-2">
-          <button className="flex-1 bg-[#3b82f6] hover:bg-[#2563eb] text-white py-1.5 sm:py-2 px-2 sm:px-3 rounded-lg text-xs sm:text-sm font-medium transition-colors duration-200">
-            Add to Cart
-          </button>
-          <button className="flex-1 bg-[#1e40af] hover:bg-[#1e3a8a] text-white py-1.5 sm:py-2 px-2 sm:px-3 rounded-lg text-xs sm:text-sm font-medium transition-colors duration-200">
-            View Details
-          </button>
-        </div>
+        {/* Action Button */}
+        <button 
+          onClick={handleViewDetails}
+          className="w-full bg-[#3b82f6] hover:bg-[#2563eb] text-white py-2 px-3 rounded-lg text-sm font-medium transition-colors duration-200"
+        >
+          View Details
+        </button>
       </div>
 
       {/* Custom CSS for line-clamp */}
