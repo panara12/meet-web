@@ -5,7 +5,14 @@ export default {
     "./src/**/*.{js,ts,jsx,tsx}",
   ],
   theme: {
-    extend: {},
+    extend: {
+      colors:{
+        header_bg_color:"#3b82f6",
+      },
+      text:{
+        header_text_color:"#1e293b"
+      }
+    },
   },
   plugins: [
     require('tailwind-scrollbar-hide')
