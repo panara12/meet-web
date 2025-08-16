@@ -5,7 +5,7 @@ const fs = require('fs');
 //create folder if not present
 const uploadPath = path.join(__dirname, '..','public', 'tempUploads');
 if (!fs.existsSync(uploadPath)) {
-  fs.mkdirSync(uploadPath);
+  fs.mkdirSync(uploadPath,{ recursive: true });
 }
 
 //allowed img types
