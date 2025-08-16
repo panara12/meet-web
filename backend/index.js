@@ -17,6 +17,7 @@ const manualLog = require('./utils/manuallogger');
 const company = require('./routes/company')
 const sessionLoader = require('./utils/sessionlodder');
 const Location = require('./routes/location');
+const email = require('./routes/email');
 
 app.use(cors())
 // Body parser for JSON
@@ -51,6 +52,7 @@ app.use('/seller',tenent_middleware,seller)
 app.use('/salesman',tenent_middleware,salesman)
 app.use('/product',tenent_middleware,product);
 app.use('/location',tenent_middleware,Location);
+app.use('/email', email);
 
 app.get('/error', (req, res, next) => {
   // This will throw an error and be caught by your error handler
