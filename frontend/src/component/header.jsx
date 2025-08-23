@@ -1,7 +1,10 @@
 import React, { useState } from 'react';
 import { Menu, X } from 'lucide-react';
+import { useSelector } from "react-redux";
+import { Link } from 'react-router-dom';
 
 const Header = () => {
+  const userInfo = useSelector((state) => state.app.userInfo);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const toggleMenu = () => {
@@ -9,10 +12,10 @@ const Header = () => {
   };
 
   const navItems = [
-    { label: 'Home', href: '#' },
-    { label: 'Products', href: '#' },
-    { label: 'Contact Us', href: '#' },
-    { label: 'Terms & Conditions', href: '#' }
+    { label: 'Home', href: '/' },
+    { label: 'Products', href: '/products' },
+    { label: 'Contact Us', href: '/contact' },
+    { label: 'Terms & Conditions', href: '/terms' }
   ];
 
   return (
@@ -21,35 +24,34 @@ const Header = () => {
         <div className="flex justify-between items-center h-16">
           {/* Logo/Brand Name */}
           <div className="flex-shrink-0 flex items-center space-x-3">
-            <div className="w-10 h-10 bg-[#3b82f6] rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-lg">B</span>
-            </div>
-            <h1 className="text-xl font-bold text-[#1e293b]">
-              Bhavya Marketing
-            </h1>
+            <Link to="/" className="flex items-center space-x-3">
+              <div className="w-10 h-10 bg-[#3b82f6] rounded-lg flex items-center justify-center">
+                <span className="text-white font-bold text-lg">B</span>
+              </div>
+              <h1 className="text-xl font-bold text-[#1e293b]">
+                Bhavya Marketing
+              </h1>
+            </Link>
           </div>
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-8">
             {navItems.map((item, index) => (
-              <a
+              <Link
                 key={index}
-                href={item.href}
+                to={item.href}
                 className="text-[#64748b] hover:text-[#3b82f6] transition-colors duration-200 font-medium"
               >
                 {item.label}
-              </a>
+              </Link>
             ))}
-            <button className="bg-[#3b82f6] hover:bg-[#2563eb] text-white px-6 py-2 rounded-lg transition-colors duration-200 font-medium">
-              Login
-            </button>
+            <div>
+              <span>Hello, {userInfo?.user_email}</span>
+            </div>
           </nav>
 
-          {/* Mobile/Tablet Menu Button and Login */}
+          {/* Mobile/Tablet Menu Button */}
           <div className="md:hidden flex items-center space-x-4">
-            <button className="bg-[#3b82f6] hover:bg-[#2563eb] text-white px-4 py-2 rounded-lg transition-colors duration-200 font-medium text-sm">
-              Login
-            </button>
             <button
               onClick={toggleMenu}
               className="text-[#64748b] hover:text-[#3b82f6] transition-colors duration-200 p-2"
@@ -74,14 +76,14 @@ const Header = () => {
       >
         <nav className="px-4 py-4 space-y-4">
           {navItems.map((item, index) => (
-            <a
+            <Link
               key={index}
-              href={item.href}
+              to={item.href}
               onClick={() => setIsMenuOpen(false)}
               className="block text-[#64748b] hover:text-[#3b82f6] transition-colors duration-200 font-medium py-2 border-b border-[#e2e8f0] last:border-b-0"
             >
               {item.label}
-            </a>
+            </Link>
           ))}
         </nav>
       </div>

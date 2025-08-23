@@ -16,9 +16,11 @@ router.post('/addsalesman',async(req,res)=>{
         const saltRounds = 10;
         const hashedPassword = await bcrypt.hash(salesman_password, saltRounds);
         const Salesman = req.db.model("Salesman");
+        const Tenent_user_master = req.db.model("Tenent_user_master");
 
-        const new_selesman = new Salesman({salesman_name,salesman_email,salesman_password:hashedPassword,salesman_mobile,salesman_address,salesman_order_count,salesman_username,user_role})
+        const new_selesman = new Salesman({salesman_name,salesman_email,salesman_mobile,salesman_address,salesman_order_count,salesman_username,user_role})
         await new_selesman.save();
+        await Tenent_user_master.create({user_email:salesman_email,user_password:hashedPassword,user_role:"salesman"});
         manualLog(`salesman registred successfully :: ${new_selesman._id}`)
         res.status(200).json({
             message:"new salesman added",

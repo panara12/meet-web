@@ -2,7 +2,7 @@ import React from 'react'
 import Header from './header'
 import { Outlet } from 'react-router-dom'
 
-function Routesno() {
+function OutletSetup() {
   return (
     <>
         <Header/>
@@ -11,4 +11,4 @@ function Routesno() {
   )
 }
 
-export default Routesno
+export default OutletSetup

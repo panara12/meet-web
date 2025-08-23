@@ -1,22 +1,13 @@
 import axios from 'axios';
-import uri from './Url';
+import apiHelper from './Url';
 
-// Create axios instance with base configuration
-const emailAPI = axios.create({
-  baseURL: uri,
-  timeout: 10000,
-  headers: {
-    'Content-Type': 'application/json',
-    'x-tenent-domain':'bhavya_marketing'
-  },
-});
 
 // Email service functions
 export const emailService = {
   // Send contact form email
   sendContactEmail: async (contactData) => {
     try {
-      const response = await emailAPI.post('/email/emailTo', contactData);
+      const response = await apiHelper.post('/email/emailTo', contactData);
       return {
         success: true,
         data: response.data,
@@ -53,7 +44,7 @@ export const emailService = {
   // Test email service health
   testEmailService: async () => {
     try {
-      const response = await emailAPI.get('/email/emailTo');
+      const response = await apiHelper.get('/email/emailTo');
       return {
         success: true,
         data: response.data,
@@ -71,5 +62,4 @@ export const emailService = {
 };
 
 // Export the axios instance for custom usage if needed
-export { emailAPI };
 export default emailService;

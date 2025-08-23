@@ -60,7 +60,7 @@ router.post('/tenentupdate/:id',async(req,res)=>{
     try {
         const {id} = req.params;
         const user_data = req.body;
-        const updated_data =  await Tenent.findOneAndUpdate({_id:id},{$set: user_data},{new:true});
+        const updated_data =  await Tenent.findOneAndUpdate({_id:id},{$set: user_data},{new:true},{new:true});
         manualLog(`tenent updated seccussfully ::${updated_data._id}`)
         res.status(200).json({
             message:"the Tenent has been udated",
@@ -72,6 +72,5 @@ router.post('/tenentupdate/:id',async(req,res)=>{
         res.status(500).json({message:'Tenent data is not updated'})
     }
 })
-
 
 module.exports = router;

@@ -15,8 +15,10 @@ router.post('/adddistributer',async (req,res)=>{
     const saltRounds = 10;
     const hashedPassword = await bcrypt.hash(distributer_password, saltRounds);
     const Distributer = req.db.model("Distributer");
-    const new_user = new Distributer({distributer_name,distributer_mobile,distributer_email,distributer_password:hashedPassword,distributer_firms,distributer_city,distributer_username,distributer_plan,user_role});
+    const Tenent_user_master = req.db.model("Tenent_user_master");
+    const new_user = new Distributer({distributer_name,distributer_mobile,distributer_email,distributer_firms,distributer_city,distributer_username,distributer_plan,user_role});
     await new_user.save();
+    await Tenent_user_master.create({user_email:distributer_email,user_password:hashedPassword,user_role:"distributer"});
     manualLog(`new distributer added :: ${new_user._id}`)
 
     res.status(200).json({

@@ -2,14 +2,14 @@ const express = require('express')
 const manualLog = require('../utils/manuallogger');
 const path = require('path');
 const cloudinary = require('../utils/cloudinary');
-const distributer_session = require('../middleware/distributer_session');
 const cloudinary_upload = require('../utils/uploadWithCloudinary');
 const {upload,multerErrorHandler} = require('../middleware/multer');
 const cloudinary_delete = require('../utils/deleteWithCloudinary');
+const distributer_session = require('../middleware/distributer_session');
 
 const router = express.Router();
 
-router.post('/addproduct',distributer_session,upload.array('images',6),multerErrorHandler,async(req,res)=>{
+router.post('/addproduct', distributer_session, upload.array('images',6), multerErrorHandler, async(req,res)=>{
     manualLog('entered add products route')
     try {
         const {product_name,product_company,product_size,product_color,product_type,product_stock,product_price,product_photos,product_firm} = req.body;
@@ -26,16 +26,12 @@ router.post('/addproduct',distributer_session,upload.array('images',6),multerErr
         });
         const imageUrls = await Promise.all(uploadPromises);
 
-
         const Product = req.db.model("Product");
-        // product_photos = imageUrls;
-        // console.log(product_photos)
-
         const new_product = new Product({product_name,product_company,product_size:sizes,product_color:colors,product_type,product_stock,product_price,product_photos:imageUrls,product_firm})
         await new_product.save();
 
-        manualLog(`new product added :: ${new_product._id}`)
-        res.status(200).json({message:"new product added seccessfully",product:{new_product}});
+        manualLog(`new product added :: ${new_product._id} by user: ${req.session.user.username}`)
+        res.status(200).json({message:"new product added successfully",product:{new_product}});
     } catch (error) {
         console.log("there is error in add new products")
         manualLog(`there is error in add new products :: ${JSON.stringify(error)}`)
@@ -43,8 +39,7 @@ router.post('/addproduct',distributer_session,upload.array('images',6),multerErr
     }
 })
 
-
-router.post('/updateproduct/:id',distributer_session,upload.array('images',6),multerErrorHandler,async(req,res)=>{
+router.post('/updateproduct/:id', distributer_session, upload.array('images',6), multerErrorHandler, async(req,res)=>{
     manualLog("entered in update products")
     try {
         const { id } = req.params;
@@ -179,4 +174,4 @@ router.delete('/deleteproduct/:id',distributer_session,async(req,res)=>{
     }
 })
 
-module.exports = router
+module.exports = router;

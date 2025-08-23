@@ -33,6 +33,7 @@ const gettenentDb = async (dbName)=>{
         conn.model('Seller',require('./models/seller_model'));
         conn.model('Company',require('./models/company_model'));
         conn.model('Location',require('./models/location_model'));
+        conn.model('Tenent_user_master',require('./models/tenent_user_model'));
         connectionCache[dbName] = conn;
         return conn;
 

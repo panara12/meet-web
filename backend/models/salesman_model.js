@@ -12,11 +12,6 @@ const salesmanSchema = mongoose.Schema({
         match: [/\S+@\S+\.\S+/, 'Please use a valid email address']
     
     },
-    salesman_password:{
-        type:String,
-        required:[true,'Password id is required'],
-        minlength:[6,'password must be atleast 6 characters']
-    },
     salesman_mobile:{
         type:Number,
         required:[true,'must enter phone or mobile number'],

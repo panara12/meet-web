@@ -19,7 +19,14 @@ const sessionLoader = require('./utils/sessionlodder');
 const Location = require('./routes/location');
 const email = require('./routes/email');
 
-app.use(cors())
+const allowedOrigins = [
+  "http://localhost:5173","*"
+];
+
+app.use(cors({
+    origin: allowedOrigins,
+    credentials: true
+}));
 // Body parser for JSON
 app.use(express.json());
 // If you're sending form-data (urlencoded)
