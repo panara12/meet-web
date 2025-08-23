@@ -32,12 +32,8 @@ function App() {
             <Route path="/contact" element={<Contact/>}></Route>
           </Route>
           
-          {/* Dashboard Routes - Protected */}
-          <Route path="/dashboard" element={
-            <ProtectedRoute>
-              <DashboardLayout />
-            </ProtectedRoute>
-          }>
+          {/* Dashboard Routes - Temporarily Public (No Auth Required) */}
+          <Route path="/dashboard" element={<DashboardLayout />}>
             <Route index element={<Dashboard />} />
             <Route path="seller" element={<Seller />} />
             <Route path="salesman" element={<Salesman />} />

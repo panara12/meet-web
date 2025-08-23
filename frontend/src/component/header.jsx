@@ -36,15 +36,15 @@ const Header = () => {
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-8">
-            {navItems.map((item, index) => (
-              <Link
-                key={index}
-                to={item.href}
-                className="text-[#64748b] hover:text-[#3b82f6] transition-colors duration-200 font-medium"
-              >
-                {item.label}
-              </Link>
-            ))}
+            <Link to="/" className="text-[#64748b] hover:text-[#3b82f6] transition-colors duration-200 font-medium">
+              Home
+            </Link>
+            <Link to="/dashboard" className="text-[#64748b] hover:text-[#3b82f6] transition-colors duration-200 font-medium">
+              Dashboard
+            </Link>
+            <Link to="/contact" className="text-[#64748b] hover:text-[#3b82f6] transition-colors duration-200 font-medium">
+              Contact
+            </Link>
             <div>
               <span>Hello, {userInfo?.user_email}</span>
             </div>
@@ -75,16 +75,15 @@ const Header = () => {
         }`}
       >
         <nav className="px-4 py-4 space-y-4">
-          {navItems.map((item, index) => (
-            <Link
-              key={index}
-              to={item.href}
-              onClick={() => setIsMenuOpen(false)}
-              className="block text-[#64748b] hover:text-[#3b82f6] transition-colors duration-200 font-medium py-2 border-b border-[#e2e8f0] last:border-b-0"
-            >
-              {item.label}
-            </Link>
-          ))}
+          <Link to="/" className="block text-[#64748b] hover:text-[#3b82f6] transition-colors duration-200 font-medium py-2 border-b border-[#e2e8f0] last:border-b-0">
+            Home
+          </Link>
+          <Link to="/dashboard" className="block text-[#64748b] hover:text-[#3b82f6] transition-colors duration-200 font-medium py-2 border-b border-[#e2e8f0] last:border-b-0">
+            Dashboard
+          </Link>
+          <Link to="/contact" className="block text-[#64748b] hover:text-[#3b82f6] transition-colors duration-200 font-medium py-2 border-b border-[#e2e8f0] last:border-b-0">
+            Contact
+          </Link>
         </nav>
       </div>
 
