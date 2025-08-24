@@ -141,6 +141,8 @@ const AllProductList = () => {
     }
   ];
 
+  
+
   const categories = ["All", "Electronics", "Clothing", "Beauty", "Home", "Health", "Fitness"];
   const companies = ["All", "TechAudio Pro", "EcoFashion", "HealthTech", "BeautyCare", "EcoLife", "SoundMaster", "ArtisanCraft", "PhotoPro", "WellnessPlus", "SecureTech", "FitLife", "HomeStyle"];
 

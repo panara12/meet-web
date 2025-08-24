@@ -17,6 +17,7 @@ import UserProfile from './routes/UserProfile'
 import Product from './routes/Product'
 import AllProductList from './routes/AllProductList'
 import ProtectedRoute from './component/ProtectedRoute'
+import ProductAddScreen from './routes/addproduct'
 
 function App() {
   const [count, setCount] = useState(0)
@@ -42,6 +43,7 @@ function App() {
             <Route path="product/all" element={<AllProductList />} />
             <Route path="payment" element={<Payment />} />
             <Route path="profile" element={<UserProfile />} />
+            <Route path="addproduct" element={<ProductAddScreen />} />
           </Route>
         </Routes>
       </BrowserRouter>

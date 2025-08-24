@@ -99,6 +99,22 @@ const Product = () => {
     }
   ];
 
+  const companies_card = [
+    { id: 1, name: 'Nike', logo: '👟', color: 'from-gray-900 to-black' },
+    { id: 2, name: 'Adidas', logo: '⚡', color: 'from-blue-600 to-blue-800' },
+    { id: 3, name: 'Apple', logo: '🍎', color: 'from-gray-600 to-gray-800' },
+    { id: 4, name: 'Samsung', logo: '📱', color: 'from-blue-500 to-indigo-600' },
+    { id: 5, name: 'Sony', logo: '🎮', color: 'from-purple-600 to-purple-800' },
+    { id: 6, name: 'Microsoft', logo: '💻', color: 'from-green-500 to-green-700' },
+    { id: 7, name: 'Amazon', logo: '📦', color: 'from-orange-500 to-orange-600' },
+    { id: 8, name: 'Google', logo: '🔍', color: 'from-red-500 to-red-600' }
+  ];
+
+  const onCompanyClick = (company) => {
+    console.log(company);
+    navigate('/dashboard/addproduct')
+  };
+
   return (
     <div className="space-y-8">
       {/* Header */}
@@ -159,6 +175,41 @@ const Product = () => {
           </div>
         </div>
       </div>
+
+      <div className="w-full mb-8 sm:mb-12 px-4 sm:px-0">
+      <h2 className="text-xl sm:text-2xl font-bold text-gray-800 mb-4 sm:mb-6">Add Prodduct in Companies</h2>
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-3 sm:gap-4">
+        {companies_card.map((company) => (
+          <div
+            key={company.id}
+            onClick={() => onCompanyClick && onCompanyClick(company)}
+            className="relative bg-white border border-gray-200 rounded-xl p-4 sm:p-6 cursor-pointer group overflow-hidden transform transition-all duration-300 ease-out hover:scale-105 hover:shadow-xl hover:shadow-blue-100 hover:-translate-y-1"
+          >
+            {/* Gradient Background Overlay */}
+            <div className={`absolute inset-0 bg-gradient-to-br ${company.color} opacity-0 group-hover:opacity-10 transition-opacity duration-300 ease-out`} />
+            
+            {/* Content */}
+            <div className="relative z-10 flex flex-col items-center text-center space-y-2 sm:space-y-3">
+              {/* Logo with Animation */}
+              <div className="text-2xl sm:text-3xl mb-1 transform group-hover:scale-110 transition-transform duration-300 ease-out">
+                {company.logo}
+              </div>
+              
+              {/* Company Name */}
+              <span className="text-xs sm:text-sm font-semibold text-gray-700 group-hover:text-gray-900 transition-colors duration-300 leading-tight">
+                {company.name}
+              </span>
+            </div>
+
+            {/* Subtle Border Animation */}
+            <div className="absolute inset-0 rounded-xl border-2 border-transparent group-hover:border-blue-200 transition-colors duration-300" />
+            
+            {/* Shine Effect */}
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white to-transparent opacity-0 group-hover:opacity-20 transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-all duration-700 ease-out" />
+          </div>
+        ))}
+      </div>
+    </div>
 
       {/* Product List Section */}
       <div className="bg-card rounded-xl shadow-soft border border-light p-6">
