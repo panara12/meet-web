@@ -8,7 +8,7 @@ const tenent_checker = async(req,res,next)=>{
         //get the domain name and start the connection to the tenent db
         console.log("all tenents data",tenentCache);
         // const domain = req.headers.host.split(":")[0];
-        // console.log("domain",req.headers);
+        console.log("domain",req.headers);
         const domain = req.headers['x-tenent-domain'];
         const tenent_list = tenentCache.tenent;
         console.log("tenent domain ===",domain)

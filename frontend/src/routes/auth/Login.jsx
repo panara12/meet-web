@@ -1,12 +1,13 @@
 import { useState } from 'react';
-import { useLogin } from '../hooks/useLogin';
-import { setUserInfo } from '../store/slice/appSlice';
-import LoadingGif from '../component/loading';
-import ShowError from '../component/showError';
+import { useLogin } from '../../hooks/useLogin';
+import { setUserInfo } from '../../store/slice/appSlice';
+import LoadingGif from '../../component/loading';
+import ShowError from '../../component/showError';
 
 function Login() {
   const [formData, setFormData] = useState({
     username: '',
+    domain:'',
     password: ''
   });
 const { mutate: loginMutation, isPending, isError, error } = useLogin();
@@ -53,6 +54,21 @@ const { mutate: loginMutation, isPending, isError, error } = useLogin();
                 className="appearance-none rounded-none relative block w-full px-3 py-2 border border-light placeholder-medium text-dark rounded-t-md focus:outline-none focus:ring-primary focus:border-primary focus:z-10 sm:text-sm"
                 placeholder="Username"
                 value={formData.username}
+                onChange={handleChange}
+              />
+            </div>
+            <div>
+              <label htmlFor="domain" className="sr-only">
+                domain
+              </label>
+              <input
+                id="domain"
+                name="domain"
+                type="text"
+                required
+                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-light placeholder-medium text-dark rounded-t-md focus:outline-none focus:ring-primary focus:border-primary focus:z-10 sm:text-sm"
+                placeholder="domain"
+                value={formData.domain}
                 onChange={handleChange}
               />
             </div>

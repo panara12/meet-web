@@ -6,7 +6,6 @@ const apiHelper = axios.create({
     withCredentials:true,
     headers: {
         'Content-Type': 'application/json',
-        "x-tenent-domain":"radhemarketing"
     },
 })
 

@@ -1,26 +1,12 @@
-import { useState } from 'react'
 import {Route,Routes,BrowserRouter} from 'react-router-dom'
 import './App.css'
-import Home from './routes/Home'
 import OutletSetup from './component/Outlet'
-import User_tracker from './routes/User_tracker'
-import ProductDetail from './routes/ProductDetail'
-import Contact from './routes/Contact'
-import Login from './routes/Login'
-import DashboardLayout from './component/DashboardLayout'
-import Dashboard from './routes/Dashboard'
-import Seller from './routes/Seller'
-import Salesman from './routes/Salesman'
-import Packaging from './routes/Packaging'
-import Payment from './routes/Payment'
-import UserProfile from './routes/UserProfile'
-import Product from './routes/Product'
-import AllProductList from './routes/AllProductList'
-import ProtectedRoute from './component/ProtectedRoute'
-import ProductAddScreen from './routes/addproduct'
+import Login from './routes/auth/Login'
+import Distributer_router from './routes/distributer/distributer_router'
+import Seller_router from './routes/seller/seller_router'
+import Salesman_router from './routes/salesman/salesman_router'
 
 function App() {
-  const [count, setCount] = useState(0)
 
   return (
     <>
@@ -28,22 +14,11 @@ function App() {
         <Routes>
           <Route path="/login" element={<Login/>}></Route>
           <Route element={<OutletSetup/>}>
-            <Route index element={<Home/>}></Route>
-            <Route path="/product/:id" element={<ProductDetail/>}></Route>
-            <Route path="/contact" element={<Contact/>}></Route>
-          </Route>
-          
-          {/* Dashboard Routes - Temporarily Public (No Auth Required) */}
-          <Route path="/dashboard" element={<DashboardLayout />}>
-            <Route index element={<Dashboard />} />
-            <Route path="seller" element={<Seller />} />
-            <Route path="salesman" element={<Salesman />} />
-            <Route path="packaging" element={<Packaging />} />
-            <Route path="product" element={<Product />} />
-            <Route path="product/all" element={<AllProductList />} />
-            <Route path="payment" element={<Payment />} />
-            <Route path="profile" element={<UserProfile />} />
-            <Route path="addproduct" element={<ProductAddScreen />} />
+            <Route path='/distributer/*' element={<Distributer_router />}></Route>
+            <Route path='/saller/*' element={<Seller_router />}></Route>
+            <Route path='/salesman/*' element={<Salesman_router />}></Route>
+            {/* <Route path='/billing/*'></Route>
+            <Route path='/packaging/*'></Route> */}
           </Route>
         </Routes>
       </BrowserRouter>
