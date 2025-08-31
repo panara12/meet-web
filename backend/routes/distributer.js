@@ -1,24 +1,42 @@
 const express = require('express');
 const bcrypt = require('bcrypt');
 const distributer_session_checker = require('../middleware/distributer_session');
+const Tenent_user_master = require('../models/tenent_user_model');
 const router = express.Router();
-const tenent_checker = require('../middleware/tenent_middleware');
 const manualLog = require('../utils/manuallogger');
-
-router.use(tenent_checker);
 
 router.post('/adddistributer',async (req,res)=>{
     manualLog('entered distributer registration route')
     try {
-    const {distributer_name,distributer_mobile,distributer_email,distributer_password,distributer_firms,distributer_city,distributer_username,distributer_plan,user_role} = req.body
-    console.log(req.body)
+    const {distributer_name,
+        distributer_mobile,
+        distributer_email,
+        distributer_password,
+        distributer_firms,
+        distributer_city,
+        distributer_username,
+        distributer_plan,
+        user_tenant,
+        user_role} = req.body
+    // console.log(req.body)
     const saltRounds = 10;
     const hashedPassword = await bcrypt.hash(distributer_password, saltRounds);
+    //the distributer table 
+    console.log("Distributer model export: ", req.db.model("Distributer"));
     const Distributer = req.db.model("Distributer");
-    const Tenent_user_master = req.db.model("Tenent_user_master");
-    const new_user = new Distributer({distributer_name,distributer_mobile,distributer_email,distributer_firms,distributer_city,distributer_username,distributer_plan,user_role});
+    const new_user = new Distributer({distributer_name,
+        distributer_mobile,
+        distributer_email,
+        distributer_firms,
+        distributer_city,
+        distributer_username,
+        distributer_plan,
+        user_tenant,
+        user_role});
     await new_user.save();
-    await Tenent_user_master.create({user_email:distributer_email,user_password:hashedPassword,user_role:"distributer"});
+
+    //main tenent master
+    await Tenent_user_master.create({user_email:distributer_email,user_username:distributer_username,user_password:hashedPassword,user_role:"distributer",user_tenant:user_tenant});
     manualLog(`new distributer added :: ${new_user._id}`)
 
     res.status(200).json({

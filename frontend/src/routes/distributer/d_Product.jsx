@@ -112,7 +112,7 @@ const Product = () => {
 
   const onCompanyClick = (company) => {
     console.log(company);
-    navigate('/dashboard/addproduct')
+    navigate('/distributer/addproduct')
   };
 
   return (
@@ -278,7 +278,7 @@ const Product = () => {
         {/* View More Button */}
         <div className="text-center mt-8 pt-6 border-t border-light">
           <button 
-            onClick={() => navigate('/dashboard/product/all')}
+            onClick={() => navigate('/distributer/product/all')}
             className="inline-flex items-center space-x-2 bg-card text-primary border border-primary px-6 py-3 rounded-lg font-medium hover:bg-primary hover:text-white transition-all duration-200"
           >
             <span>View All Products</span>

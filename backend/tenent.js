@@ -19,11 +19,12 @@ const gettenentDb = async (dbName)=>{
     }
 
     //get new connection for each tenent 
-    const mongoose_uri =  process.env.DYNAMIC_MONGOOSE_URL_FIRST+dbName+process.env.DYNAMIC_MONGOOSE_URL_LAST;
+    const mongoose_uri =  process.env.MONGODB_URL+dbName;
 
     // console.log("modanna"+mongoose_uri);
     try {
         const conn = await mongoose.createConnection(mongoose_uri);
+        // console.log(conn);
 
         //getting assecc for all the models used in connection
         conn.model('Distributer',require('./models/distributer_model'));
@@ -33,7 +34,6 @@ const gettenentDb = async (dbName)=>{
         conn.model('Seller',require('./models/seller_model'));
         conn.model('Company',require('./models/company_model'));
         conn.model('Location',require('./models/location_model'));
-        conn.model('Tenent_user_master',require('./models/tenent_user_model'));
         connectionCache[dbName] = conn;
         return conn;
 

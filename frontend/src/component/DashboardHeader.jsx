@@ -13,16 +13,16 @@ const DashboardHeader = () => {
 
   const handleProfileClick = () => {
     setIsProfileDropdownOpen(false);
-    navigate('/dashboard/profile');
+    navigate('/distributer/profile');
   };
 
   const navItems = [
-    { name: 'Home', path: '/dashboard' },
-    { name: 'Seller', path: '/dashboard/seller' },
-    { name: 'Salesman', path: '/dashboard/salesman' },
-    { name: 'Packaging', path: '/dashboard/packaging' },
-    { name: 'Product', path: '/dashboard/product' },
-    { name: 'Payment', path: '/dashboard/payment' }
+    { name: 'Home', path: 'distributer/dashboard' },
+    { name: 'Seller', path: 'distributer/seller' },
+    { name: 'Salesman', path: 'distributer/salesman' },
+    { name: 'Packaging', path: 'distributer/packaging' },
+    { name: 'Product', path: 'distributer/product' },
+    { name: 'Payment', path: 'distributer/payment' }
   ];
 
   return (

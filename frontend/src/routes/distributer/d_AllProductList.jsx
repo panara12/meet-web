@@ -152,7 +152,7 @@ const AllProductList = () => {
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-3">
           <button 
-            onClick={() => navigate('/dashboard/product')}
+            onClick={() => navigate('/distributer/product')}
             className="p-2 text-[#64748b] hover:text-[#3b82f6] hover:bg-[#f1f5f9] rounded-md transition-colors duration-200"
           >
             <ArrowLeft className="w-5 h-5" />

@@ -7,7 +7,7 @@ module.exports = session({
     saveUninitialized: false,
     name: 'user_session',
     store: MongoStore.create({
-        mongoUrl: process.env.MONGODB_URL,
+        mongoUrl: process.env.MONGODB_URL+'user_master',
         collectionName: 'sessions'
     }),
     cookie: {

@@ -34,12 +34,13 @@ app.use(express.urlencoded({ extended: true }));
 
 
 
-mongoose.connect(process.env.MONGODB_URL)
+mongoose.connect(process.env.MONGODB_URL+'user_master')
 .then(async ()=>{
     console.log('db connected');
     //get all  the tenents list on server starts
     const tenent_list = await getTenentList();
     tenentCache.tenent = tenent_list;
+    console.log(tenentCache);
     manualLog('db is connected broooo');
 })
 .catch(()=>{
@@ -53,7 +54,7 @@ app.use(sessionLoader);
 
 app.use('/tenent',tenent);
 app.use("/company",tenent_middleware,company);
-app.use('/auth',tenent_middleware,auth);
+app.use('/auth',auth);
 app.use('/distributer',tenent_middleware,distributer);
 app.use('/seller',tenent_middleware,seller)
 app.use('/salesman',tenent_middleware,salesman)

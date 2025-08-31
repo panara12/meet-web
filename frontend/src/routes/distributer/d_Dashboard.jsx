@@ -1,15 +1,20 @@
-import React from 'react';
+import { Icon } from "@iconify/react";
 import { useSelector } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
 
 const Dashboard = () => {
+  const navigate = useNavigate();
   const userInfo = useSelector((state) => state.app.userInfo);
+  // setuserinfo(loggedUser.data.user);
+  // console.log(loggedUser);
+
 
   return (
     <div className="space-y-6">
       {/* Welcome Section */}
       <div className="bg-white rounded-lg shadow-sm border border-[#e2e8f0] p-6">
         <h1 className="text-2xl font-bold text-[#1e293b] mb-2">
-          Welcome to Meet Dashboard
+          Welcome to {userInfo.username} Dashboard
         </h1>
         <p className="text-[#64748b]">
           Hello, {userInfo?.user_email || 'User'}! Manage your business operations from here.
@@ -17,55 +22,78 @@ const Dashboard = () => {
       </div>
 
       {/* Quick Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div className="bg-white rounded-lg shadow-sm border border-[#e2e8f0] p-6">
-          <div className="flex items-center">
-            <div className="w-12 h-12 bg-[#3b82f6] rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-xl">S</span>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 p-3">
+        {/* Sellers */}
+        <div className="bg-white rounded-lg shadow-sm border border-[#e2e8f0] p-6 
+                        hover:shadow-lg hover:border-[#3b82f6] hover:-translate-y-1 
+                        transition-all duration-300 cursor-pointer">
+          <a className="flex items-center " href="/distributer/seller">
+            <div className="w-12 h-12 bg-[#3b82f6] rounded-lg flex items-center justify-center 
+                            group-hover:scale-110 transition-transform duration-300">
+              <span className="text-white font-bold text-xl">
+                <Icon icon="iconoir:user-cart" width="24" height="24" />
+              </span>
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-[#64748b]">Total Sellers</p>
+              <p className="text-sm font-medium text-[#64748b]">Sellers</p>
               <p className="text-2xl font-bold text-[#1e293b]">24</p>
             </div>
-          </div>
+          </a>
         </div>
 
-        <div className="bg-white rounded-lg shadow-sm border border-[#e2e8f0] p-6">
-          <div className="flex items-center">
-            <div className="w-12 h-12 bg-[#10b981] rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-xl">P</span>
+        {/* Salesman */}
+        <div className="bg-white rounded-lg shadow-sm border border-[#e2e8f0] p-6 
+                        hover:shadow-lg hover:border-[#10b981] hover:-translate-y-1 
+                        transition-all duration-300 cursor-pointer">
+          <a className="flex items-center" href="/distributer/salesman">
+            <div className="w-12 h-12 bg-[#10b981] rounded-lg flex items-center justify-center 
+                            transition-transform duration-300 group-hover:scale-110">
+              <span className="text-white font-bold text-xl">
+                <Icon icon="fa7-solid:user-tie" width="24" height="24" />
+              </span>
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-[#64748b]">Total Products</p>
+              <p className="text-sm font-medium text-[#64748b]">Salesman</p>
               <p className="text-2xl font-bold text-[#1e293b]">156</p>
             </div>
-          </div>
+          </a>
         </div>
 
-        <div className="bg-white rounded-lg shadow-sm border border-[#e2e8f0] p-6">
-          <div className="flex items-center">
-            <div className="w-12 h-12 bg-[#f59e0b] rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-xl">O</span>
+        {/* Orders */}
+        <div className="bg-white rounded-lg shadow-sm border border-[#e2e8f0] p-6 
+                        hover:shadow-lg hover:border-[#f59e0b] hover:-translate-y-1 
+                        transition-all duration-300 cursor-pointer">
+          <a className="flex items-center" href="/distributer/packaging">
+            <div className="w-12 h-12 bg-[#f59e0b] rounded-lg flex items-center justify-center 
+                            transition-transform duration-300 group-hover:scale-110">
+              <span className="text-white font-bold text-xl">
+                <Icon icon="tabler:packge-export" width="24" height="24" />
+              </span>
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-[#64748b]">Pending Orders</p>
+              <p className="text-sm font-medium text-[#64748b]">Packaging</p>
               <p className="text-2xl font-bold text-[#1e293b]">12</p>
             </div>
-          </div>
+          </a>
         </div>
 
-        <div className="bg-white rounded-lg shadow-sm border border-[#e2e8f0] p-6">
-          <div className="flex items-center">
-            <div className="w-12 h-12 bg-[#ef4444] rounded-lg flex items-center justify-center">
+        {/* Payment */}
+        <div className="bg-white rounded-lg shadow-sm border border-[#e2e8f0] p-6 
+                        hover:shadow-lg hover:border-[#ef4444] hover:-translate-y-1 
+                        transition-all duration-300 cursor-pointer">
+          <a className="flex items-center" href="/distributer/payment">
+            <div className="w-12 h-12 bg-[#ef4444] rounded-lg flex items-center justify-center 
+                            transition-transform duration-300 group-hover:scale-110">
               <span className="text-white font-bold text-xl">$</span>
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-[#64748b]">Revenue</p>
+              <p className="text-sm font-medium text-[#64748b]">Payment</p>
               <p className="text-2xl font-bold text-[#1e293b]">₹45.2K</p>
             </div>
-          </div>
+          </a>
         </div>
       </div>
+
 
       {/* Recent Activity */}
       <div className="bg-white rounded-lg shadow-sm border border-[#e2e8f0] p-6">

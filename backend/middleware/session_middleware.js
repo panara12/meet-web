@@ -1,8 +1,8 @@
 const crypto = require('crypto');
 
-function generateCookieName(tenant, role, username) {
-    const hash = crypto.createHash('md5').update(username).digest('hex');
-    return `sid_${tenant}_${role}_${hash}`;
+const generateCookieName =  ( role, username) => {
+    const hash =  crypto.createHash('md5').update(username).digest('hex');
+    return `sid_${role}_${hash}`;
 }
 
 function attachCustomCookie(req, cookieName) {

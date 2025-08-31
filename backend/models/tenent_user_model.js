@@ -5,8 +5,11 @@ const user_tenent_Schema = mongoose.Schema({
     user_email:{
         type:String,
         required:[true,'Email id is required'],
-        unique: true,
         match: [/\S+@\S+\.\S+/, 'Please use a valid email address']
+    },
+    user_username:{
+        type:String,
+        required:[true,"please enter the username"]
     },
     user_password:{
         type:String,
@@ -20,8 +23,13 @@ const user_tenent_Schema = mongoose.Schema({
         lowercase: true, // optional: ensures value is stored in lowercase
         trim: true,
         default:"salesman"
+    },
+    user_tenant:{
+        type:String,
+        required:[true,"please enter the tenant name"]
     }
 },{  timestamps: true  })
 
 
-module.exports = user_tenent_Schema;
+const tenent_user_master = mongoose.model('tenant_user_master',user_tenent_Schema);
+module.exports = tenent_user_master

@@ -2,7 +2,8 @@ const express = require('express')
 const Seller = require('../models/seller_model');
 const bcrypt = require('bcrypt');
 const seller_session_checker = require('../middleware/seller_session');
-const distributer_session_checker = require('../middleware/distributer_session')
+const distributer_session_checker = require('../middleware/distributer_session');
+const Tenent_user_master = require("../models/tenent_user_model");
 const router = express.Router()
 const tenent_checker = require('../middleware/tenent_middleware');
 const manualLog = require('../utils/manuallogger');
@@ -17,11 +18,10 @@ router.post('/addseller',async(req,res)=>{
         const saltRounds = 10;
         const hashedPassword = await bcrypt.hash(seller_password, saltRounds);
         const Seller = req.db.model("Seller");
-        const Tenent_user_master = req.db.model("Tenent_user_master");
 
         const new_seller = new Seller({seller_name,seller_email,seller_password:hashedPassword,seller_mobile,seller_address,seller_area,seller_city,seller_username,user_role})
         await new_seller.save();
-        await Tenent_user_master.create({user_email:seller_email,user_password:hashedPassword,user_role:"seller"});
+        await Tenent_user_master.create({user_email:seller_email,user_password:hashedPassword,user_username:seller_username,user_tenant:req.session.user.tenant,user_role:"seller"});
         manualLog(`seller registred successfully :: ${new_seller._id}`)
         res.status(200).json({
             message:"new seller added",

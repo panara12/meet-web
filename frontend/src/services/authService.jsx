@@ -1,8 +1,12 @@
 import apiHelper from '../utils/Url'
 
-console.log(apiHelper);
+
 const authServices = {
-    login : (payload)=> apiHelper.post('/auth/login',{username: payload.username,password:payload.password}, {headers:{ "x-tenent-domain":payload.domain }})
+    login : (payload)=> apiHelper.post('/auth/login',{username: payload.username,password:payload.password}),
+    getLoggedUser : async ()=> {
+        const res = await apiHelper.get('/auth/me')
+        return res.data.user;
+    }
 }
 
 export default authServices;

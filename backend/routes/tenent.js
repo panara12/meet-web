@@ -2,7 +2,9 @@ const express = require('express');
 const Tenent = require('../models/tenent_model');
 const bcrypt = require('bcrypt');
 const manualLog = require('../utils/manuallogger');
+const getTenentList = require('../utils/tenentgeter');
 const router = express.Router();
+
 
 router.post('/addtenent',async (req,res)=>{
     
@@ -15,6 +17,8 @@ router.post('/addtenent',async (req,res)=>{
     
     const new_user = new Tenent({D_name,D_domain,D_plan,D_payment,D_dbname});
     await new_user.save();
+
+    await getTenentList();
     manualLog(`new tenet is added :: ${new_user._id} = ${new_user.D_name}`);
 
     res.status(200).json({

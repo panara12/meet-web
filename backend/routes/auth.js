@@ -1,25 +1,23 @@
 const express = require('express')
 const bcrypt = require('bcrypt')
 const router = express.Router()
-const tenent_checker = require('../middleware/tenent_middleware');
+const Tenent_user_master = require('../models/tenent_user_model');
 const { generateCookieName, attachCustomCookie} = require('../middleware/session_middleware')
 const manualLog = require('../utils/manuallogger');
-
-router.use(tenent_checker)
 
 //comman login 
 
 router.post('/login',async(req,res)=>{
     manualLog(`entered in login`)
     try {
-        const {username,password,user_role} = req.body
-        const Tenent_user_master = req.db.model("Tenent_user_master");
+        const {username,password} = req.body
         const user_data = await Tenent_user_master.findOne({
             $or: [
                 { user_email: username },
                 { user_username: username }
             ]
         });
+        // console.log("get user data",user_data);
 
         if(user_data == null){
             return res.status(400).send({ 
@@ -36,8 +34,9 @@ router.post('/login',async(req,res)=>{
             });
         }
 
-        const cookieName = generateCookieName(req.tenent.D_domain, user_data.user_role, username);
-        const result = attachCustomCookie(req, cookieName);
+        const cookieName = await generateCookieName(user_data.user_role, username);
+        const result = await attachCustomCookie(req, cookieName);
+        // console.log("cookie setetd",result);
         if(!result){
             return res.status(500).send({
                 message:"error in setting session",
@@ -49,7 +48,7 @@ router.post('/login',async(req,res)=>{
             user_id: user_data._id,
             user_role: user_data.user_role,
             username,
-            tenant: req.tenent.D_domain
+            tenant: user_data.user_tenant
         };
 
         manualLog(`user logged in successfully: ${username}`);
@@ -57,14 +56,37 @@ router.post('/login',async(req,res)=>{
                 res.status(200).send({
                 success:true,
                 message:'user logged in successfully',
-                user: user_data
+                user: req.session.user
                 });
             },4000);
         
 
     } catch (error) {
         manualLog(`Error in user login: ${JSON.stringify(error)}`);
-        res.status(500).send({ message: "Error in user login" });
+        res.status(500).send({ message: "Error in user login",error });
+    }
+})
+
+
+router.get('/me',(req,res)=>{
+    manualLog(`entered in get me`);
+    console.log("auth me")
+    try {
+        if(req.session && req.session.user){
+            manualLog(`got the user data`);
+            res.send({
+                loggedIn: true,
+                user: req.session.user, // you probably stored {id, role, name}
+            });
+        }else{
+            res.status(401).send({
+                loggedIn: false,
+                message: "Session expired or not logged in",
+            })
+        }
+    } catch (error) {
+        manualLog(`Error in auth me: ${JSON.stringify(error)}`);
+        res.status(500).send({ message: "Error in auth me",error });
     }
 })
 

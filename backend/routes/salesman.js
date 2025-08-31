@@ -4,27 +4,56 @@ const bcrypt = require('bcrypt');
 const router = express.Router()
 const tenent_checker = require('../middleware/tenent_middleware');
 const manualLog = require('../utils/manuallogger');
+const Tenent_user_master = require("../models/tenent_user_model");
 const distributer_session_checker = require('../middleware/distributer_session');
+const doc_cloudinary_upload = require('../utils/uploadWithCloudinary');
+const { upload, multerErrorHandler } = require('../middleware/multer');
 
 router.use(tenent_checker);
 
-router.post('/addsalesman',async(req,res)=>{
+router.post('/addsalesman',distributer_session_checker,upload.array('images',2), multerErrorHandler,async(req,res)=>{
     manualLog('entered in add new salesman route')
     try {
-        const {salesman_name,salesman_email,salesman_password,salesman_mobile,salesman_address,salesman_order_count,salesman_username,user_role} = req.body
+        const {salesman_name,
+            salesman_email,
+            salesman_password,
+            salesman_mobile,
+            salesman_address,
+            salesman_order_count,
+            salesman_username,
+            user_role} = req.body
         //hash round and convert normal password to hasspassword
         const saltRounds = 10;
         const hashedPassword = await bcrypt.hash(salesman_password, saltRounds);
-        const Salesman = req.db.model("Salesman");
-        const Tenent_user_master = req.db.model("Tenent_user_master");
 
-        const new_selesman = new Salesman({salesman_name,salesman_email,salesman_mobile,salesman_address,salesman_order_count,salesman_username,user_role})
-        await new_selesman.save();
-        await Tenent_user_master.create({user_email:salesman_email,user_password:hashedPassword,user_role:"salesman"});
-        manualLog(`salesman registred successfully :: ${new_selesman._id}`)
+        const uploadPromises = req.files.map(file => {
+            const customFileName = `${Date.now()}-${path.parse(file.originalname).name}`;
+            const local_path = path.join(file.destination, file.filename);
+            return doc_cloudinary_upload(local_path, tenent_username,customFileName);
+        });
+        const imageUrls = await Promise.all(uploadPromises);
+
+
+        const Salesman = req.db.model("Salesman");
+
+        const new_salesman = new Salesman({salesman_name,
+            salesman_email,
+            salesman_mobile,
+            salesman_address,
+            salesman_idphoto:imageUrls,
+            salesman_order_count,
+            salesman_username,
+            user_role})
+        await new_salesman.save();
+        await Tenent_user_master.create({user_email:salesman_email,
+            user_password:hashedPassword,
+            user_username:salesman_username,
+            user_tenant:req.session.user.tenant,
+            user_role:"salesman"});
+        manualLog(`salesman registred successfully :: ${new_salesman._id}`)
         res.status(200).json({
             message:"new salesman added",
-            salesman:{new_selesman}
+            salesman:{new_salesman}
         })
     } catch (error) {
         if(error.name == 'ValidationError'){
@@ -33,9 +62,9 @@ router.post('/addsalesman',async(req,res)=>{
             manualLog(`there is a validation error in salesman registration :: ${err.message}`)
             res.status(400).json({message:error_message})
         }else{
-        console.log('failed to add new salesman')
+        console.log('failed to add new salesman',error)
         manualLog('there is error in salesman registration')
-        res.status(500).json({message:"new salesman not added"})  
+        res.status(500).json({message:"new salesman not added",error})  
         }  
     }
 })

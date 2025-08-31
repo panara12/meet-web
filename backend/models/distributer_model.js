@@ -36,6 +36,10 @@ const distributerSchema = mongoose.Schema({
         required:[true,'please enter the plan name'],
         enum:['bronze','silver','gold','platinum']
     },
+    user_tenant:{
+        type:String,
+        required:[true,"please enter user tenant name"]
+    },
     user_role:{
         type:String,
         enum:['distributer','seller','salesman'],

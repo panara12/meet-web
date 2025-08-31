@@ -161,7 +161,7 @@ const Payment = () => {
     .reduce((sum, p) => sum + parseInt(p.amountCollected.replace('₹', '').replace(',', '')), 0);
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 p-2">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>

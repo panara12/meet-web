@@ -24,5 +24,5 @@ const tenentSchema = mongoose.Schema({
     }
 })
 
-const tenent = mongoose.model('user_master',tenentSchema);
+const tenent = mongoose.model('tenant_master',tenentSchema);
 module.exports = tenent

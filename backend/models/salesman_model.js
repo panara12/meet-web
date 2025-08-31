@@ -1,5 +1,20 @@
 const mongoose = require('mongoose')
 
+const imageSchema = mongoose.Schema({
+    doc_name:{
+        type:String,
+        required:[true,'please enter the doc name']
+    },
+    url:{
+        type:String,
+        required:[true,'please enter img url']
+    },
+    public_id:{
+        type:String,
+        required:[true,"please enter the public id"]
+    }
+});
+
 const salesmanSchema = mongoose.Schema({
     salesman_name:{
         type:String,
@@ -23,7 +38,7 @@ const salesmanSchema = mongoose.Schema({
         }
     },
     salesman_idphoto:{
-        type:[String]
+        type:[imageSchema]
     },
     salesman_address:{
         type:String
