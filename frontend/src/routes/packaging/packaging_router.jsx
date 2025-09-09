@@ -1,18 +1,15 @@
 import React from 'react'
 import {Routes,Route} from 'react-router-dom';
+import Dashboard  from './p_dashboard';
+import OrdersList from './p_orderList';
+import OrderDetails from './p_orderDetails';
 
 function Packaging_router() {
   return (
     <Routes>
-        <Route path='dashboard' element={<Dashboard />} />
-        <Route path="seller" element={<Seller />} />
-        <Route path="salesman" element={<Salesman />} />
-        <Route path="packaging" element={<Packaging />} />
-        <Route path="product" element={<Product />} />
-        <Route path="product/all" element={<AllProductList />} />
-        <Route path="payment" element={<Payment />} />
-        <Route path="profile" element={<UserProfile />} />
-        <Route path="addproduct" element={<ProductAddScreen />} />
+        <Route path='/dashboard' element={<Dashboard />} />
+        <Route path='/orderslist' element={<OrdersList />}></Route>
+        <Route path='/orderdetails' element={<OrderDetails />}></Route>
     </Routes>
   )
 }

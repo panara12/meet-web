@@ -8,11 +8,11 @@ const tenent_checker = async(req,res,next)=>{
         //get the domain name and start the connection to the tenent db
         console.log("all tenents data",tenentCache);
         const user_tenant = "";
-        if(req.session.user.tenent){
+        console.log(req.session.user);
+        if(!req.session.user.tenant){
             const {user_tenant} = req.body;
             user_tenant = user_tenant;
         }
-        console.log(req.session.user);
 
         const domain = req.session?.user?.tenant || user_tenant;
         const tenent_list = tenentCache.tenent;

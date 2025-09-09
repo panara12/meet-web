@@ -80,6 +80,10 @@
   .scrollbar-hide::-webkit-scrollbar {
     display: none;
   }
+  .brand-gradient-dark {
+    background-image: linear-gradient(to bottom right, #0f172a, #1e3a8a, #1e293b);
+  }
+
   .scrollbar-hide {
     -ms-overflow-style: none;
     scrollbar-width: none;
@@ -275,3 +279,9 @@
     box-shadow: var(--shadow-soft);
   }
 }
+
+.feature-box {
+    padding: 20px 70px;
+    border-radius: 10px;
+    background-color: #ffffff1a;
+  }

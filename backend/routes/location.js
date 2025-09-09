@@ -6,7 +6,7 @@ const router = express.Router()
 router.post('/locationEntry',async(req,res)=>{
     try {
         const user_id = req.session.user.user_id;
-        const tenent_name = req.session.user.tenent;
+        const tenent_name = req.session.user.tenant;
 
         const store_location = await Store_location(req.body,user_id,tenent_name);
         if(!store_location){

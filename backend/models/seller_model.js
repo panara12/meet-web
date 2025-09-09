@@ -37,11 +37,10 @@ const sellerSchema = mongoose.Schema({
     },
     user_role:{
         type:String,
-        enum:['distributer','seller','salesman'],
-        required: true,
-        lowercase: true, // optional: ensures value is stored in lowercase
+        enum:['Seller'],
+        required: true, // optional: ensures value is stored in lowercase
         trim: true,
-        default:"seller"
+        default:"Seller"
     }
 },{  timestamps: true  })
 

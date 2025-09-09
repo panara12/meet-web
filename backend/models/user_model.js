@@ -3,6 +3,7 @@ const mongoose = require('mongoose')
 const imageSchema = mongoose.Schema({
     doc_name:{
         type:String,
+        default:"adhaar",
         required:[true,'please enter the doc name']
     },
     url:{
@@ -15,19 +16,19 @@ const imageSchema = mongoose.Schema({
     }
 });
 
-const salesmanSchema = mongoose.Schema({
-    salesman_name:{
+const userSchema = mongoose.Schema({
+    user_name:{
         type:String,
-        required:[true,'Salesman name is required']
+        required:[true,'name is required']
     },
-    salesman_email:{
+    user_email:{
         type:String,
         required:[true,'Email id is required'],
         unique: true,
         match: [/\S+@\S+\.\S+/, 'Please use a valid email address']
     
     },
-    salesman_mobile:{
+    user_mobile:{
         type:Number,
         required:[true,'must enter phone or mobile number'],
         validate: {
@@ -37,28 +38,24 @@ const salesmanSchema = mongoose.Schema({
             message: 'Mobile number must be exactly 10 digits'
         }
     },
-    salesman_idphoto:{
+    user_idphoto:{
         type:[imageSchema]
     },
-    salesman_address:{
+    user_address:{
         type:String
     },
-    salesman_order_count:{
-        type:Number
-    },
-    salesman_username:{
+    user_username:{
         type:String,
         required:[true,"please enter username"]
     },
     user_role:{
         type:String,
-        enum:['distributer','seller','salesman'],
+        enum:["Salesman","Packaging","Billing"],
         required: true,
-        lowercase: true, // optional: ensures value is stored in lowercase
         trim: true,
-        default:"salesman"
+        default:"user"
     }
 },{  timestamps: true  })
 
 
-module.exports = salesmanSchema;
+module.exports = userSchema;

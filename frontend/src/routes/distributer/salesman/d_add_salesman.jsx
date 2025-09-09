@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { ArrowLeft, Upload, X, Save, User, Mail, Phone, MapPin, Camera, UserCheck } from 'lucide-react';
+import { addSalesman } from '../../../hooks/distributer/addSalesman';
+import LoadingGif from '../../../component/loading';
 
 const AddSalesmanPage = () => {
   const [formData, setFormData] = useState({
@@ -7,6 +9,7 @@ const AddSalesmanPage = () => {
     salesman_email: '',
     salesman_mobile: '',
     salesman_address: '',
+    images:null,
     salesman_username: '',
     user_role: 'salesman'
   });
@@ -14,6 +17,7 @@ const AddSalesmanPage = () => {
   const [idPhotos, setIdPhotos] = useState([]);
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { mutate: addSalesmanMutation, isPending, isError, error } = addSalesman();
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -66,6 +70,11 @@ const AddSalesmanPage = () => {
       newErrors.salesman_email = 'Please use a valid email address';
     }
 
+    //password validation
+    if (!formData.salesman_password.trim()) {
+      newErrors.salesman_password = 'password id is required';
+    }
+
     // Mobile validation
     if (!formData.salesman_mobile.trim()) {
       newErrors.salesman_mobile = 'Must enter phone or mobile number';
@@ -91,7 +100,12 @@ const AddSalesmanPage = () => {
 
     // Simulate API call
     try {
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      setFormData(prev => ({
+        ...prev,
+        images: [idPhotos]
+      }))
+      addSalesmanMutation(formData);
+
       
       console.log('Form Data:', formData);
       console.log('ID Photos:', idPhotos);
@@ -100,8 +114,10 @@ const AddSalesmanPage = () => {
       setFormData({
         salesman_name: '',
         salesman_email: '',
+        salesman_password:'',
         salesman_mobile: '',
         salesman_address: '',
+        images:null,
         salesman_username: '',
         user_role: 'salesman'
       });
@@ -118,7 +134,7 @@ const AddSalesmanPage = () => {
 
   const handleBack = () => {
     // Navigate back to dashboard
-    console.log('Navigate back to dashboard');
+    navigate('/distributer/salesman')
   };
 
   return (
@@ -222,6 +238,28 @@ const AddSalesmanPage = () => {
                     <p className="mt-1 text-sm text-red-600">{errors.salesman_email}</p>
                   )}
                 </div>
+                {/* salesman password */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Email password <span className="text-red-500">*</span>
+                  </label>
+                  <div className="relative">
+                    <Mail className="absolute left-3 top-3.5 w-4 h-4 text-gray-400" />
+                    <input
+                      type="text"
+                      name="salesman_password"
+                      value={formData.salesman_password}
+                      onChange={handleInputChange}
+                      className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 outline-none ${
+                        errors.salesman_password ? 'border-red-500' : 'border-gray-300'
+                      }`}
+                      placeholder="Enter email address"
+                    />
+                  </div>
+                  {errors.salesman_password && (
+                    <p className="mt-1 text-sm text-red-600">{errors.salesman_password}</p>
+                  )}
+                </div>
 
                 {/* Mobile */}
                 <div>
@@ -311,7 +349,7 @@ const AddSalesmanPage = () => {
                       <p className="mb-2 text-sm text-gray-500">
                         <span className="font-semibold">Click to upload</span> ID photos
                       </p>
-                      <p className="text-xs text-gray-400">PNG, JPG or JPEG (MAX. 5MB each)</p>
+                      <p className="text-xs text-gray-400">PNG, JPG, WEBP or JPEG (MAX. 5MB each)</p>
                     </div>
                     <input
                       type="file"
@@ -352,13 +390,14 @@ const AddSalesmanPage = () => {
             <div className="flex justify-end pt-6 border-t border-gray-200">
               <button
                 onClick={handleSubmit}
-                disabled={isSubmitting}
+                disabled={isPending}
                 className="bg-blue-500 hover:bg-blue-600 disabled:bg-blue-400 text-white px-6 py-3 rounded-lg font-medium transition-all duration-200 flex items-center hover:shadow-lg hover:transform hover:scale-105 active:scale-95 disabled:transform-none disabled:shadow-none"
               >
-                {isSubmitting ? (
+                {isPending ? (
                   <>
                     <div className="w-4 h-4 mr-2 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                     Adding...
+                    <LoadingGif />
                   </>
                 ) : (
                   <>

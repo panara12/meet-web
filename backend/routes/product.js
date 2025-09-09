@@ -9,6 +9,7 @@ const distributer_session = require('../middleware/distributer_session');
 
 const router = express.Router();
 
+
 router.post('/addproduct', distributer_session, upload.array('images',6), multerErrorHandler, async(req,res)=>{
     manualLog('entered add products route')
     try {

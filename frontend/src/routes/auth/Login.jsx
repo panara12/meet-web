@@ -1,113 +1,249 @@
+import { Icon } from '@iconify/react'
 import { useState } from 'react';
+import { ChevronDown, Shield, User, Package, CreditCard, Truck } from 'lucide-react';
 import { useLogin } from '../../hooks/auth/useLogin';
-import { setUserInfo } from '../../store/slice/appSlice';
-import LoadingGif from '../../component/loading';
-import ShowError from '../../component/showError';
+import ErrorMessage from '../../component/ui/errorMessage';
+import { Link } from 'react-router-dom';
+
 
 function Login() {
-  const [formData, setFormData] = useState({
-    username: '',
-    password: ''
-  });
-const { mutate: loginMutation, isPending, isError, error } = useLogin();
+    const [selectedLoginType, setSelectedLoginType] = useState('username');
+    const [username, setusername] = useState('');
+    const [password, setPassword] = useState('');
+    const {mutate:UserLogin,isPending, isError, error} = useLogin()
 
-  const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    });
+    const [isOpen, setIsOpen] = useState(false);
+    const [selectedRole, setSelectedRole] = useState(null);
+
+  const roles = [
+    {
+      id: 'administrator',
+      name: 'Administrator',
+      icon: <Shield className="w-5 h-5 text-red-500" />,
+      color: 'border-red-200 bg-red-50'
+    },
+    {
+      id: 'sales-person',
+      name: 'Sales Person',
+      icon: <User className="w-5 h-5 text-green-500" />,
+      color: 'border-green-200 bg-green-50'
+    },
+    {
+      id: 'packing-department',
+      name: 'Packing Department',
+      icon: <Package className="w-5 h-5 text-blue-500" />,
+      color: 'border-blue-200 bg-blue-50'
+    },
+    {
+      id: 'billing-department',
+      name: 'Billing Department',
+      icon: <CreditCard className="w-5 h-5 text-purple-500" />,
+      color: 'border-purple-200 bg-purple-50'
+    },
+    {
+      id: 'vendor',
+      name: 'Vendor',
+      icon: <Truck className="w-5 h-5 text-orange-500" />,
+      color: 'border-orange-200 bg-orange-50'
+    }
+  ];
+
+  const handleRoleSelect = (role) => {
+    setSelectedRole(role);
+    setIsOpen(false);
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    loginMutation(formData);
-  };
+  const handleLogin = ()=>{
+    const userdata = {username:username,password:password}
+    UserLogin(userdata);
+  }
+
 
   return (
-    <div className="min-h-screen bg-container flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8">
-        <div>
-          <div className="mx-auto h-12 w-12 bg-primary rounded-full flex items-center justify-center">
-            <svg className="h-8 w-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-            </svg>
+    <div className='w-full m-0 p-0 flex justify-center items-center text-white'>
+      <div className='hidden lg:block w-1/2 flex justify-center px-16 py-12 items-center brand-gradient-dark'>
+        <div className=' flex items-center flex-col'>
+          <div className='w-3/6'>
+            <img src="./logo.png" alt="" className=''/>
           </div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-dark">
-            Sign in to your account
-          </h2>
-          <p className="mt-2 text-center text-sm text-medium">
-            Welcome back! Please enter your credentials
-          </p>
+          <div className='flex flex-col items-center'>
+            <p className='text-4xl mb-5'>Order Management System</p>
+            <p className='text-xl'>Streamline your business operations with our</p>
+            <p className='text-xl'>comprehensive management platform</p>
+          </div>
+          
+          <div className="grid grid-cols-2 gap-5 mt-14 max-w-sm">
+            <div className="text-center flex flex-col  ">
+              <div className="self-center feature-box">
+                <Icon icon="mynaui:package" width="30" height="30" />
+              </div>
+              <p className="text-sm text-brand-light">Inventory Management</p>
+            </div>
+            <div className="text-center flex flex-col">
+              <div className="self-center feature-box">
+                <Icon icon="tabler:file-text" width="30" height="30" />
+              </div>
+              <p className="text-sm text-brand-light">Order Processing</p>
+            </div>
+            <div className="text-center flex flex-col">
+              <div className="self-center feature-box">
+                <Icon icon="majesticons:users-line" width="30" height="30" />
+              </div>
+              <p className="text-sm text-brand-light">Customer Management</p>
+            </div>
+            <div className="text-center flex flex-col">
+              <div className="self-center feature-box">
+                <Icon icon="ri:truck-line" width="30" height="30" />
+              </div>
+              <p className="text-sm text-brand-light">Vendor Relations</p>
+            </div>
+          </div>
         </div>
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          <div className="rounded-md shadow-sm -space-y-px">
-            <div>
-              <label htmlFor="username" className="sr-only">
-                Username
+      </div>
+      <div className="w-full lg:w-1/2 min-h-screen flex justify-center items-center bg-gray-100">
+        <div className="w-full max-w-sm mx-auto">
+          <div className="text-center mb-6">
+            <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-3">Welcome Back</h2>
+            <p className="text-gray-600 text-sm">Please sign in to your account</p>
+          </div>
+          {/* Login Card */}
+          <div className="bg-white rounded-xl shadow-2xl p-6">
+            {/* Role Selection */}
+            <div className="relative w-full max-w-md">
+      <label className="block text-sm font-medium text-gray-700 mb-2">
+        Select Your Role
+      </label>
+      
+      {/* Dropdown Toggle */}
+      <div
+        className={`relative w-full bg-white border-2 rounded-xl px-4 py-3 cursor-pointer transition-all duration-200 ${
+          isOpen 
+            ? 'border-blue-500 shadow-lg' 
+            : 'border-gray-200 hover:border-gray-300'
+        }`}
+        onClick={() => setIsOpen(!isOpen)}
+      >
+        <div className="flex items-center justify-between">
+          <span className={selectedRole ? 'text-gray-900' : 'text-gray-500'}>
+            {selectedRole ? selectedRole.name : 'Choose your department'}
+          </span>
+          <ChevronDown 
+            className={`w-5 h-5 text-gray-400 transition-transform duration-200 ${
+              isOpen ? 'rotate-180' : 'rotate-0'
+            }`}
+          />
+        </div>
+      </div>
+
+      {/* Dropdown Menu */}
+      {isOpen && (
+        <div className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden">
+          {roles.map((role) => (
+            <div
+              key={role.id}
+              className={`flex items-center gap-3 px-4 py-3 hover:bg-gray-50 cursor-pointer transition-colors duration-150 ${
+                selectedRole?.id === role.id ? 'bg-blue-50 border-l-4 border-blue-500' : ''
+              }`}
+              onClick={() => handleRoleSelect(role)}
+            >
+              <div className={`p-2 rounded-lg border ${role.color}`}>
+                {role.icon}
+              </div>
+              <span className="text-gray-900 font-medium">{role.name}</span>
+              {selectedRole?.id === role.id && (
+                <div className="ml-auto w-2 h-2 bg-blue-500 rounded-full"></div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Backdrop for mobile */}
+      {isOpen && (
+        <div 
+          className="fixed inset-0 z-40 bg-black bg-opacity-20 md:hidden"
+          onClick={() => setIsOpen(false)}
+        />
+      )}
+    </div>
+
+            {/* Login Type Tabs */}
+            <div className="mb-4">
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                Login Credentials
               </label>
+              <div className="flex bg-gray-100 rounded-lg p-1">
+                {['username', 'Mobile', 'Email'].map((type) => (
+                  <button
+                    key={type}
+                    onClick={() => setSelectedLoginType(type)}
+                    className={`flex-1 py-2 px-3 rounded-md text-xs font-medium transition-colors ${
+                      selectedLoginType === type
+                        ? 'bg-white text-blue-600 shadow-sm'
+                        : 'text-gray-600 hover:text-gray-900'
+                    }`}
+                  >
+                    {type}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* username Input */}
+            <div className="mb-4 text-black">
               <input
-                id="username"
-                name="username"
-                type="text"
-                required
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-light placeholder-medium text-dark rounded-t-md focus:outline-none focus:ring-primary focus:border-primary focus:z-10 sm:text-sm"
-                placeholder="Username"
-                value={formData.username}
-                onChange={handleChange}
+                type={selectedLoginType === 'username' ? 'username' : selectedLoginType === 'Mobile' ? 'tel' : 'text'}
+                placeholder={`Enter your ${selectedLoginType.toLowerCase()}${selectedLoginType === 'Email' ? '' : ' address'}`}
+                value={username}
+                onChange={(e) => setusername(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors text-sm"
               />
             </div>
-            <div>
-              <label htmlFor="password" className="sr-only">
+
+            {/* Password Input */}
+            <div className="mb-4 text-black">
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
                 Password
               </label>
               <input
-                id="password"
-                name="password"
                 type="password"
-                required
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-light placeholder-medium text-dark rounded-b-md focus:outline-none focus:ring-primary focus:border-primary focus:z-10 sm:text-sm"
-                placeholder="Password"
-                value={formData.password}
-                onChange={handleChange}
+                placeholder="Enter your password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors text-sm"
               />
             </div>
-          </div>
 
-          <div className="flex items-center justify-between">
-            <div className="flex items-center">
-              <input
-                id="remember-me"
-                name="remember-me"
-                type="checkbox"
-                className="h-4 w-4 text-primary focus:ring-primary border-light rounded"
-              />
-              <label htmlFor="remember-me" className="ml-2 block text-sm text-medium">
-                Remember me
-              </label>
+            {/* Forgot Password */}
+            <div className="flex items-center justify-between mb-6">
+              <Link to="/forgotpassword" className="text-sm text-blue-600 hover:text-blue-800 transition-colors">
+                Forgot password?
+              </Link>
             </div>
 
-            <div className="text-sm">
-              <a href="#" className="font-medium text-primary hover:text-dark">
-                Forgot your password?
-              </a>
-            </div>
-          </div>
-
-          <div>
-            <button className="btn btn-primary w-full" type="submit" disabled={isPending}>
-              {isPending ? "Logging in..." : "Login"}
+            {/* Sign In Button */}
+            <button onClick={handleLogin} className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded-lg transition-colors duration-200 mb-4">
+                {isPending?'Login...':'Login'}
             </button>
-          </div>
-            {isPending && <LoadingGif size={120} />}
 
-            {/* Error message */}
-            {isError && (
-              <ShowError error={error} />
-            )}
-        </form>
+            {
+              isError &&  <ErrorMessage message={error.response.data.message} />
+            }
+
+            {/* Support Link */}
+            <div className="text-center">
+              <p className="text-xs text-gray-600">
+                Need technical support?{' '}
+                <button className="text-blue-600 hover:text-blue-800 transition-colors">
+                  Contact IT Department
+                </button>
+              </p>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
-  );
+  )
 }
 
-export default Login;
+export default Login

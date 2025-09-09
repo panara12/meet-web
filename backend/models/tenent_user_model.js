@@ -18,11 +18,9 @@ const user_tenent_Schema = mongoose.Schema({
     },
     user_role:{
         type:String,
-        enum:['distributer','seller','salesman'],
+        enum:["Distributer","Salesman","Packaging","Billing","Seller"],
         required: true,
-        lowercase: true, // optional: ensures value is stored in lowercase
         trim: true,
-        default:"salesman"
     },
     user_tenant:{
         type:String,

@@ -29,7 +29,7 @@ const gettenentDb = async (dbName)=>{
         //getting assecc for all the models used in connection
         conn.model('Distributer',require('./models/distributer_model'));
         conn.model('Order',require('./models/order_model'));
-        conn.model('Salesman',require('./models/salesman_model'));
+        conn.model('User',require('./models/user_model'));
         conn.model('Product',require('./models/product_model'));
         conn.model('Seller',require('./models/seller_model'));
         conn.model('Company',require('./models/company_model'));

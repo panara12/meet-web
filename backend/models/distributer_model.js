@@ -42,7 +42,7 @@ const distributerSchema = mongoose.Schema({
     },
     user_role:{
         type:String,
-        enum:['distributer','seller','salesman'],
+        enum:['Distributer','Seller','Salesman'],
         required: true,
         lowercase: true, // optional: ensures value is stored in lowercase
         trim: true,

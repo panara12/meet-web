@@ -1,11 +1,12 @@
 import React from 'react'
-import Header from './DashboardHeader'
+import PackagingHeader from './PackagingHeader'
 import { Outlet } from 'react-router-dom'
+import Header from './headers/salesman_header'
 
 function OutletSetup() {
   return (
     <>
-        <Header/>
+        <PackagingHeader/>
         <Outlet />
     </>
   )

@@ -1,6 +1,6 @@
 import { Icon } from "@iconify/react";
 import { useSelector } from 'react-redux';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -27,7 +27,7 @@ const Dashboard = () => {
         <div className="bg-white rounded-lg shadow-sm border border-[#e2e8f0] p-6 
                         hover:shadow-lg hover:border-[#3b82f6] hover:-translate-y-1 
                         transition-all duration-300 cursor-pointer">
-          <a className="flex items-center " href="/distributer/seller">
+          <Link className="flex items-center " to="/distributer/seller">
             <div className="w-12 h-12 bg-[#3b82f6] rounded-lg flex items-center justify-center 
                             group-hover:scale-110 transition-transform duration-300">
               <span className="text-white font-bold text-xl">
@@ -38,14 +38,14 @@ const Dashboard = () => {
               <p className="text-sm font-medium text-[#64748b]">Sellers</p>
               <p className="text-2xl font-bold text-[#1e293b]">24</p>
             </div>
-          </a>
+          </Link>
         </div>
 
         {/* Salesman */}
         <div className="bg-white rounded-lg shadow-sm border border-[#e2e8f0] p-6 
                         hover:shadow-lg hover:border-[#10b981] hover:-translate-y-1 
                         transition-all duration-300 cursor-pointer">
-          <a className="flex items-center" href="/distributer/salesman">
+          <Link className="flex items-center" to="/distributer/salesman">
             <div className="w-12 h-12 bg-[#10b981] rounded-lg flex items-center justify-center 
                             transition-transform duration-300 group-hover:scale-110">
               <span className="text-white font-bold text-xl">
@@ -56,14 +56,14 @@ const Dashboard = () => {
               <p className="text-sm font-medium text-[#64748b]">Salesman</p>
               <p className="text-2xl font-bold text-[#1e293b]">156</p>
             </div>
-          </a>
+          </Link>
         </div>
 
         {/* Orders */}
         <div className="bg-white rounded-lg shadow-sm border border-[#e2e8f0] p-6 
                         hover:shadow-lg hover:border-[#f59e0b] hover:-translate-y-1 
                         transition-all duration-300 cursor-pointer">
-          <a className="flex items-center" href="/distributer/packaging">
+          <Link className="flex items-center" to="/distributer/packaging">
             <div className="w-12 h-12 bg-[#f59e0b] rounded-lg flex items-center justify-center 
                             transition-transform duration-300 group-hover:scale-110">
               <span className="text-white font-bold text-xl">
@@ -74,14 +74,14 @@ const Dashboard = () => {
               <p className="text-sm font-medium text-[#64748b]">Packaging</p>
               <p className="text-2xl font-bold text-[#1e293b]">12</p>
             </div>
-          </a>
+          </Link>
         </div>
 
         {/* Payment */}
         <div className="bg-white rounded-lg shadow-sm border border-[#e2e8f0] p-6 
                         hover:shadow-lg hover:border-[#ef4444] hover:-translate-y-1 
                         transition-all duration-300 cursor-pointer">
-          <a className="flex items-center" href="/distributer/payment">
+          <Link className="flex items-center" to="/distributer/payment">
             <div className="w-12 h-12 bg-[#ef4444] rounded-lg flex items-center justify-center 
                             transition-transform duration-300 group-hover:scale-110">
               <span className="text-white font-bold text-xl">$</span>
@@ -90,7 +90,7 @@ const Dashboard = () => {
               <p className="text-sm font-medium text-[#64748b]">Payment</p>
               <p className="text-2xl font-bold text-[#1e293b]">₹45.2K</p>
             </div>
-          </a>
+          </Link>
         </div>
       </div>
 

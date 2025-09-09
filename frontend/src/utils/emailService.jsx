@@ -2,12 +2,10 @@ import axios from 'axios';
 import apiHelper from './Url';
 
 
-// Email service functions
-export const emailService = {
-  // Send contact form email
-  sendContactEmail: async (contactData) => {
+  // Send Otp for forgot the password
+  const sendForgotPasswordEmail = async ({email}) => {
     try {
-      const response = await apiHelper.post('/email/emailTo', contactData);
+      const response = await apiHelper.post('/auth/forgotpassword', {email});
       return {
         success: true,
         data: response.data,
@@ -39,27 +37,7 @@ export const emailService = {
         };
       }
     }
-  },
-
-  // Test email service health
-  testEmailService: async () => {
-    try {
-      const response = await apiHelper.get('/email/emailTo');
-      return {
-        success: true,
-        data: response.data,
-        message: 'Email service is running'
-      };
-    } catch (error) {
-      console.error('Email service test error:', error);
-      return {
-        success: false,
-        message: 'Email service is not responding',
-        error: error.message
-      };
-    }
-  }
-};
+  };
 
 // Export the axios instance for custom usage if needed
-export default emailService;
+export default sendForgotPasswordEmail;

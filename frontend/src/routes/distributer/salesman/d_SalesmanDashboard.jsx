@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Link } from "react-router-dom";
 import { TrendingUp, DollarSign, MapPin, Plus } from 'lucide-react';
 
 const SalesmanDashboard = () => {
@@ -139,12 +140,12 @@ const SalesmanDashboard = () => {
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
           <h1 className="text-2xl lg:text-3xl font-bold text-gray-800">Salesman Dashboard</h1>
           <div className="flex justify-end">
-            <a href='/distributer/salesman/addsalesman'
+            <Link to='/distributer/salesman/addsalesman'
               className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 lg:px-6 lg:py-3 rounded-lg font-medium transition-all duration-200 flex items-center justify-center hover:shadow-lg hover:transform hover:scale-105 active:scale-95"
             >
               <Plus className="w-4 h-4 lg:w-5 lg:h-5 mr-2" />
               <span className="text-sm lg:text-base">Add Salesman</span>
-            </a>
+            </Link>
           </div>
         </div>
         

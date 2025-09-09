@@ -19,9 +19,9 @@ router.post('/addseller',async(req,res)=>{
         const hashedPassword = await bcrypt.hash(seller_password, saltRounds);
         const Seller = req.db.model("Seller");
 
-        const new_seller = new Seller({seller_name,seller_email,seller_password:hashedPassword,seller_mobile,seller_address,seller_area,seller_city,seller_username,user_role})
+        const new_seller = new Seller({seller_name,seller_email,seller_mobile,seller_address,seller_area,seller_city,seller_username,user_role})
         await new_seller.save();
-        await Tenent_user_master.create({user_email:seller_email,user_password:hashedPassword,user_username:seller_username,user_tenant:req.session.user.tenant,user_role:"seller"});
+        await Tenent_user_master.create({user_email:seller_email,user_password:hashedPassword,user_username:seller_username,user_tenant:req.session.user.tenant,user_role:"Seller"});
         manualLog(`seller registred successfully :: ${new_seller._id}`)
         res.status(200).json({
             message:"new seller added",
@@ -67,7 +67,7 @@ router.post('/updateseller/:id',async(req,res)=>{
     }
 })
 
-router.get('/allseller',distributer_session_checker,async(req,res)=>{
+router.get('/allseller',async(req,res)=>{
     manualLog('entered in get all seller route')
     try {
         const Seller = req.db.model("Seller");

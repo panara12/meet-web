@@ -12,13 +12,10 @@ export function useLogin() {
     mutationFn: authServices.login,
     onSuccess: (res) => {
       dispatch(setUserInfo(res.data.user));
-      if(res.data.user.user_role == "distributer"){
-        navigate("/distributer/dashboard");
-      }else if(res.data.user.user_role == "seller"){
-        navigate("/seller/dashboard");
-      }else if(res.data.user.user_role == "salesman"){
-        navigate("/salesman/dashboard");
-      }
+      navigate('/loading',
+        {state: {
+          userRole: res.data.user.user_role,
+        }})
     },
     onError: (err) => {
       if (err.response?.status === 401) {

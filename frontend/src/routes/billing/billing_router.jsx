@@ -1,18 +1,11 @@
 import React from 'react'
 import {Routes,Route} from 'react-router-dom';
+import Dashboard from './b_dashboard';
 
 function Billing_router() {
   return (
     <Routes>
-        <Route path='dashboard' element={<Dashboard />} />
-        <Route path="seller" element={<Seller />} />
-        <Route path="salesman" element={<Salesman />} />
-        <Route path="packaging" element={<Packaging />} />
-        <Route path="product" element={<Product />} />
-        <Route path="product/all" element={<AllProductList />} />
-        <Route path="payment" element={<Payment />} />
-        <Route path="profile" element={<UserProfile />} />
-        <Route path="addproduct" element={<ProductAddScreen />} />
+        <Route path='/dashboard' element={<Dashboard />} />
     </Routes>
   )
 }

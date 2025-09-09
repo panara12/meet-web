@@ -9,7 +9,7 @@ const getTenentList = require('./utils/tenentgeter');
 const seller = require('./routes/seller');
 const product = require('./routes/product')
 const auth = require('./routes/auth');
-const salesman = require('./routes/salesman');
+const user_routes = require('./routes/user_routes');
 const tenent = require('./routes/tenent');
 const tenentCache = require('./cache/tenent_list');
 const errorHandler = require('./utils/errorHandler'); // adjust path accordingly
@@ -57,7 +57,7 @@ app.use("/company",tenent_middleware,company);
 app.use('/auth',auth);
 app.use('/distributer',tenent_middleware,distributer);
 app.use('/seller',tenent_middleware,seller)
-app.use('/salesman',tenent_middleware,salesman)
+app.use('/user',tenent_middleware,user_routes)
 app.use('/product',tenent_middleware,product);
 app.use('/location',tenent_middleware,Location);
 app.use('/email', email);
