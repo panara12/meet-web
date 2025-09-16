@@ -13,6 +13,7 @@ import ResetPasswordPage from './routes/auth/resetPassword'
 import Packaging_router from './routes/packaging/packaging_router'
 import Billing_router from './routes/billing/billing_router'
 import SalesmanOutlet from './component/ui/salesmanOutlet'
+import { useState } from 'react'
 
 
 function App() {
@@ -30,7 +31,7 @@ function App() {
           <Route element={<ProtectedRoute/>}>
             <Route element={<OutletSetup/>}>
               <Route path='/distributer/*' element={<Distributer_router />}></Route>
-              <Route path='/saller/*' element={<Seller_router />}></Route>
+              <Route path='/seller/*' element={<Seller_router />}></Route>
               <Route path='/billing/*'  element={<Billing_router />}></Route>
               <Route path='/packaging/*' element={<Packaging_router />}></Route>
             </Route>

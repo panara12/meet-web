@@ -1,31 +1,31 @@
-import React from 'react'
-import {Routes,Route} from 'react-router-dom';
-import Dashboard from './d_Dashboard';
-import Seller from './d_Seller';
-import Salesman from './salesman/d_SalesmanDashboard';
-import Packaging from './d_Packaging';
-import Product from './d_Product';
-import AllProductList from './d_AllProductList';
-import Payment from './d_Payment';
-import UserProfile from './d_UserProfile';
-import ProductAddScreen from './d_addproduct';
-import AddSalesmanPage from './salesman/d_add_salesman';
+import React from "react"
+import { Routes, Route, Navigate, useLocation, useNavigate } from "react-router-dom"
 
-function Distributer_router() {
+import Dashboard from "./Dashboard.jsx"
+import ClientList from "./ClientList.jsx"
+import SalesPanel from "./SalesPanel.jsx"
+import StaffAccount from "./StaffAccount.jsx"
+import Inventory from "./Inventory.jsx"
+import Company from "./Company.jsx"
+import Packaging from "./Packaging.jsx"
+import Billing from "./Billing.jsx"
+import Payments from "./Payments.jsx"
+import Settings from "./Settings.jsx"
+
+export default function Distributer_router() {
+
   return (
-    <Routes>
-        <Route path='dashboard' element={<Dashboard />} />
-        <Route path="seller" element={<Seller />} />
-        <Route path="salesman" element={<Salesman />} />
-        <Route path="salesman/addsalesman" element={<AddSalesmanPage />} />
-        <Route path="packaging" element={<Packaging />} />
-        <Route path="product" element={<Product />} />
-        <Route path="product/all" element={<AllProductList />} />
-        <Route path="payment" element={<Payment />} />
-        <Route path="profile" element={<UserProfile />} />
-        <Route path="addproduct" element={<ProductAddScreen />} />
+      <Routes>        
+        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/clients" element={<ClientList />} />
+        <Route path="/sales" element={<SalesPanel />} />
+        <Route path="/staff" element={<StaffAccount />} />
+        <Route path="/inventory" element={<Inventory />} />
+        <Route path="/company" element={<Company />} />
+        <Route path="/packaging" element={<Packaging />} />
+        <Route path="/billing" element={<Billing />} />
+        <Route path="/payments" element={<Payments />} />
+        <Route path="/settings" element={<Settings />} />
     </Routes>
   )
 }
-
-export default Distributer_router

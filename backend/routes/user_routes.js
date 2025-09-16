@@ -4,7 +4,7 @@ const router = express.Router()
 const tenent_checker = require('../middleware/tenent_middleware');
 const manualLog = require('../utils/manuallogger');
 const Tenent_user_master = require("../models/tenent_user_model");
-const distributer_session_checker = require('../middleware/distributer_session');
+const user_session_checker = require('../middleware/user_session');
 const {doc_cloudinary_upload} = require('../utils/uploadWithCloudinary');
 const { upload, multerErrorHandler } = require('../middleware/multer');
 const path = require('path');
@@ -12,7 +12,7 @@ const cloudinary_delete = require('../utils/deleteWithCloudinary');
 
 router.use(tenent_checker);
 
-router.post('/adduser',distributer_session_checker,upload.array('images',2), multerErrorHandler,async(req,res)=>{
+router.post('/adduser',user_session_checker("add_user"),upload.array('images',2), multerErrorHandler,async(req,res)=>{
     manualLog('entered in add new user route')
     try {
         console.log(req.body);
@@ -47,6 +47,7 @@ router.post('/adduser',distributer_session_checker,upload.array('images',2), mul
             user_role})
         await new_user.save();
         await Tenent_user_master.create({user_email:user_email,
+            tenant_user_id:new_user._id,
             user_password:hashedPassword,
             user_username:user_username,
             user_tenant:req.session.user.tenant,
@@ -70,7 +71,7 @@ router.post('/adduser',distributer_session_checker,upload.array('images',2), mul
     }
 })
 
-router.post('/updateuser/:id',upload.array('images',2), multerErrorHandler,async(req,res)=>{
+router.post('/updateuser/:id',user_session_checker("edit_user"),upload.array('images',2), multerErrorHandler,async(req,res)=>{
     manualLog('entered in update user route')
     try {
         const {id} = req.params;
@@ -137,7 +138,7 @@ router.post('/updateuser/:id',upload.array('images',2), multerErrorHandler,async
 })
 
 
-router.get('/getalluser',distributer_session_checker,async(req,res)=>{
+router.get('/getalluser',user_session_checker("get_all_user"),async(req,res)=>{
     manualLog('entered in get all user route')
     try {
         const User = req.db.model("User");
@@ -154,10 +155,11 @@ router.get('/getalluser',distributer_session_checker,async(req,res)=>{
     }
 })
 
-router.get('/getuser/:id',distributer_session_checker,async(req,res)=>{
+router.get('/getuser/:id',user_session_checker("get_by_id_user"),async(req,res)=>{
     manualLog('entered in get user by id route')
     try {
         const {id} = req.params;
+        console.log(id)
         const User = req.db.model("User");
         const user_data = await User.findOne({_id:id});
         manualLog(`get user by id successfully :: ${user_data._id}`)
@@ -172,8 +174,33 @@ router.get('/getuser/:id',distributer_session_checker,async(req,res)=>{
     }
 })
 
+router.post('/getbyuserrole',user_session_checker("user_by_userrole"),async (req,res)=>{
+    manualLog('entered in  user route by user role')
+    try {
+        const {userRole} = req.body;
+        const User = req.db.model("User");
+        const user_data = await User.find({user_role:userRole});
+        manualLog(`users fetched successfully :: ${user_data}`)
+        if(user_data.length == 0){
+            res.status(200).json({
+                message:"user data not found",
+                user:{user_data: "user data not found"}
+            })
+        }else{
+            res.status(200).json({
+                message:"user data fetched",
+                user:{user_data}
+            })
+        }
+    } catch (error) {
+        console.log("user data not fetched by role");
+        manualLog(`there is error in getting data by  user role :: ${JSON.stringify(error)}`)
+        res.status(500).json({message:"user data faild to get"})
+    }
+})
 
-router.delete('/deleteuser/:id',async(req,res)=>{
+
+router.delete('/deleteuser/:id',user_session_checker("delete_user"),async(req,res)=>{
     manualLog('entered in delete user route')
     try {
         const {id} = req.params;

@@ -47,9 +47,10 @@ router.post('/login',async(req,res)=>{
         }
 
         req.session.user = {
-            user_id: user_data._id,
+            master_user_id: user_data._id,
             user_role: user_data.user_role,
             username,
+            tenant_user_id:user_data.tenant_user_id,
             tenant: user_data.user_tenant
         };
 

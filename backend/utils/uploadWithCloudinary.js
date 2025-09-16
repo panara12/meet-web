@@ -9,6 +9,7 @@ const cloudinary_upload = async(local_path,tenent_username,customFileName)=>{
         const folder = `tenent_products/${tenent_username}`;
 
         const result = await cloudinary.uploader.upload(local_path,{folder,public_id:customFileName});
+        console.log(result)
         fs.unlinkSync(local_path);
         // console.log(`try to delete ${local_path}`);
         const imgurl = {

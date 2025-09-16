@@ -1,12 +1,12 @@
 
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { useGetSeller } from '../../hooks/packaging/useGetSeller';
+import { useGetAllSeller } from '../../hooks/seller/useGetAllSeller';
 import ErrorMessage from '../../component/ui/errorMessage';
 
 function Dashboard() {
 
-  const { data: getSellerList, isPending, isError, error } = useGetSeller();
+  const { data: getSellerList, isPending, isError, error } = useGetAllSeller();
   const [seller, setSeller] = useState([]);
 
   useEffect(() => {

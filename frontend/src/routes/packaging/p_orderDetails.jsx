@@ -29,6 +29,26 @@ const sampleOrder = {
       instructions: 'Position near windows for natural light',
       sentToBilling: true,
       cartoonCount: 2
+    },
+    {
+      id: '3',
+      name: 'Leo bottle',
+      description: 'Ergonomic leather chairs with adjustable height',
+      price: 299.99,
+      quantity: 10,
+      instructions: 'Assemble before delivery. Place in conference room.',
+      sentToBilling: false,
+      cartoonCount: null
+    },
+    {
+      id: '4',
+      name: 'goodday bottle',
+      description: 'Ergonomic leather chairs with adjustable height',
+      price: 399.99,
+      quantity: 3,
+      instructions: 'Assemble before delivery. Place in conference room.',
+      sentToBilling: false,
+      cartoonCount: null
     }
   ]
 };

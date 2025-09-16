@@ -1,8 +1,7 @@
 import { useState } from "react";
 import { Menu, LogOut } from "lucide-react";
 
-export default function Header() {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+export default function Header({sidebarOpen,setSidebarOpen}) {
 
   const handleLogout = () => {
     alert("Logged out successfully!");

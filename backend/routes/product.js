@@ -1,16 +1,15 @@
 const express = require('express')
 const manualLog = require('../utils/manuallogger');
 const path = require('path');
-const cloudinary = require('../utils/cloudinary');
-const cloudinary_upload = require('../utils/uploadWithCloudinary');
+const {cloudinary_upload} = require('../utils/uploadWithCloudinary');
 const {upload,multerErrorHandler} = require('../middleware/multer');
 const cloudinary_delete = require('../utils/deleteWithCloudinary');
-const distributer_session = require('../middleware/distributer_session');
+const user_session_checker = require('../middleware/user_session');
 
 const router = express.Router();
 
 
-router.post('/addproduct', distributer_session, upload.array('images',6), multerErrorHandler, async(req,res)=>{
+router.post('/addproduct', user_session_checker("add_product"), upload.array('images',6), multerErrorHandler, async(req,res)=>{
     manualLog('entered add products route')
     try {
         const {product_name,product_company,product_size,product_color,product_type,product_stock,product_price,product_photos,product_firm} = req.body;
@@ -19,14 +18,15 @@ router.post('/addproduct', distributer_session, upload.array('images',6), multer
         //get the size and color 
         const colors = Array.isArray(product_color) ? product_color : product_color.split(',');
         const sizes = Array.isArray(product_size) ? product_size : product_size.split(',');
+        // console.log("req.files ===>", req.files);
 
         const uploadPromises = req.files.map(file => {
             const customFileName = `${Date.now()}-${path.parse(file.originalname).name}`;
             const local_path = path.join(file.destination, file.filename);
+            // console.log(cloudinary_upload)
             return cloudinary_upload(local_path, tenent_username,customFileName);
         });
         const imageUrls = await Promise.all(uploadPromises);
-
         const Product = req.db.model("Product");
         const new_product = new Product({product_name,product_company,product_size:sizes,product_color:colors,product_type,product_stock,product_price,product_photos:imageUrls,product_firm})
         await new_product.save();
@@ -36,11 +36,11 @@ router.post('/addproduct', distributer_session, upload.array('images',6), multer
     } catch (error) {
         console.log("there is error in add new products")
         manualLog(`there is error in add new products :: ${JSON.stringify(error)}`)
-        res.status(500).json({message:"there is error in add new products"})
+        res.status(500).json({message:"there is error in add new products",error:error})
     }
 })
 
-router.post('/updateproduct/:id', distributer_session, upload.array('images',6), multerErrorHandler, async(req,res)=>{
+router.post('/updateproduct/:id', user_session_checker("edit_product"), upload.array('images',6), multerErrorHandler, async(req,res)=>{
     manualLog("entered in update products")
     try {
         const { id } = req.params;
@@ -120,7 +120,7 @@ router.post('/updateproduct/:id', distributer_session, upload.array('images',6),
     }
 })
 
-router.get('/getproduct/:id',distributer_session,async(req,res)=>{
+router.get('/getproduct/:id',user_session_checker("get_by_id_product"),async(req,res)=>{
     manualLog('entered in get by id product')
     try {
         const {id} = req.params;
@@ -139,7 +139,7 @@ router.get('/getproduct/:id',distributer_session,async(req,res)=>{
     }
 })
 
-router.get('/getallproduct',distributer_session,async(req,res)=>{
+router.get('/getallproduct',user_session_checker("get_all_product"),async(req,res)=>{
     manualLog('entered in get all product')
     try {
         const Product = req.db.model('Product');
@@ -157,7 +157,7 @@ router.get('/getallproduct',distributer_session,async(req,res)=>{
     }
 })
 
-router.delete('/deleteproduct/:id',distributer_session,async(req,res)=>{
+router.delete('/deleteproduct/:id',user_session_checker("delete_product"),async(req,res)=>{
     try {
         const {id} = req.params;
         const Product = req.db.model("Product");

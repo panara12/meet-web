@@ -8,17 +8,18 @@ import {
   Settings,
   X,
 } from "lucide-react";
+import { useState } from "react";
 
 const menuItems = [
   { title: "Dashboard", icon: LayoutDashboard, path: "/salesman/dashboard" },
-  { title: "Add Order", icon: ShoppingCart, path: "/salesman/add-order" },
-  { title: "Add Client", icon: UserPlus, path: "/salesman/add-client" },
-  { title: "Daily Files", icon: FileText, path: "/salesman/daily-files" },
-  { title: "Payment Update", icon: CreditCard, path: "/salesman/payment-update" },
+  { title: "Add Order", icon: ShoppingCart, path: "/salesman/addorder" },
+  { title: "Add Client", icon: UserPlus, path: "/salesman/addclient" },
+  { title: "Daily Files", icon: FileText, path: "/salesman/addfiles" },
+  { title: "Payment Update", icon: CreditCard, path: "/salesman/paymentupdate" },
   { title: "Settings", icon: Settings, path: "/salesman/settings" },
 ];
 
-export default function Sidebar({ sidebarOpen, setSidebarOpen }) {
+export default function Sidebar({sidebarOpen,setSidebarOpen}) {
   const navigate = useNavigate();
   const location = useLocation();
 

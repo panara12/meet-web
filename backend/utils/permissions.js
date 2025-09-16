@@ -1,0 +1,63 @@
+const permissions = {
+    "distributer" : [
+        "edit_distributer",
+        "get_by_id_distributer",
+        "add_seller",
+        "edit_seller",
+        "get_all_seller",
+        "get_by_id_seller",
+        "delete_seller",
+        "add_product",
+        "edit_product",
+        "delete_product",
+        "get_by_id_product",
+        "get_all_product",
+        "delete_product",
+        "add_user",
+        "edit_user",
+        "get_all_user",
+        "get_by_id_user",
+        "delete_user",
+        "add_company",
+        "edit_company",
+        "get_all_company",
+        "delete_company",
+        "add_payment",
+        "delete_payment",
+        "edit_payment",
+        "get_all_payment",
+        "user_by_userrole"
+    ],
+    "billing":[
+        "get_by_id_product",
+        "get_by_id_user"
+    ],
+    "salesman":[
+        "add_seller",
+        "get_all_seller",
+        "get_by_id_product",
+        "get_all_product",
+        "get_by_id_user",
+        "add_payment",
+        "edit_payment",
+        "add_notes",
+        "get_all_notes",
+        "update_notes",
+        "delete_notes",
+        "get_order_count",
+        "get_all_orders"
+    ],
+    "seller":[
+        "get_by_id_seller",
+        "edit_seller",
+        "get_by_id_product",
+        "get_all_product",
+        "get_by_id_user"
+    ],
+    "packaging":[
+        "get_by_id_product",
+        "get_by_id_user"
+    ]
+}
+
+module.exports =  permissions

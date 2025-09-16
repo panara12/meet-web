@@ -46,7 +46,7 @@ const distributerSchema = mongoose.Schema({
         required: true,
         lowercase: true, // optional: ensures value is stored in lowercase
         trim: true,
-        default:"distributer"
+        default:"Distributer"
     }
 },{  timestamps: true  });
 

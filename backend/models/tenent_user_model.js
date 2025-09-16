@@ -7,6 +7,10 @@ const user_tenent_Schema = mongoose.Schema({
         required:[true,'Email id is required'],
         match: [/\S+@\S+\.\S+/, 'Please use a valid email address']
     },
+    tenant_user_id:{
+        type:String,
+        required:[true,"please enter the tenant user id"]
+    },
     user_username:{
         type:String,
         required:[true,"please enter the username"]

@@ -8,12 +8,12 @@ const tenent_checker = async(req,res,next)=>{
         //get the domain name and start the connection to the tenent db
         console.log("all tenents data",tenentCache);
         const user_tenant = "";
-        console.log(req.session.user);
-        if(!req.session.user.tenant){
+        // console.log(req.session.user);
+        if(!req.session.user){
             const {user_tenant} = req.body;
             user_tenant = user_tenant;
         }
-
+        
         const domain = req.session?.user?.tenant || user_tenant;
         const tenent_list = tenentCache.tenent;
         console.log("tenent domain ===",domain)
@@ -36,10 +36,10 @@ const tenent_checker = async(req,res,next)=>{
         
         //get the tenent Db connection
         const tenentDb = await gettenentDb(active_tenent.D_dbname);
-
         req.db = tenentDb;
         req.tenent = active_tenent;
-
+        
+        // console.log(next)
         next();
     } catch (error) {
         console.log('something wornge in tenent middleware')

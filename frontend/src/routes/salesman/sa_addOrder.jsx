@@ -1,30 +1,38 @@
 import { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
-import { Button } from "./ui/button";
-import { Badge } from "./ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
-import { Input } from "./ui/input";
-import { Label } from "./ui/label";
-import { Textarea } from "./ui/textarea";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "./ui/dialog";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "./ui/sheet";
-import { ScrollArea } from "./ui/scroll-area";
-import { Separator } from "./ui/separator";
-import { RadioGroup, RadioGroupItem } from "./ui/radio-group";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./addOrder/card";
+import { Button } from "./addOrder/button";
+import { Badge } from "./addOrder/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./addOrder/select";
+import { Input } from "./addOrder/input";
+import { Label } from "./addOrder/label";
+import { Textarea } from "./addOrder/textarea";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "./addOrder/dialog";
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "./addOrder/sheet";
+import { ScrollArea } from "./addOrder/scroll-area";
+import { Separator } from "./addOrder/separator";
+import { RadioGroup, RadioGroupItem } from "./addOrder/radio-group";
 import { 
   ShoppingCart, 
   Plus, 
   Minus, 
   X, 
   Package,
+  CreditCard,
+  MessageSquare,
   Check,
   User,
   Hash,
+  Calendar,
+  DollarSign,
   Search,
   Filter
 } from 'lucide-react';
-import { toast } from "sonner";
-import { ImageWithFallback } from './figma/ImageWithFallback';
+import { useGetAllSeller } from '../../hooks/seller/useGetAllSeller';
+import { useGetAllOrders } from '../../hooks/order/useGetAllOrder';
+import { useEffect } from 'react';
+import { useSelector } from 'react-redux';
+
+
 
 // Mock data
 const mockClients = [
@@ -40,7 +48,7 @@ const mockProducts = [
     id: "1",
     name: "Premium Cotton T-Shirt",
     price: 29.99,
-    image: "https://images.unsplash.com/photo-1696086152513-c74dc1d4b135?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxmYXNoaW9uJTIwdHNoaXJ0JTIwY2xvdGhpbmd8ZW58MXx8fHwxNzU3MjgxODA1fDA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral",
+    image: "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400&h=400&fit=crop",
     material: "100% Premium Cotton",
     colors: ["White", "Black", "Navy", "Gray", "Red"],
     sizes: ["XS", "S", "M", "L", "XL", "XXL"],
@@ -51,7 +59,7 @@ const mockProducts = [
     id: "2",
     name: "Classic Denim Jeans",
     price: 79.99,
-    image: "https://images.unsplash.com/photo-1666899462970-40dfe2ef3a70?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHxqZWFucyUyMGRlbmltJTIwcGFudHN8ZW58MXx8fHwxNzU3MjgxODA4fDA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral",
+    image: "https://images.unsplash.com/photo-1542272604-787c3835535d?w=400&h=400&fit=crop",
     material: "98% Cotton, 2% Elastane",
     colors: ["Dark Blue", "Light Blue", "Black", "Gray"],
     sizes: ["28", "30", "32", "34", "36", "38", "40"],
@@ -62,7 +70,7 @@ const mockProducts = [
     id: "3",
     name: "Elegant Summer Dress",
     price: 89.99,
-    image: "https://images.unsplash.com/photo-1619794724492-651397287d94?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxkcmVzcyUyMHdvbWVuJTIwZmFzaGlvbnxlbnwxfHx8fDE3NTcyODE4MTB8MA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral",
+    image: "https://images.unsplash.com/photo-1515372039744-b8f02a3ae446?w=400&h=400&fit=crop",
     material: "Viscose Blend",
     colors: ["Floral Print", "Solid Black", "Navy Blue", "Wine Red"],
     sizes: ["XS", "S", "M", "L", "XL"],
@@ -73,7 +81,7 @@ const mockProducts = [
     id: "4",
     name: "Sport Sneakers",
     price: 129.99,
-    image: "https://images.unsplash.com/photo-1678802910315-b1bf6ca9f6a6?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHxzbmVha2VycyUyMHNob2VzJTIwZmFzaGlvbnxlbnwxfHx8fDE3NTcyNjE4NTF8MA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral",
+    image: "https://images.unsplash.com/photo-1549298916-b41d501d3772?w=400&h=400&fit=crop",
     material: "Synthetic & Mesh",
     colors: ["White/Blue", "Black/Red", "Gray/Green", "All White"],
     sizes: ["7", "8", "9", "10", "11", "12"],
@@ -84,7 +92,7 @@ const mockProducts = [
     id: "5",
     name: "Winter Jacket",
     price: 159.99,
-    image: "https://images.unsplash.com/photo-1727518154538-59e7dc479f8f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHxqYWNrZXQlMjBvdXRlcndlYXIlMjBjbG90aGluZ3xlbnwxfHx8fDE3NTcyODE4MTV8MA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral",
+    image: "https://images.unsplash.com/photo-1551028719-00167b16eac5?w=400&h=400&fit=crop",
     material: "Water-resistant Polyester",
     colors: ["Black", "Navy", "Forest Green", "Burgundy"],
     sizes: ["S", "M", "L", "XL", "XXL"],
@@ -95,7 +103,7 @@ const mockProducts = [
     id: "6",
     name: "Casual Polo Shirt",
     price: 49.99,
-    image: "https://images.unsplash.com/photo-1632337948784-35863f872dc8?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHxj...",
+    image: "https://images.unsplash.com/photo-1586790170083-2f9ceadc732d?w=400&h=400&fit=crop",
     material: "Cotton Pique",
     colors: ["White", "Navy", "Royal Blue", "Forest Green", "Burgundy"],
     sizes: ["S", "M", "L", "XL", "XXL"],
@@ -104,11 +112,38 @@ const mockProducts = [
   }
 ];
 
-export function AddOrder() {
+// Image fallback component
+const ImageWithFallback = ({ src, alt, className, ...props }) => {
+  const [imgSrc, setImgSrc] = useState(src);
+  const [hasError, setHasError] = useState(false);
+
+  const handleError = () => {
+    setHasError(true);
+    setImgSrc('https://via.placeholder.com/400x400?text=No+Image');
+  };
+
+  return (
+    <img 
+      src={imgSrc} 
+      alt={alt} 
+      className={className}
+      onError={handleError}
+      {...props} 
+    />
+  );
+};
+
+// Toast notification (simple alert for demo)
+const toast = {
+  success: (message) => alert(`Success: ${message}`),
+  error: (message) => alert(`Error: ${message}`)
+};
+
+export default function AddOrder() {
+  const userInfo = useSelector((state) => state.app.userInfo);
   const [selectedClient, setSelectedClient] = useState("");
   const [clientSearchQuery, setClientSearchQuery] = useState("");
   const [showClientDropdown, setShowClientDropdown] = useState(false);
-  const [orderId] = useState(() => `ORD-${Date.now()}`);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [selectedColor, setSelectedColor] = useState("");
   const [selectedSize, setSelectedSize] = useState("");
@@ -127,17 +162,35 @@ export function AddOrder() {
     type: "",
     date: new Date().toISOString().split('T')[0]
   });
+  const { data: getSellerList, isPending:sellerPending, isError:issellerError, error:sellerError } = useGetAllSeller();
+  const { data: getAllOrders, isPending:isAllorderPending, isError:isAllOrderError, error:allOrderError } = useGetAllOrders();
+  const [clientsdata,setClientsdata] = useState([]);
+  const [orderCount,setOrderCount] = useState(0);
+  useEffect(()=>{
+      if (getAllOrders?.count) {
+        setOrderCount(getAllOrders.count);
+        console.log(orderCount)
+      }
+  },[getAllOrders])
+
+  useEffect(() => {
+    if (getSellerList?.seller?.seller_data) {
+      setClientsdata(getSellerList.seller.seller_data);
+    }
+  }, [getSellerList]);
+  const [orderId] = useState(userInfo.tenant.substring(0, 3)+"-"+(orderCount+1));
+
 
   // Get unique companies and categories for filter options
   const companies = [...new Set(mockProducts.map(p => p.company))].sort();
   const categories = [...new Set(mockProducts.map(p => p.category))].sort();
 
   // Filter clients based on search query
-  const filteredClients = mockClients.filter(client => {
+  const filteredClients = clientsdata.filter(client => {
     const searchLower = clientSearchQuery.toLowerCase();
-    return client.name.toLowerCase().includes(searchLower) ||
-           client.phone.includes(clientSearchQuery) ||
-           client.email.toLowerCase().includes(searchLower);
+    return client.company_name.toLowerCase().includes(searchLower) ||
+           client.phone_number.toString().includes(clientSearchQuery) ||
+           client.primary_email.toLowerCase().includes(searchLower);
   });
 
   // Filter products based on search and filters
@@ -159,8 +212,8 @@ export function AddOrder() {
   };
 
   const handleClientSelect = (client) => {
-    setSelectedClient(client.id);
-    setClientSearchQuery(client.name);
+    setSelectedClient(client._id);
+    setClientSearchQuery(client.company_name);
     setShowClientDropdown(false);
   };
 
@@ -188,6 +241,7 @@ export function AddOrder() {
     }
 
     const finalColor = selectedColor || selectedProduct.colors[0];
+
     const cartItem = {
       id: `${selectedProduct.id}-${finalColor}-${selectedSize}-${Date.now()}`,
       product: selectedProduct,
@@ -252,7 +306,7 @@ export function AddOrder() {
       return;
     }
 
-    const client = mockClients.find(c => c.id === selectedClient);
+    const client = clientsdata.find(c => c._id === selectedClient);
     
     const orderDetails = `
 🛍️ *NEW ORDER CONFIRMATION*
@@ -276,13 +330,13 @@ export function AddOrder() {
 • Email: ${client?.email}
 
 📦 *ORDER DETAILS*
-${cart.map((item) => 
+${cart.map((item, index) => 
   `• ${item.product.name}\n  - Color: ${item.color}\n  - Size: ${item.size}\n  - Qty: ${item.quantity}\n  - Price: $${item.subtotal.toFixed(2)}`
 ).join('\n\n')}
 
 💰 *ORDER SUMMARY*
 • Total Items: ${cart.reduce((sum, item) => sum + item.quantity, 0)}
-• Order Total: ${getTotalAmount().toFixed(2)}
+• Order Total: $${getTotalAmount().toFixed(2)}
 
 💳 *Payment Details:*
 • Amount: $${paymentData.amount}
@@ -311,7 +365,7 @@ ${cart.map((item) =>
     });
   };
 
-  const selectedClientData = mockClients.find(c => c.id === selectedClient);
+  const selectedClientData = clientsdata.find(c => c._id === selectedClient);
 
   return (
     <div className="p-3 sm:p-4 lg:p-6 space-y-4 sm:space-y-6">
@@ -325,7 +379,6 @@ ${cart.map((item) =>
 
       {/* Client Selection & Order Info */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
-        {/* Client Selection Card */}
         <Card>
           <CardHeader className="pb-3 sm:pb-6">
             <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
@@ -347,26 +400,28 @@ ${cart.map((item) =>
                 />
               </div>
               
+              {/* Client Dropdown */}
               {showClientDropdown && clientSearchQuery && filteredClients.length > 0 && (
                 <div className="absolute top-full left-0 right-0 z-50 mt-1 max-h-48 overflow-auto bg-card border border-border rounded-md shadow-lg">
                   {filteredClients.map((client) => (
                     <div
-                      key={client.id}
+                      key={client._id}
                       className="p-3 hover:bg-muted cursor-pointer border-b border-border last:border-b-0"
                       onClick={() => handleClientSelect(client)}
                     >
                       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
                         <div>
-                          <p className="font-medium text-sm sm:text-base">{client.name}</p>
-                          <p className="text-xs sm:text-sm text-muted-foreground">{client.phone}</p>
+                          <p className="font-medium text-sm sm:text-base">{client.company_name}</p>
+                          <p className="text-xs sm:text-sm text-muted-foreground">{client.phone_number}</p>
                         </div>
-                        <p className="text-xs text-muted-foreground truncate">{client.email}</p>
+                        <p className="text-xs text-muted-foreground truncate">{client.primary_email}</p>
                       </div>
                     </div>
                   ))}
                 </div>
               )}
               
+              {/* No results message */}
               {showClientDropdown && clientSearchQuery && filteredClients.length === 0 && (
                 <div className="absolute top-full left-0 right-0 z-50 mt-1 p-3 bg-card border border-border rounded-md shadow-lg text-center">
                   <p className="text-sm text-muted-foreground">No clients found</p>
@@ -374,20 +429,20 @@ ${cart.map((item) =>
               )}
             </div>
             
+            {/* Selected Client Display */}
             {selectedClientData && (
               <div className="p-3 sm:p-4 bg-muted/50 rounded-lg space-y-1">
                 <div className="flex items-center gap-2">
                   <Check className="h-4 w-4 text-green-600" />
-                  <p className="font-medium text-sm sm:text-base">{selectedClientData.name}</p>
+                  <p className="font-medium text-sm sm:text-base">{selectedClientData.company_name}</p>
                 </div>
-                <p className="text-xs sm:text-sm text-muted-foreground">{selectedClientData.phone}</p>
-                <p className="text-xs sm:text-sm text-muted-foreground">{selectedClientData.email}</p>
+                <p className="text-xs sm:text-sm text-muted-foreground">{selectedClientData.phone_number}</p>
+                <p className="text-xs sm:text-sm text-muted-foreground">{selectedClientData.primary_email}</p>
               </div>
             )}
           </CardContent>
         </Card>
 
-        {/* Order Information Card */}
         <Card>
           <CardHeader className="pb-3 sm:pb-6">
             <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
@@ -420,7 +475,7 @@ ${cart.map((item) =>
         </Card>
       </div>
 
-      {/* Search and Filters Card */}
+      {/* Search and Filters */}
       <Card>
         <CardHeader className="pb-3 sm:pb-6">
           <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
@@ -501,7 +556,7 @@ ${cart.map((item) =>
         </CardContent>
       </Card>
 
-      {/* Product Catalog Card */}
+      {/* Product Catalog */}
       <Card>
         <CardHeader>
           <CardTitle>Product Catalog</CardTitle>
@@ -557,31 +612,30 @@ ${cart.map((item) =>
 
       {/* Floating Cart Button */}
       <div className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-50">
-        <SheetTrigger asChild>
-          <Button
-            size="lg"
-            className="relative rounded-full shadow-lg hover:shadow-xl transition-all duration-200 h-14 w-14 sm:h-16 sm:w-16"
-          >
-            <ShoppingCart className="h-6 w-6 sm:h-7 sm:w-7" />
-            {cart.length > 0 && (
-              <span className="absolute -top-2 -right-2 bg-destructive text-destructive-foreground text-xs font-semibold rounded-full h-6 w-6 flex items-center justify-center min-w-[1.5rem]">
-                {cart.length}
-              </span>
-            )}
-          </Button>
-        </SheetTrigger>
+        <Button
+          onClick={() => setShowCartDialog(true)}
+          size="lg"
+          className="relative rounded-full shadow-lg hover:shadow-xl transition-all duration-200 h-14 w-14 sm:h-16 sm:w-16"
+        >
+          <ShoppingCart className="h-6 w-6 sm:h-7 sm:w-7" />
+          {cart.length > 0 && (
+            <span className="absolute -top-2 -right-2 bg-destructive text-destructive-foreground text-xs font-semibold rounded-full h-6 w-6 flex items-center justify-center min-w-[1.5rem]">
+              {cart.length}
+            </span>
+          )}
+        </Button>
       </div>
 
       {/* Cart Sheet Dialog */}
       <Sheet open={showCartDialog} onOpenChange={setShowCartDialog}>
-        <SheetContent side="right" className="w-full sm:max-w-md flex flex-col p-0">
+        <SheetContent side="right" className="w-full bg-white sm:max-w-md flex flex-col p-0">
           <SheetHeader className="flex-shrink-0 p-4 sm:p-6 border-b">
             <SheetTitle className="flex items-center gap-2 text-base sm:text-lg">
               <ShoppingCart className="h-4 w-4 sm:h-5 sm:w-5" />
               Shopping Cart ({cart.length} items)
             </SheetTitle>
             <SheetDescription className="text-sm sm:text-base">
-              {cart.length > 0 ? `Total: ${getTotalAmount().toFixed(2)}` : "Your cart is empty"}
+              {cart.length > 0 ? `Total: $${getTotalAmount().toFixed(2)}` : "Your cart is empty"}
             </SheetDescription>
           </SheetHeader>
           
@@ -673,7 +727,7 @@ ${cart.map((item) =>
                   <Button 
                     onClick={() => {
                       setShowCartDialog(false);
-                      handleCompleteOrder();
+                      setShowOrderCompletion(true);
                     }} 
                     disabled={!selectedClient}
                     className="w-full text-sm sm:text-base"
@@ -689,7 +743,7 @@ ${cart.map((item) =>
 
       {/* Product Detail Dialog */}
       <Dialog open={showProductDetail} onOpenChange={setShowProductDetail}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
+        <DialogContent className="max-w-4xl max-h-[90vh] bg-white overflow-hidden flex flex-col">
           <DialogHeader className="flex-shrink-0">
             <DialogTitle className="text-lg sm:text-xl">Product Details</DialogTitle>
             <DialogDescription className="text-sm sm:text-base">
@@ -812,7 +866,7 @@ ${cart.map((item) =>
 
       {/* Order Completion Dialog */}
       <Dialog open={showOrderCompletion} onOpenChange={setShowOrderCompletion}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-md bg-white">
           <DialogHeader>
             <DialogTitle>Complete Order</DialogTitle>
             <DialogDescription>
@@ -820,6 +874,7 @@ ${cart.map((item) =>
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-6">
+            {/* Order Summary */}
             <div className="bg-muted/50 p-4 rounded-lg">
               <h4 className="font-medium mb-2">Order Summary</h4>
               <div className="space-y-1 text-sm">
@@ -858,7 +913,7 @@ ${cart.map((item) =>
 
       {/* Payment Dialog */}
       <Dialog open={showPaymentDialog} onOpenChange={setShowPaymentDialog}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-md bg-white">
           <DialogHeader>
             <DialogTitle>Record Payment</DialogTitle>
             <DialogDescription>
@@ -866,6 +921,7 @@ ${cart.map((item) =>
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-6">
+            {/* Payment Form */}
             <div className="space-y-4">
               <div>
                 <Label>Payment Amount</Label>

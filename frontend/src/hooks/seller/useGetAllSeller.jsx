@@ -1,10 +1,10 @@
 import { useQuery } from '@tanstack/react-query'
-import packagingServices from '../../services/packagingService'
+import sellerServices from '../../services/sellerService'
 
-export function useGetSeller() {
+export function useGetAllSeller() {
   return useQuery({
     queryKey:["SellerOfPackaging"],
-    queryFn:()=>packagingServices.getSellerList(),
+    queryFn:()=>sellerServices.getSellerList(),
     onSuccess:(res)=>{
         return res.data;
     }

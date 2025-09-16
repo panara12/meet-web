@@ -1,6 +1,6 @@
 const express = require('express');
 const bcrypt = require('bcrypt');
-const distributer_session_checker = require('../middleware/distributer_session');
+const user_session_checker = require('../middleware/user_session');
 const Tenent_user_master = require('../models/tenent_user_model');
 const router = express.Router();
 const manualLog = require('../utils/manuallogger');
@@ -36,7 +36,7 @@ router.post('/adddistributer',async (req,res)=>{
     await new_user.save();
 
     //main tenent master
-    await Tenent_user_master.create({user_email:distributer_email,user_username:distributer_username,user_password:hashedPassword,user_role:"distributer",user_tenant:user_tenant});
+    await Tenent_user_master.create({user_email:distributer_email,tenant_user_id:new_user._id,user_username:distributer_username,user_password:hashedPassword,user_role:"distributer",user_tenant:user_tenant});
     manualLog(`new distributer added :: ${new_user._id}`)
 
     res.status(200).json({
@@ -59,7 +59,7 @@ router.post('/adddistributer',async (req,res)=>{
 })
 
 
-router.get('/distributerdata/:id',async(req,res)=>{
+router.get('/distributerdata/:id',user_session_checker("edit_distributer"),async(req,res)=>{
     manualLog('entered in get distributer by id')
     try {
         const {id} = req.params
@@ -78,7 +78,7 @@ router.get('/distributerdata/:id',async(req,res)=>{
     }
 })
 
-router.post('/distributerupdate/:id',distributer_session_checker,async(req,res)=>{
+router.post('/distributerupdate/:id',user_session_checker("get_by_id_distributer"),async(req,res)=>{
     manualLog(`entered in distributer update route`)
     try {
         const {id} = req.params;
