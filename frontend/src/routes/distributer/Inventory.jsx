@@ -1,201 +1,1561 @@
-import React, { useMemo, useState } from "react"
-import { Package, DollarSign, AlertTriangle, TrendingDown, BarChart3, Search, Grid3X3, List, Eye, Edit, Trash2, Plus, Building2, Tag } from "lucide-react"
+import { useState, useMemo } from "react"
+import { Card, CardContent, CardHeader, CardTitle } from "./ui/card"
+import { Button } from "./ui/button"
+import { Input } from "./ui/input"
+import { Label } from "./ui/label"
+import { Textarea } from "./ui/textarea"
+import { Badge } from "./ui/badge"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "./ui/dialog"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select"
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "./ui/alert-dialog"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "./ui/table"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs"
+import { 
+  Package, 
+  Plus, 
+  Search, 
+  Filter,
+  Edit, 
+  Trash2, 
+  Eye,
+  AlertTriangle,
+  TrendingUp,
+  TrendingDown,
+  DollarSign,
+  BarChart3,
+  Grid3X3,
+  List,
+  RefreshCw,
+  Building2,
+  Tag,
+  Calendar,
+  Truck,
+  ImagePlus,
+  X as XIcon,
+  Upload
+} from "lucide-react"
+import { useInventory, categories } from "./InventoryContext"
+import { useCompany } from "./CompanyContext"
+import { toast } from "./ui/sonner"
 
-const sampleCompanies = [
-  { id: "C1", name: "Acme Corp" },
-  { id: "C2", name: "Tech Solutions" }
-]
-const categories = ["Electronics", "Apparel", "Home"]
-const seed = [
-  { id: "P1", sku: "ACM-1001", name: "Wireless Mouse", price: 24.99, stockQuantity: 120, lowStockThreshold: 10, status: "active", category: "Electronics", companyId: "C1", companyName: "Acme Corp", description: "Ergonomic 2.4G mouse", tags: [] },
-  { id: "P2", sku: "TEC-9001", name: "USB-C Cable", price: 7.5, stockQuantity: 8, lowStockThreshold: 15, status: "active", category: "Electronics", companyId: "C2", companyName: "Tech Solutions", description: "1m fast charge", tags: [] },
-  { id: "P3", sku: "ACM-2001", name: "Cotton T-Shirt", price: 12.0, stockQuantity: 0, lowStockThreshold: 5, status: "inactive", category: "Apparel", companyId: "C1", companyName: "Acme Corp", description: "Unisex" , tags: []}
-]
+function Inventory() {
+  const { 
+    products, 
+    addProduct, 
+    updateProduct, 
+    deleteProduct, 
+    getInventoryStats,
+    searchProducts,
+    getLowStockProducts,
+    getOutOfStockProducts
+  } = useInventory()
+  const { companies, incrementProductsCount, decrementProductsCount } = useCompany()
+  
+  const [searchTerm, setSearchTerm] = useState("")
+  const [selectedCategory, setSelectedCategory] = useState("all")
+  const [selectedCompany, setSelectedCompany] = useState("all")
+  const [selectedStatus, setSelectedStatus] = useState("all")
+  const [viewMode, setViewMode] = useState("table")
+  const [sortField, setSortField] = useState("created")
+  const [sortOrder, setSortOrder] = useState("desc")
+  
+  const [showAddDialog, setShowAddDialog] = useState(false)
+  const [showEditDialog, setShowEditDialog] = useState(false)
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false)
+  const [showProductDialog, setShowProductDialog] = useState(false)
+  const [selectedProduct, setSelectedProduct] = useState(null)
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
-export default function Inventory() {
-  const [products, setProducts] = useState(seed)
-  const [search, setSearch] = useState("")
-  const [category, setCategory] = useState("all")
-  const [company, setCompany] = useState("all")
-  const [status, setStatus] = useState("all")
-  const [view, setView] = useState("table")
-  const [sortField, setSortField] = useState("name")
-  const [sortOrder, setSortOrder] = useState("asc")
+  // Form states
+  const [formData, setFormData] = useState({
+    name: "",
+    description: "",
+    category: "",
+    subcategory: "",
+    brand: "",
+    companyId: "",
+    price: "",
+    costPrice: "",
+    stockQuantity: "",
+    lowStockThreshold: "",
+    status: "active",
+    tags: "",
+    supplier: "",
+    barcode: "",
+    images: [],
+    dimensions: {
+      length: "",
+      width: "",
+      height: "",
+      weight: "",
+      unit: "cm",
+      weightUnit: "kg"
+    }
+  })
+  
+  const [dragActive, setDragActive] = useState(false)
 
-  const stats = useMemo(() => {
-    const totalProducts = products.length
-    const totalValue = products.reduce((s, p) => s + p.price * p.stockQuantity, 0)
-    const lowStock = products.filter(p => p.stockQuantity > 0 && p.stockQuantity <= p.lowStockThreshold).length
-    const outOfStock = products.filter(p => p.stockQuantity === 0).length
-    return { totalProducts, totalValue, lowStock, outOfStock, categories: new Set(products.map(p => p.category)).size }
-  }, [products])
+  const stats = getInventoryStats()
+  const lowStockProducts = getLowStockProducts()
+  const outOfStockProducts = getOutOfStockProducts()
 
-  const filtered = useMemo(() => {
-    let list = products
-    const q = search.toLowerCase()
-    if (q) list = list.filter(p => (p.name + p.sku + (p.description||"")).toLowerCase().includes(q))
-    if (category !== "all") list = list.filter(p => p.category === category)
-    if (company !== "all") list = list.filter(p => p.companyId === company)
-    if (status !== "all") list = list.filter(p => p.status === status)
-    const sorted = [...list].sort((a, b) => {
-      let aVal = a[sortField]
-      let bVal = b[sortField]
-      if (sortField === "price") { aVal = a.price; bVal = b.price }
-      if (sortField === "stockQuantity") { aVal = a.stockQuantity; bVal = b.stockQuantity }
-      if (aVal < bVal) return sortOrder === "asc" ? -1 : 1
-      if (aVal > bVal) return sortOrder === "asc" ? 1 : -1
-      return 0
+  // Filter and sort products
+  const filteredAndSortedProducts = useMemo(() => {
+    let filtered = products
+
+    // Apply search
+    if (searchTerm) {
+      filtered = searchProducts(searchTerm)
+    }
+
+    // Apply filters
+    if (selectedCategory !== "all") {
+      filtered = filtered.filter(p => p.category === selectedCategory)
+    }
+    if (selectedCompany !== "all") {
+      filtered = filtered.filter(p => p.companyId === selectedCompany)
+    }
+    if (selectedStatus !== "all") {
+      filtered = filtered.filter(p => p.status === selectedStatus)
+    }
+
+    // Apply sorting
+    filtered.sort((a, b) => {
+      let aValue = a[sortField]
+      let bValue = b[sortField]
+
+      if (sortField === "created" || sortField === "updated") {
+        aValue = new Date(aValue).getTime()
+        bValue = new Date(bValue).getTime()
+      } else if (sortField === "price") {
+        aValue = a.price
+        bValue = b.price
+      } else if (sortField === "stock") {
+        aValue = a.stockQuantity
+        bValue = b.stockQuantity
+      } else {
+        aValue = aValue?.toString().toLowerCase() || ""
+        bValue = bValue?.toString().toLowerCase() || ""
+      }
+
+      if (sortOrder === "asc") {
+        return aValue > bValue ? 1 : -1
+      } else {
+        return aValue < bValue ? 1 : -1
+      }
     })
-    return sorted
-  }, [products, search, category, company, status, sortField, sortOrder])
 
-  const fmt = (n) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(n)
-  const stockStatus = (p) => p.stockQuantity === 0 ? { label: "Out of Stock", cls: "bg-red-100 text-red-700" } : (p.stockQuantity <= p.lowStockThreshold ? { label: "Low Stock", cls: "bg-amber-100 text-amber-700" } : { label: "In Stock", cls: "bg-green-100 text-green-700" })
+    return filtered
+  }, [products, searchTerm, selectedCategory, selectedCompany, selectedStatus, sortField, sortOrder])
+
+  const resetForm = () => {
+    setFormData({
+      name: "",
+      description: "",
+      category: "",
+      subcategory: "",
+      brand: "",
+      companyId: "",
+      price: "",
+      costPrice: "",
+      stockQuantity: "",
+      lowStockThreshold: "",
+      status: "active",
+      tags: "",
+      supplier: "",
+      barcode: "",
+      images: [],
+      dimensions: {
+        length: "",
+        width: "",
+        height: "",
+        weight: "",
+        unit: "cm",
+        weightUnit: "kg"
+      }
+    })
+  }
+
+  const handleAddProduct = async () => {
+    if (!formData.name.trim() || !formData.category || !formData.companyId) {
+      toast.error("Please fill in required fields")
+      return
+    }
+
+    setIsSubmitting(true)
+    try {
+      const company = companies.find(c => c.id === formData.companyId)
+      if (!company) {
+        toast.error("Invalid company selected")
+        return
+      }
+
+      const productData = {
+        sku: `${company.name.substring(0, 3).toUpperCase()}-${Date.now()}`,
+        name: formData.name,
+        description: formData.description,
+        category: formData.category,
+        subcategory: formData.subcategory,
+        brand: formData.brand || company.name,
+        companyId: formData.companyId,
+        companyName: company.name,
+        price: parseFloat(formData.price) || 0,
+        costPrice: parseFloat(formData.costPrice) || 0,
+        currency: "USD",
+        stockQuantity: parseInt(formData.stockQuantity) || 0,
+        lowStockThreshold: parseInt(formData.lowStockThreshold) || 10,
+        status: formData.status,
+        images: formData.images,
+        dimensions: {
+          length: parseFloat(formData.dimensions.length) || 0,
+          width: parseFloat(formData.dimensions.width) || 0,
+          height: parseFloat(formData.dimensions.height) || 0,
+          weight: parseFloat(formData.dimensions.weight) || 0,
+          unit: formData.dimensions.unit,
+          weightUnit: formData.dimensions.weightUnit
+        },
+        tags: formData.tags.split(',').map(tag => tag.trim()).filter(tag => tag),
+        supplier: formData.supplier,
+        barcode: formData.barcode
+      }
+
+      addProduct(productData)
+      incrementProductsCount(formData.companyId)
+      toast.success(`Product "${formData.name}" added successfully`)
+      resetForm()
+      setShowAddDialog(false)
+    } catch (error) {
+      toast.error("Failed to add product")
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  const handleEditProduct = async () => {
+    if (!selectedProduct || !formData.name.trim() || !formData.category) {
+      toast.error("Please fill in required fields")
+      return
+    }
+
+    setIsSubmitting(true)
+    try {
+      const company = companies.find(c => c.id === formData.companyId)
+      if (!company) {
+        toast.error("Invalid company selected")
+        return
+      }
+
+      const updates = {
+        name: formData.name,
+        description: formData.description,
+        category: formData.category,
+        subcategory: formData.subcategory,
+        brand: formData.brand || company.name,
+        companyId: formData.companyId,
+        companyName: company.name,
+        price: parseFloat(formData.price) || 0,
+        costPrice: parseFloat(formData.costPrice) || 0,
+        stockQuantity: parseInt(formData.stockQuantity) || 0,
+        lowStockThreshold: parseInt(formData.lowStockThreshold) || 10,
+        status: formData.status,
+        images: formData.images,
+        dimensions: {
+          length: parseFloat(formData.dimensions.length) || 0,
+          width: parseFloat(formData.dimensions.width) || 0,
+          height: parseFloat(formData.dimensions.height) || 0,
+          weight: parseFloat(formData.dimensions.weight) || 0,
+          unit: formData.dimensions.unit,
+          weightUnit: formData.dimensions.weightUnit
+        },
+        tags: formData.tags.split(',').map(tag => tag.trim()).filter(tag => tag),
+        supplier: formData.supplier,
+        barcode: formData.barcode
+      }
+
+      updateProduct(selectedProduct.id, updates)
+      toast.success(`Product "${formData.name}" updated successfully`)
+      setShowEditDialog(false)
+      setSelectedProduct(null)
+      resetForm()
+    } catch (error) {
+      toast.error("Failed to update product")
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  const handleDeleteProduct = async () => {
+    if (!selectedProduct) return
+
+    setIsSubmitting(true)
+    try {
+      deleteProduct(selectedProduct.id)
+      decrementProductsCount(selectedProduct.companyId)
+      toast.success(`Product "${selectedProduct.name}" deleted successfully`)
+      setShowDeleteDialog(false)
+      setSelectedProduct(null)
+    } catch (error) {
+      toast.error("Failed to delete product")
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  const openEditDialog = (product) => {
+    setSelectedProduct(product)
+    setFormData({
+      name: product.name,
+      description: product.description,
+      category: product.category,
+      subcategory: product.subcategory || "",
+      brand: product.brand,
+      companyId: product.companyId,
+      price: product.price.toString(),
+      costPrice: product.costPrice.toString(),
+      stockQuantity: product.stockQuantity.toString(),
+      lowStockThreshold: product.lowStockThreshold.toString(),
+      status: product.status,
+      tags: product.tags.join(', '),
+      supplier: product.supplier || "",
+      barcode: product.barcode || "",
+      images: [...product.images],
+      dimensions: {
+        length: product.dimensions.length.toString(),
+        width: product.dimensions.width.toString(),
+        height: product.dimensions.height.toString(),
+        weight: product.dimensions.weight.toString(),
+        unit: product.dimensions.unit,
+        weightUnit: product.dimensions.weightUnit
+      }
+    })
+    setShowEditDialog(true)
+  }
+
+  const openDeleteDialog = (product) => {
+    setSelectedProduct(product)
+    setShowDeleteDialog(true)
+  }
+
+  const openProductDialog = (product) => {
+    setSelectedProduct(product)
+    setShowProductDialog(true)
+  }
+
+  const getStockStatus = (product) => {
+    if (product.stockQuantity === 0) return { label: "Out of Stock", variant: "destructive" }
+    if (product.stockQuantity <= product.lowStockThreshold) return { label: "Low Stock", variant: "secondary" }
+    return { label: "In Stock", variant: "default" }
+  }
+
+  const formatCurrency = (amount) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD'
+    }).format(amount)
+  }
+
+  // Photo upload handlers
+  const handleFileSelect = (event) => {
+    const files = event.target.files
+    if (files) {
+      handleFiles(Array.from(files))
+    }
+  }
+
+  const handleFiles = (files) => {
+    files.forEach(file => {
+      if (file.type.startsWith('image/')) {
+        if (file.size > 5 * 1024 * 1024) { // 5MB limit
+          toast.error(`Image ${file.name} is too large. Maximum size is 5MB.`)
+          return
+        }
+        
+        const reader = new FileReader()
+        reader.onload = (e) => {
+          const imageUrl = e.target?.result
+          setFormData(prev => ({
+            ...prev,
+            images: [...prev.images, imageUrl]
+          }))
+        }
+        reader.readAsDataURL(file)
+      } else {
+        toast.error(`File ${file.name} is not a valid image format.`)
+      }
+    })
+  }
+
+  const handleDrag = (e) => {
+    e.preventDefault()
+    e.stopPropagation()
+  }
+
+  const handleDragIn = (e) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setDragActive(true)
+  }
+
+  const handleDragOut = (e) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setDragActive(false)
+  }
+
+  const handleDrop = (e) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setDragActive(false)
+    
+    const files = Array.from(e.dataTransfer.files)
+    handleFiles(files)
+  }
+
+  const removeImage = (index) => {
+    setFormData(prev => ({
+      ...prev,
+      images: prev.images.filter((_, i) => i !== index)
+    }))
+  }
 
   return (
     <div className="space-y-6">
+      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1>Inventory Management</h1>
-          <p className="text-muted-foreground">Manage your product catalog</p>
+          <p className="text-muted-foreground">
+            Manage your product catalog with Amazon-style inventory tracking
+          </p>
         </div>
-        <button className="btn bg-primary text-primary-foreground px-3 py-2 rounded inline-flex items-center gap-2">
-          <Plus className="h-4 w-4" /> Add Product
-        </button>
+
+        <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
+          <DialogTrigger asChild>
+            <Button onClick={resetForm}>
+              <Plus className="h-4 w-4 mr-2" />
+              Add Product
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Add New Product</DialogTitle>
+              <DialogDescription>
+                Create a new product in your inventory
+              </DialogDescription>
+            </DialogHeader>
+
+            <Tabs defaultValue="basic" className="w-full">
+              <TabsList className="grid w-full grid-cols-3">
+                <TabsTrigger value="basic">Basic Info</TabsTrigger>
+                <TabsTrigger value="pricing">Pricing & Stock</TabsTrigger>
+                <TabsTrigger value="details">Details</TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="basic" className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="name">Product Name *</Label>
+                    <Input
+                      id="name"
+                      value={formData.name}
+                      onChange={(e) => setFormData({...formData, name: e.target.value})}
+                      placeholder="Enter product name"
+                    />
+                  </div>
+
+                  <div className="space-y-2 bg-white">
+                    <Label htmlFor="companyId">Company *</Label>
+                    <Select value={formData.companyId} onValueChange={(value) => setFormData({...formData, companyId: value})}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select company" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {companies.filter(c => c.status === 'active').map(company => (
+                          <SelectItem key={company.id} value={company.id}>{company.name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2 bg-white">
+                    <Label htmlFor="category">Category *</Label>
+                    <Select value={formData.category} onValueChange={(value) => setFormData({...formData, category: value})}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select category" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {categories.map(category => (
+                          <SelectItem key={category} value={category}>{category}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="subcategory">Subcategory</Label>
+                    <Input
+                      id="subcategory"
+                      value={formData.subcategory}
+                      onChange={(e) => setFormData({...formData, subcategory: e.target.value})}
+                      placeholder="e.g., Smartphones, T-Shirts"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="brand">Brand</Label>
+                    <Input
+                      id="brand"
+                      value={formData.brand}
+                      onChange={(e) => setFormData({...formData, brand: e.target.value})}
+                      placeholder="Product brand"
+                    />
+                  </div>
+
+                  <div className="space-y-2 bg-white">
+                    <Label htmlFor="status">Status</Label>
+                    <Select value={formData.status} onValueChange={(value) => setFormData({...formData, status: value})}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="active">Active</SelectItem>
+                        <SelectItem value="inactive">Inactive</SelectItem>
+                        <SelectItem value="discontinued">Discontinued</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="md:col-span-2 space-y-2">
+                    <Label htmlFor="description">Description</Label>
+                    <Textarea
+                      id="description"
+                      value={formData.description}
+                      onChange={(e) => setFormData({...formData, description: e.target.value})}
+                      placeholder="Product description"
+                      rows={3}
+                    />
+                  </div>
+                </div>
+
+                {/* Photo Upload Section */}
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label className="text-responsive-sm flex items-center gap-2">
+                      <ImagePlus className="icon-responsive-sm" />
+                      Product Photos
+                    </Label>
+                    <p className="text-responsive-xs text-muted-foreground">
+                      Upload up to 5 photos (max 5MB each). Drag and drop or click to browse.
+                    </p>
+                  </div>
+
+                  {/* Image Upload Area */}
+                  <div
+                    className={`relative border-2 border-dashed rounded-lg responsive-padding transition-all ${
+                      dragActive
+                        ? 'border-primary bg-primary/5'
+                        : 'border-border hover:border-primary/50'
+                    } ${formData.images.length >= 5 ? 'opacity-50 pointer-events-none' : ''}`}
+                    onDragEnter={handleDragIn}
+                    onDragLeave={handleDragOut}
+                    onDragOver={handleDrag}
+                    onDrop={handleDrop}
+                  >
+                    <input
+                      type="file"
+                      multiple
+                      accept="image/*"
+                      onChange={handleFileSelect}
+                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                      disabled={formData.images.length >= 5}
+                    />
+                    <div className="flex flex-col items-center justify-center space-y-3 text-center">
+                      <div className="p-3 bg-muted rounded-full">
+                        <Upload className="icon-responsive-base text-muted-foreground" />
+                      </div>
+                      <div className="space-y-1">
+                        <p className="text-responsive-sm font-medium">
+                          {formData.images.length >= 5 
+                            ? 'Maximum photos reached' 
+                            : 'Drop your images here, or click to browse'
+                          }
+                        </p>
+                        <p className="text-responsive-xs text-muted-foreground">
+                          JPG, PNG, GIF up to 5MB each
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Image Preview Grid */}
+                  {formData.images.length > 0 && (
+                    <div className="space-y-3">
+                      <Label className="text-responsive-sm">Uploaded Photos ({formData.images.length}/5)</Label>
+                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+                        {formData.images.map((image, index) => (
+                          <div key={index} className="relative group aspect-square">
+                            <img
+                              src={image}
+                              alt={`Product photo ${index + 1}`}
+                              className="w-full h-full object-cover rounded-lg border bg-muted"
+                            />
+                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-all rounded-lg flex items-center justify-center">
+                              <Button
+                                type="button"
+                                variant="destructive"
+                                size="sm"
+                                className="h-8 w-8 p-0"
+                                onClick={() => removeImage(index)}
+                              >
+                                <XIcon className="h-4 w-4" />
+                              </Button>
+                            </div>
+                            {index === 0 && (
+                              <div className="absolute -top-2 -left-2">
+                                <Badge variant="secondary" className="text-xs px-2 py-1">
+                                  Main
+                                </Badge>
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                      <p className="text-responsive-xs text-muted-foreground">
+                        First image will be used as the main product photo.
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </TabsContent>
+
+              <TabsContent value="pricing" className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="price">Selling Price</Label>
+                    <Input
+                      id="price"
+                      type="number"
+                      step="0.01"
+                      value={formData.price}
+                      onChange={(e) => setFormData({...formData, price: e.target.value})}
+                      placeholder="0.00"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="costPrice">Cost Price</Label>
+                    <Input
+                      id="costPrice"
+                      type="number"
+                      step="0.01"
+                      value={formData.costPrice}
+                      onChange={(e) => setFormData({...formData, costPrice: e.target.value})}
+                      placeholder="0.00"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="stockQuantity">Stock Quantity</Label>
+                    <Input
+                      id="stockQuantity"
+                      type="number"
+                      value={formData.stockQuantity}
+                      onChange={(e) => setFormData({...formData, stockQuantity: e.target.value})}
+                      placeholder="0"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="lowStockThreshold">Low Stock Alert Threshold</Label>
+                    <Input
+                      id="lowStockThreshold"
+                      type="number"
+                      value={formData.lowStockThreshold}
+                      onChange={(e) => setFormData({...formData, lowStockThreshold: e.target.value})}
+                      placeholder="10"
+                    />
+                  </div>
+                </div>
+              </TabsContent>
+
+              <TabsContent value="details" className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="tags">Tags (comma-separated)</Label>
+                    <Input
+                      id="tags"
+                      value={formData.tags}
+                      onChange={(e) => setFormData({...formData, tags: e.target.value})}
+                      placeholder="premium, bestseller, new"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="supplier">Supplier</Label>
+                    <Input
+                      id="supplier"
+                      value={formData.supplier}
+                      onChange={(e) => setFormData({...formData, supplier: e.target.value})}
+                      placeholder="Supplier name"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="barcode">Barcode/SKU</Label>
+                    <Input
+                      id="barcode"
+                      value={formData.barcode}
+                      onChange={(e) => setFormData({...formData, barcode: e.target.value})}
+                      placeholder="Barcode or internal SKU"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <Label>Dimensions</Label>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="length">Length</Label>
+                      <Input
+                        id="length"
+                        type="number"
+                        step="0.01"
+                        value={formData.dimensions.length}
+                        onChange={(e) => setFormData({...formData, dimensions: {...formData.dimensions, length: e.target.value}})}
+                        placeholder="0"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="width">Width</Label>
+                      <Input
+                        id="width"
+                        type="number"
+                        step="0.01"
+                        value={formData.dimensions.width}
+                        onChange={(e) => setFormData({...formData, dimensions: {...formData.dimensions, width: e.target.value}})}
+                        placeholder="0"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="height">Height</Label>
+                      <Input
+                        id="height"
+                        type="number"
+                        step="0.01"
+                        value={formData.dimensions.height}
+                        onChange={(e) => setFormData({...formData, dimensions: {...formData.dimensions, height: e.target.value}})}
+                        placeholder="0"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="unit">Unit</Label>
+                      <Select value={formData.dimensions.unit} onValueChange={(value) => setFormData({...formData, dimensions: {...formData.dimensions, unit: value}})}>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="cm">cm</SelectItem>
+                          <SelectItem value="inch">inch</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="weight">Weight</Label>
+                      <Input
+                        id="weight"
+                        type="number"
+                        step="0.01"
+                        value={formData.dimensions.weight}
+                        onChange={(e) => setFormData({...formData, dimensions: {...formData.dimensions, weight: e.target.value}})}
+                        placeholder="0"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="weightUnit">Weight Unit</Label>
+                      <Select value={formData.dimensions.weightUnit} onValueChange={(value) => setFormData({...formData, dimensions: {...formData.dimensions, weightUnit: value}})}>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="kg">kg</SelectItem>
+                          <SelectItem value="lb">lb</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                </div>
+              </TabsContent>
+            </Tabs>
+
+            <div className="flex gap-2 pt-4">
+              <Button onClick={handleAddProduct} disabled={isSubmitting} className="flex-1">
+                {isSubmitting ? (
+                  <>
+                    <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                    Adding...
+                  </>
+                ) : (
+                  <>
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add Product
+                  </>
+                )}
+              </Button>
+              <Button variant="outline" onClick={() => setShowAddDialog(false)} disabled={isSubmitting}>
+                Cancel
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
 
+      {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-        <div className="rounded-lg border p-4">
-          <div className="text-sm text-muted-foreground">Total Products</div>
-          <div className="text-2xl font-semibold">{stats.totalProducts}</div>
-        </div>
-        <div className="rounded-lg border p-4">
-          <div className="text-sm text-muted-foreground">Total Value</div>
-          <div className="text-2xl font-semibold">{fmt(stats.totalValue)}</div>
-        </div>
-        <div className="rounded-lg border p-4">
-          <div className="text-sm text-muted-foreground">Low Stock</div>
-          <div className="text-2xl font-semibold text-amber-600">{stats.lowStock}</div>
-        </div>
-        <div className="rounded-lg border p-4">
-          <div className="text-sm text-muted-foreground">Out of Stock</div>
-          <div className="text-2xl font-semibold text-red-600">{stats.outOfStock}</div>
-        </div>
-        <div className="rounded-lg border p-4">
-          <div className="text-sm text-muted-foreground">Categories</div>
-          <div className="text-2xl font-semibold">{stats.categories}</div>
-        </div>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium flex items-center gap-2">
+              <Package className="h-4 w-4" />
+              Total Products
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats.totalProducts}</div>
+            <p className="text-xs text-muted-foreground">
+              {stats.activeProducts} active
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium flex items-center gap-2">
+              <DollarSign className="h-4 w-4" />
+              Total Value
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{formatCurrency(stats.totalValue)}</div>
+            <p className="text-xs text-muted-foreground">
+              Inventory value
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium flex items-center gap-2">
+              <AlertTriangle className="h-4 w-4 text-amber-500" />
+              Low Stock
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-amber-600">{stats.lowStockProducts}</div>
+            <p className="text-xs text-muted-foreground">
+              Need restocking
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium flex items-center gap-2">
+              <TrendingDown className="h-4 w-4 text-red-500" />
+              Out of Stock
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-red-600">{stats.outOfStockProducts}</div>
+            <p className="text-xs text-muted-foreground">
+              Urgent restock
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium flex items-center gap-2">
+              <BarChart3 className="h-4 w-4" />
+              Categories
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{Object.keys(stats.categories).length}</div>
+            <p className="text-xs text-muted-foreground">
+              Product categories
+            </p>
+          </CardContent>
+        </Card>
       </div>
 
+      {/* Filters and Search */}
       <div className="flex flex-col sm:flex-row gap-4">
         <div className="flex-1 relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <input className="w-full border rounded px-9 py-2" placeholder="Search products by name, SKU, description..." value={search} onChange={(e)=>setSearch(e.target.value)} />
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search products by name, SKU, description..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-10"
+          />
         </div>
-        <select className="border rounded px-3 py-2" value={category} onChange={(e)=>setCategory(e.target.value)}>
-          <option value="all">All Categories</option>
-          {categories.map(c => <option key={c} value={c}>{c}</option>)}
-        </select>
-        <select className="border rounded px-3 py-2" value={company} onChange={(e)=>setCompany(e.target.value)}>
-          <option value="all">All Companies</option>
-          {sampleCompanies.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-        </select>
-        <select className="border rounded px-3 py-2" value={status} onChange={(e)=>setStatus(e.target.value)}>
-          <option value="all">All Status</option>
-          <option value="active">Active</option>
-          <option value="inactive">Inactive</option>
-          <option value="discontinued">Discontinued</option>
-        </select>
-        <div className="flex bg-muted rounded-md p-1">
-          <button className={`px-2 py-1 rounded ${view==='table' ? 'bg-background shadow' : ''}`} onClick={()=>setView('table')}><List className="h-4 w-4" /></button>
-          <button className={`px-2 py-1 rounded ${view==='grid' ? 'bg-background shadow' : ''}`} onClick={()=>setView('grid')}><Grid3X3 className="h-4 w-4" /></button>
+
+        <div className="flex gap-2">
+          <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+            <SelectTrigger className="w-[150px]">
+              <SelectValue placeholder="Category" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Categories</SelectItem>
+              {categories.map(category => (
+                <SelectItem key={category} value={category}>{category}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          <Select value={selectedCompany} onValueChange={setSelectedCompany}>
+            <SelectTrigger className="w-[150px]">
+              <SelectValue placeholder="Company" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Companies</SelectItem>
+              {companies.map(company => (
+                <SelectItem key={company.id} value={company.id}>{company.name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          <Select value={selectedStatus} onValueChange={setSelectedStatus}>
+            <SelectTrigger className="w-[120px]">
+              <SelectValue placeholder="Status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Status</SelectItem>
+              <SelectItem value="active">Active</SelectItem>
+              <SelectItem value="inactive">Inactive</SelectItem>
+              <SelectItem value="discontinued">Discontinued</SelectItem>
+            </SelectContent>
+          </Select>
+
+          <div className="flex bg-muted rounded-md p-1">
+            <Button
+              variant={viewMode === "table" ? "default" : "ghost"}
+              size="sm"
+              onClick={() => setViewMode("table")}
+            >
+              <List className="h-4 w-4" />
+            </Button>
+            <Button
+              variant={viewMode === "grid" ? "default" : "ghost"}
+              size="sm"
+              onClick={() => setViewMode("grid")}
+            >
+              <Grid3X3 className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
       </div>
 
-      {view === 'table' ? (
-        <div className="rounded-lg border overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead className="bg-muted/40">
-              <tr>
-                <th className="text-left px-3 py-2 cursor-pointer" onClick={()=>{ setSortField('name'); setSortOrder(sortOrder==='asc'?'desc':'asc') }}>Product</th>
-                <th className="text-left px-3 py-2">Company</th>
-                <th className="text-left px-3 py-2">Category</th>
-                <th className="text-left px-3 py-2 cursor-pointer" onClick={()=>{ setSortField('price'); setSortOrder(sortOrder==='asc'?'desc':'asc') }}>Price</th>
-                <th className="text-left px-3 py-2 cursor-pointer" onClick={()=>{ setSortField('stockQuantity'); setSortOrder(sortOrder==='asc'?'desc':'asc') }}>Stock</th>
-                <th className="text-left px-3 py-2">Status</th>
-                <th className="text-left px-3 py-2">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.map(p => {
-                const s = stockStatus(p)
+      {/* Products Display */}
+      {viewMode === "table" ? (
+        <Card>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead 
+                  className="cursor-pointer"
+                  onClick={() => {
+                    if (sortField === "name") {
+                      setSortOrder(sortOrder === "asc" ? "desc" : "asc")
+                    } else {
+                      setSortField("name")
+                      setSortOrder("asc")
+                    }
+                  }}
+                >
+                  Product {sortField === "name" && (sortOrder === "asc" ? "↑" : "↓")}
+                </TableHead>
+                <TableHead>Company</TableHead>
+                <TableHead>Category</TableHead>
+                <TableHead 
+                  className="cursor-pointer"
+                  onClick={() => {
+                    if (sortField === "price") {
+                      setSortOrder(sortOrder === "asc" ? "desc" : "asc")
+                    } else {
+                      setSortField("price")
+                      setSortOrder("desc")
+                    }
+                  }}
+                >
+                  Price {sortField === "price" && (sortOrder === "asc" ? "↑" : "↓")}
+                </TableHead>
+                <TableHead 
+                  className="cursor-pointer"
+                  onClick={() => {
+                    if (sortField === "stock") {
+                      setSortOrder(sortOrder === "asc" ? "desc" : "asc")
+                    } else {
+                      setSortField("stock")
+                      setSortOrder("desc")
+                    }
+                  }}
+                >
+                  Stock {sortField === "stock" && (sortOrder === "asc" ? "↑" : "↓")}
+                </TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filteredAndSortedProducts.map((product) => {
+                const stockStatus = getStockStatus(product)
                 return (
-                  <tr key={p.id} className="border-t">
-                    <td className="px-3 py-2">
-                      <div className="font-medium">{p.name}</div>
-                      <div className="text-xs text-muted-foreground">{p.sku}</div>
-                    </td>
-                    <td className="px-3 py-2"><div className="flex items-center gap-2"><Building2 className="h-4 w-4 text-muted-foreground" />{p.companyName}</div></td>
-                    <td className="px-3 py-2"><span className="inline-block px-2 py-1 rounded border text-xs">{p.category}</span></td>
-                    <td className="px-3 py-2">{fmt(p.price)}</td>
-                    <td className="px-3 py-2"><span className={`inline-block px-2 py-1 rounded text-xs ${s.cls}`}>{p.stockQuantity} units</span></td>
-                    <td className="px-3 py-2"><span className={`inline-block px-2 py-1 rounded border text-xs ${p.status==='active'?'':'opacity-60'}`}>{p.status}</span></td>
-                    <td className="px-3 py-2">
-                      <div className="flex gap-1">
-                        <button className="h-8 w-8 p-0 rounded hover:bg-muted flex items-center justify-center"><Eye className="h-4 w-4" /></button>
-                        <button className="h-8 w-8 p-0 rounded hover:bg-muted flex items-center justify-center"><Edit className="h-4 w-4" /></button>
-                        <button className="h-8 w-8 p-0 rounded hover:bg-muted flex items-center justify-center"><Trash2 className="h-4 w-4" /></button>
+                  <TableRow key={product.id}>
+                    <TableCell>
+                      <div>
+                        <div className="font-medium">{product.name}</div>
+                        <div className="text-sm text-muted-foreground">{product.sku}</div>
                       </div>
-                    </td>
-                  </tr>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <Building2 className="h-4 w-4 text-muted-foreground" />
+                        {product.companyName}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant="outline">{product.category}</Badge>
+                    </TableCell>
+                    <TableCell>{formatCurrency(product.price)}</TableCell>
+                    <TableCell>
+                      <Badge variant={stockStatus.variant}>
+                        {product.stockQuantity} units
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <Badge 
+                        variant={product.status === "active" ? "default" : 
+                                product.status === "inactive" ? "secondary" : "destructive"}
+                      >
+                        {product.status}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex gap-1">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => openProductDialog(product)}
+                        >
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => openEditDialog(product)}
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => openDeleteDialog(product)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
                 )
               })}
-            </tbody>
-          </table>
-        </div>
+            </TableBody>
+          </Table>
+        </Card>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {filtered.map(p => {
-            const s = stockStatus(p)
+          {filteredAndSortedProducts.map((product) => {
+            const stockStatus = getStockStatus(product)
             return (
-              <div key={p.id} className="rounded-lg border hover:shadow-lg transition-shadow">
-                <div className="p-4 border-b">
+              <Card key={product.id} className="hover:shadow-lg transition-shadow">
+                <CardHeader className="pb-3">
                   <div className="flex items-start justify-between">
-                    <div className="min-w-0">
-                      <div className="font-semibold truncate">{p.name}</div>
-                      <div className="text-xs text-muted-foreground">{p.sku}</div>
+                    <div className="flex-1 min-w-0">
+                      <CardTitle className="text-base truncate">{product.name}</CardTitle>
+                      <p className="text-sm text-muted-foreground">{product.sku}</p>
                     </div>
-                    <span className={`inline-block px-2 py-1 rounded border text-xs ${p.status==='active'?'':'opacity-60'}`}>{p.status}</span>
+                    <Badge 
+                      variant={product.status === "active" ? "default" : 
+                              product.status === "inactive" ? "secondary" : "destructive"}
+                      className="ml-2"
+                    >
+                      {product.status}
+                    </Badge>
                   </div>
-                </div>
-                <div className="p-4 space-y-3 text-sm">
-                  <div className="flex items-center gap-2 text-muted-foreground"><Building2 className="h-4 w-4" /><span className="truncate">{p.companyName}</span></div>
-                  <div className="flex items-center gap-2"><Tag className="h-4 w-4 text-muted-foreground" /><span className="inline-block px-2 py-1 rounded border text-xs">{p.category}</span></div>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <Building2 className="h-4 w-4" />
+                    <span className="truncate">{product.companyName}</span>
+                  </div>
+                  
+                  <div className="flex items-center gap-2">
+                    <Tag className="h-4 w-4 text-muted-foreground" />
+                    <Badge variant="outline">{product.category}</Badge>
+                  </div>
+
                   <div className="flex items-center justify-between">
-                    <div className="text-lg font-semibold">{fmt(p.price)}</div>
-                    <span className={`inline-block px-2 py-1 rounded text-xs ${s.cls}`}>{p.stockQuantity} units</span>
+                    <div className="text-lg font-semibold">{formatCurrency(product.price)}</div>
+                    <Badge variant={stockStatus.variant}>
+                      {product.stockQuantity} units
+                    </Badge>
                   </div>
-                  {p.description && <p className="text-sm text-muted-foreground line-clamp-2">{p.description}</p>}
+
+                  {product.description && (
+                    <p className="text-sm text-muted-foreground line-clamp-2">
+                      {product.description}
+                    </p>
+                  )}
+
                   <div className="flex gap-1">
-                    <button className="flex-1 border rounded px-2 py-1 text-sm">View</button>
-                    <button className="border rounded px-2 py-1 text-sm">Edit</button>
-                    <button className="border rounded px-2 py-1 text-sm">Delete</button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => openProductDialog(product)}
+                      className="flex-1"
+                    >
+                      <Eye className="h-4 w-4 mr-1" />
+                      View
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => openEditDialog(product)}
+                    >
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => openDeleteDialog(product)}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
                   </div>
-                </div>
-              </div>
+                </CardContent>
+              </Card>
             )
           })}
         </div>
       )}
 
-      {filtered.length === 0 && (
-        <div className="p-8 rounded border text-center">
-          <Package className="h-12 w-12 text-muted-foreground mx-auto mb-2" />
-          <p className="text-muted-foreground">No products found</p>
-        </div>
+      {filteredAndSortedProducts.length === 0 && (
+        <Card className="p-8">
+          <div className="text-center">
+            <Package className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+            <h3 className="text-lg font-medium mb-2">No Products Found</h3>
+            <p className="text-muted-foreground mb-4">
+              {searchTerm || selectedCategory !== "all" || selectedCompany !== "all" || selectedStatus !== "all" ? 
+                "No products match your current filters." : 
+                "Get started by adding your first product."}
+            </p>
+            {!searchTerm && selectedCategory === "all" && selectedCompany === "all" && selectedStatus === "all" && (
+              <Button onClick={() => setShowAddDialog(true)}>
+                <Plus className="h-4 w-4 mr-2" />
+                Add Product
+              </Button>
+            )}
+          </div>
+        </Card>
       )}
+
+      {/* Product Details Dialog */}
+      <Dialog open={showProductDialog} onOpenChange={setShowProductDialog}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>{selectedProduct?.name}</DialogTitle>
+            <DialogDescription>
+              Product details and information
+            </DialogDescription>
+          </DialogHeader>
+          
+          {selectedProduct && (
+            <div className="space-y-6">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label>SKU</Label>
+                  <p className="text-sm">{selectedProduct.sku}</p>
+                </div>
+                <div>
+                  <Label>Company</Label>
+                  <p className="text-sm">{selectedProduct.companyName}</p>
+                </div>
+                <div>
+                  <Label>Category</Label>
+                  <p className="text-sm">{selectedProduct.category}</p>
+                </div>
+                <div>
+                  <Label>Brand</Label>
+                  <p className="text-sm">{selectedProduct.brand}</p>
+                </div>
+                <div>
+                  <Label>Price</Label>
+                  <p className="text-sm">{formatCurrency(selectedProduct.price)}</p>
+                </div>
+                <div>
+                  <Label>Stock</Label>
+                  <p className="text-sm">{selectedProduct.stockQuantity} units</p>
+                </div>
+              </div>
+
+              {selectedProduct.description && (
+                <div>
+                  <Label>Description</Label>
+                  <p className="text-sm mt-1">{selectedProduct.description}</p>
+                </div>
+              )}
+
+              {selectedProduct.tags.length > 0 && (
+                <div>
+                  <Label>Tags</Label>
+                  <div className="flex gap-1 mt-1">
+                    {selectedProduct.tags.map(tag => (
+                      <Badge key={tag} variant="outline">{tag}</Badge>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <div className="grid grid-cols-2 gap-4 text-sm text-muted-foreground">
+                <div>
+                  <Label>Created</Label>
+                  <p>{new Date(selectedProduct.createdAt).toLocaleDateString()}</p>
+                </div>
+                <div>
+                  <Label>Last Updated</Label>
+                  <p>{new Date(selectedProduct.updatedAt).toLocaleDateString()}</p>
+                </div>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Dialog - Similar to Add Dialog but with pre-filled data */}
+      <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Edit Product</DialogTitle>
+            <DialogDescription>
+              Update product information
+            </DialogDescription>
+          </DialogHeader>
+
+          <Tabs defaultValue="basic" className="w-full">
+            <TabsList className="grid w-full grid-cols-3">
+              <TabsTrigger value="basic">Basic Info</TabsTrigger>
+              <TabsTrigger value="pricing">Pricing & Stock</TabsTrigger>
+              <TabsTrigger value="details">Details</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="basic" className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="editName">Product Name *</Label>
+                  <Input
+                    id="editName"
+                    value={formData.name}
+                    onChange={(e) => setFormData({...formData, name: e.target.value})}
+                    placeholder="Enter product name"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="editCompanyId">Company *</Label>
+                  <Select value={formData.companyId} onValueChange={(value) => setFormData({...formData, companyId: value})}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select company" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {companies.filter(c => c.status === 'active').map(company => (
+                        <SelectItem key={company.id} value={company.id}>{company.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="editCategory">Category *</Label>
+                  <Select value={formData.category} onValueChange={(value) => setFormData({...formData, category: value})}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select category" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {categories.map(category => (
+                        <SelectItem key={category} value={category}>{category}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="editStatus">Status</Label>
+                  <Select value={formData.status} onValueChange={(value) => setFormData({...formData, status: value})}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="active">Active</SelectItem>
+                      <SelectItem value="inactive">Inactive</SelectItem>
+                      <SelectItem value="discontinued">Discontinued</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="md:col-span-2 space-y-2">
+                  <Label htmlFor="editDescription">Description</Label>
+                  <Textarea
+                    id="editDescription"
+                    value={formData.description}
+                    onChange={(e) => setFormData({...formData, description: e.target.value})}
+                    placeholder="Product description"
+                    rows={3}
+                  />
+                </div>
+              </div>
+
+              {/* Photo Upload Section for Edit */}
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label className="text-responsive-sm flex items-center gap-2">
+                    <ImagePlus className="icon-responsive-sm" />
+                    Product Photos
+                  </Label>
+                  <p className="text-responsive-xs text-muted-foreground">
+                    Upload up to 5 photos (max 5MB each). Drag and drop or click to browse.
+                  </p>
+                </div>
+
+                {/* Image Upload Area */}
+                <div
+                  className={`relative border-2 border-dashed rounded-lg responsive-padding transition-all ${
+                    dragActive
+                      ? 'border-primary bg-primary/5'
+                      : 'border-border hover:border-primary/50'
+                  } ${formData.images.length >= 5 ? 'opacity-50 pointer-events-none' : ''}`}
+                  onDragEnter={handleDragIn}
+                  onDragLeave={handleDragOut}
+                  onDragOver={handleDrag}
+                  onDrop={handleDrop}
+                >
+                  <input
+                    type="file"
+                    multiple
+                    accept="image/*"
+                    onChange={handleFileSelect}
+                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                    disabled={formData.images.length >= 5}
+                  />
+                  <div className="flex flex-col items-center justify-center space-y-3 text-center">
+                    <div className="p-3 bg-muted rounded-full">
+                      <Upload className="icon-responsive-base text-muted-foreground" />
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-responsive-sm font-medium">
+                        {formData.images.length >= 5 
+                          ? 'Maximum photos reached' 
+                          : 'Drop your images here, or click to browse'
+                        }
+                      </p>
+                      <p className="text-responsive-xs text-muted-foreground">
+                        JPG, PNG, GIF up to 5MB each
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Image Preview Grid */}
+                {formData.images.length > 0 && (
+                  <div className="space-y-3">
+                    <Label className="text-responsive-sm">Uploaded Photos ({formData.images.length}/5)</Label>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+                      {formData.images.map((image, index) => (
+                        <div key={index} className="relative group aspect-square">
+                          <img
+                            src={image}
+                            alt={`Product photo ${index + 1}`}
+                            className="w-full h-full object-cover rounded-lg border bg-muted"
+                          />
+                          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-all rounded-lg flex items-center justify-center">
+                            <Button
+                              type="button"
+                              variant="destructive"
+                              size="sm"
+                              className="h-8 w-8 p-0"
+                              onClick={() => removeImage(index)}
+                            >
+                              <XIcon className="h-4 w-4" />
+                            </Button>
+                          </div>
+                          {index === 0 && (
+                            <div className="absolute -top-2 -left-2">
+                              <Badge variant="secondary" className="text-xs px-2 py-1">
+                                Main
+                              </Badge>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                    <p className="text-responsive-xs text-muted-foreground">
+                      First image will be used as the main product photo.
+                    </p>
+                  </div>
+                )}
+              </div>
+            </TabsContent>
+
+            <TabsContent value="pricing" className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="editPrice">Selling Price</Label>
+                  <Input
+                    id="editPrice"
+                    type="number"
+                    step="0.01"
+                    value={formData.price}
+                    onChange={(e) => setFormData({...formData, price: e.target.value})}
+                    placeholder="0.00"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="editCostPrice">Cost Price</Label>
+                  <Input
+                    id="editCostPrice"
+                    type="number"
+                    step="0.01"
+                    value={formData.costPrice}
+                    onChange={(e) => setFormData({...formData, costPrice: e.target.value})}
+                    placeholder="0.00"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="editStockQuantity">Stock Quantity</Label>
+                  <Input
+                    id="editStockQuantity"
+                    type="number"
+                    value={formData.stockQuantity}
+                    onChange={(e) => setFormData({...formData, stockQuantity: e.target.value})}
+                    placeholder="0"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="editLowStockThreshold">Low Stock Alert Threshold</Label>
+                  <Input
+                    id="editLowStockThreshold"
+                    type="number"
+                    value={formData.lowStockThreshold}
+                    onChange={(e) => setFormData({...formData, lowStockThreshold: e.target.value})}
+                    placeholder="10"
+                  />
+                </div>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="details" className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="editTags">Tags (comma-separated)</Label>
+                  <Input
+                    id="editTags"
+                    value={formData.tags}
+                    onChange={(e) => setFormData({...formData, tags: e.target.value})}
+                    placeholder="premium, bestseller, new"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="editSupplier">Supplier</Label>
+                  <Input
+                    id="editSupplier"
+                    value={formData.supplier}
+                    onChange={(e) => setFormData({...formData, supplier: e.target.value})}
+                    placeholder="Supplier name"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="editBarcode">Barcode/SKU</Label>
+                  <Input
+                    id="editBarcode"
+                    value={formData.barcode}
+                    onChange={(e) => setFormData({...formData, barcode: e.target.value})}
+                    placeholder="Barcode or internal SKU"
+                  />
+                </div>
+              </div>
+            </TabsContent>
+          </Tabs>
+
+          <div className="flex gap-2 pt-4">
+            <Button onClick={handleEditProduct} disabled={isSubmitting} className="flex-1">
+              {isSubmitting ? (
+                <>
+                  <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                  Updating...
+                </>
+              ) : (
+                <>
+                  <Edit className="h-4 w-4 mr-2" />
+                  Update Product
+                </>
+              )}
+            </Button>
+            <Button variant="outline" onClick={() => setShowEditDialog(false)} disabled={isSubmitting}>
+              Cancel
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation */}
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Product</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete "{selectedProduct?.name}"? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isSubmitting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteProduct}
+              disabled={isSubmitting}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {isSubmitting ? (
+                <>
+                  <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                  Deleting...
+                </>
+              ) : (
+                <>
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Delete Product
+                </>
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }
 
-
+export default Inventory

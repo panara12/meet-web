@@ -11,6 +11,8 @@ import Packaging from "./Packaging.jsx"
 import Billing from "./Billing.jsx"
 import Payments from "./Payments.jsx"
 import Settings from "./Settings.jsx"
+import { InventoryProvider } from "./InventoryContext";
+import { CompanyProvider } from "./CompanyContext.jsx"
 
 export default function Distributer_router() {
 
@@ -20,8 +22,22 @@ export default function Distributer_router() {
         <Route path="/clients" element={<ClientList />} />
         <Route path="/sales" element={<SalesPanel />} />
         <Route path="/staff" element={<StaffAccount />} />
-        <Route path="/inventory" element={<Inventory />} />
-        <Route path="/company" element={<Company />} />
+        <Route
+        path="/inventory"
+        element={
+          <CompanyProvider>
+          <InventoryProvider>
+            <Inventory />
+          </InventoryProvider>
+          </CompanyProvider>
+        }
+      />
+        <Route path="/company" element={
+          <CompanyProvider>
+            <InventoryProvider>
+              <Company />
+            </InventoryProvider>
+          </CompanyProvider>} />
         <Route path="/packaging" element={<Packaging />} />
         <Route path="/billing" element={<Billing />} />
         <Route path="/payments" element={<Payments />} />

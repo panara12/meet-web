@@ -1,0 +1,187 @@
+import { createContext, useContext, useState } from "react";
+
+const InventoryContext = createContext(undefined);
+
+// Sample categories
+const categories = [
+  "Electronics",
+  "Clothing",
+  "Home & Garden",
+  "Books",
+  "Sports & Outdoors",
+  "Health & Beauty",
+  "Automotive",
+  "Toys & Games",
+  "Food & Beverages",
+  "Office Supplies",
+];
+
+// Initial mock data
+const initialProducts = [];
+
+export function InventoryProvider({ children }) {
+  const [products, setProducts] = useState(initialProducts);
+
+  const addProduct = (productData) => {
+    const newProduct = {
+      ...productData,
+      id: `prod-${Date.now()}`,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+
+    setProducts((prev) => [...prev, newProduct]);
+    return newProduct.id;
+  };
+
+  const updateProduct = (id, updates) => {
+    setProducts((prev) =>
+      prev.map((product) =>
+        product.id === id
+          ? { ...product, ...updates, updatedAt: new Date().toISOString() }
+          : product
+      )
+    );
+    return true;
+  };
+
+  const deleteProduct = (id) => {
+    setProducts((prev) => prev.filter((product) => product.id !== id));
+    return true;
+  };
+
+  const deleteProductsByCompany = (companyId) => {
+    let deletedCount = 0;
+    setProducts((prev) => {
+      const filtered = prev.filter((product) => {
+        if (product.companyId === companyId) {
+          deletedCount++;
+          return false;
+        }
+        return true;
+      });
+      return filtered;
+    });
+    return deletedCount;
+  };
+
+  const getProduct = (id) => {
+    return products.find((product) => product.id === id);
+  };
+
+  const getProductsByCompany = (companyId) => {
+    return products.filter((product) => product.companyId === companyId);
+  };
+
+  const updateStock = (id, quantity) => {
+    setProducts((prev) =>
+      prev.map((product) =>
+        product.id === id
+          ? {
+              ...product,
+              stockQuantity: quantity,
+              lastRestocked: new Date().toISOString(),
+              updatedAt: new Date().toISOString(),
+            }
+          : product
+      )
+    );
+    return true;
+  };
+
+  const getInventoryStats = () => {
+    const stats = {
+      totalProducts: products.length,
+      lowStockProducts: 0,
+      outOfStockProducts: 0,
+      totalValue: 0,
+      activeProducts: 0,
+      categories: {},
+    };
+
+    products.forEach((product) => {
+      // Stock status
+      if (product.stockQuantity === 0) {
+        stats.outOfStockProducts++;
+      } else if (product.stockQuantity <= product.lowStockThreshold) {
+        stats.lowStockProducts++;
+      }
+
+      // Total value
+      stats.totalValue += product.price * product.stockQuantity;
+
+      // Active products
+      if (product.status === "active") {
+        stats.activeProducts++;
+      }
+
+      // Categories
+      stats.categories[product.category] =
+        (stats.categories[product.category] || 0) + 1;
+    });
+
+    return stats;
+  };
+
+  const searchProducts = (query) => {
+    const lowercaseQuery = query.toLowerCase();
+    return products.filter(
+      (product) =>
+        product.name.toLowerCase().includes(lowercaseQuery) ||
+        product.sku.toLowerCase().includes(lowercaseQuery) ||
+        product.description.toLowerCase().includes(lowercaseQuery) ||
+        product.brand.toLowerCase().includes(lowercaseQuery) ||
+        product.category.toLowerCase().includes(lowercaseQuery) ||
+        product.tags.some((tag) => tag.toLowerCase().includes(lowercaseQuery))
+    );
+  };
+
+  const getProductsByCategory = (category) => {
+    return products.filter((product) => product.category === category);
+  };
+
+  const getLowStockProducts = () => {
+    return products.filter(
+      (product) =>
+        product.stockQuantity > 0 &&
+        product.stockQuantity <= product.lowStockThreshold
+    );
+  };
+
+  const getOutOfStockProducts = () => {
+    return products.filter((product) => product.stockQuantity === 0);
+  };
+
+  return (
+    <InventoryContext.Provider
+      value={{
+        products,
+        addProduct,
+        updateProduct,
+        deleteProduct,
+        deleteProductsByCompany,
+        getProduct,
+        getProductsByCompany,
+        updateStock,
+        getInventoryStats,
+        searchProducts,
+        getProductsByCategory,
+        getLowStockProducts,
+        getOutOfStockProducts,
+      }}
+    >
+      {children}
+    </InventoryContext.Provider>
+  );
+}
+
+export const useInventory = () => {
+  const context = useContext(InventoryContext);
+  if (context === undefined) {
+    throw new Error("useInventory must be used within an InventoryProvider");
+  }
+  return context;
+};
+
+// Export categories for use in components
+export { categories };
