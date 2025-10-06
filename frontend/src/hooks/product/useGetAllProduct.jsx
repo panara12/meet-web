@@ -10,3 +10,13 @@ export function useGetAllProduct() {
     }
   })
 }
+
+export function useGetAllProductCountByCompany(companyId) {
+  return useQuery({
+    queryKey:["AllProducts", companyId],
+    queryFn:()=>productServices.getAllProductListByCompany(companyId),
+    onSuccess:(res)=>{
+        return res.data;
+    }
+  })
+}

@@ -5,7 +5,7 @@ import { useGetAllSeller } from '../../hooks/seller/useGetAllSeller';
 import { useEffect } from 'react';
 import { useAddPayment } from '../../hooks/payment/useAddPayment';
 import { useSelector } from 'react-redux';
-import { useGetSalesmanById } from '../../hooks/salesman/useGetSalesmanById';
+import { useGetUserById } from '../../hooks/user/useGetUserById';
 
 export default function PaymentUpdate() {
   const [selectedClient, setSelectedClient] = useState("");
@@ -24,7 +24,7 @@ export default function PaymentUpdate() {
   data: salesmanById,
   isPending: isSalesmanByIdPending,
   isError: isSalesmanByIdError,
-  error: salesmanByIdError,} = useGetSalesmanById(id)
+  error: salesmanByIdError,} = useGetUserById(id)
   const [seller, setSeller] = useState([]);
 
   useEffect(() => {

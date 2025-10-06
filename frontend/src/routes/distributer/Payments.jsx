@@ -1,128 +1,1003 @@
-import React, { useMemo, useState } from "react"
-import { CreditCard, CheckCircle, XCircle, Clock, Search, ArrowUpDown } from "lucide-react"
+import React, { useState } from "react"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card"
+import { Button } from "./ui/button"
+import { Badge } from "./ui/badge"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "./ui/table"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "./ui/dialog"
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "./ui/alert-dialog"
+import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar"
+import { Textarea } from "./ui/textarea"
+import { Label } from "./ui/label"
+import { Input } from "./ui/input"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select"
+import { toast } from "sonner"
+import {
+  CreditCard,
+  Check,
+  X,
+  Eye,
+  Clock,
+  DollarSign,
+  Search,
+  RefreshCw,
+  CheckCircle,
+  XCircle,
+  AlertCircle,
+  History,
+  MoreHorizontal,
+  Filter,
+  Calendar,
+  User,
+  Building,
+  Hash,
+  ArrowUpDown,
+  RotateCcw
+} from "lucide-react"
 
-const seed = [
-  { id: "PR-001", salesmanName: "John Smith", salesmanEmail: "john@company.com", clientName: "Acme Corp", clientId: "CL-001", amount: 2500, currency: "USD", paymentMethod: "Bank Transfer", requestDate: "2024-09-11T09:15:00Z", status: "pending" },
-  { id: "PR-002", salesmanName: "Sarah Johnson", salesmanEmail: "sarah@company.com", clientName: "Tech Solutions Inc", clientId: "CL-002", amount: 1850.75, currency: "USD", paymentMethod: "Credit Card", requestDate: "2024-09-11T11:30:00Z", status: "approved" }
+const mockPaymentRequests = [
+  {
+    id: "PR-001",
+    salesmanId: "SM-001",
+    salesmanName: "John Smith",
+    salesmanEmail: "john.smith@company.com",
+    clientName: "Acme Corporation",
+    clientId: "CL-001",
+    amount: 2500.00,
+    currency: "USD",
+    paymentMethod: "Bank Transfer",
+    transactionId: "TXN-789123",
+    description: "Payment for Order #ORD-1234 - Office supplies bulk order",
+    requestDate: "2024-09-11T09:15:00Z",
+    dueDate: "2024-09-18T17:00:00Z",
+    status: "pending",
+    notes: "Client confirmed payment via phone. Bank receipt attached.",
+    statusHistory: [
+      {
+        status: "pending",
+        timestamp: "2024-09-11T09:15:00Z",
+        adminId: "ADM-001",
+        adminName: "System",
+        notes: "Payment request submitted"
+      }
+    ]
+  },
+  {
+    id: "PR-002",
+    salesmanId: "SM-002",
+    salesmanName: "Sarah Johnson",
+    salesmanEmail: "sarah.johnson@company.com",
+    clientName: "Tech Solutions Inc",
+    clientId: "CL-002",
+    amount: 1850.75,
+    currency: "USD",
+    paymentMethod: "Credit Card",
+    transactionId: "CC-456789",
+    description: "Monthly service payment - Technical consulting",
+    requestDate: "2024-09-11T11:30:00Z",
+    dueDate: "2024-09-15T12:00:00Z",
+    status: "approved",
+    notes: "Regular monthly payment. Card ending in 4567 was used.",
+    statusHistory: [
+      {
+        status: "pending",
+        timestamp: "2024-09-11T11:30:00Z",
+        adminId: "ADM-001",
+        adminName: "System",
+        notes: "Payment request submitted"
+      },
+      {
+        status: "approved",
+        timestamp: "2024-09-11T14:22:00Z",
+        adminId: "ADM-002",
+        adminName: "Admin User",
+        notes: "Verified payment details and approved"
+      }
+    ]
+  },
+  {
+    id: "PR-003",
+    salesmanId: "SM-003",
+    salesmanName: "Mike Wilson",
+    salesmanEmail: "mike.wilson@company.com",
+    clientName: "Global Enterprises",
+    clientId: "CL-003",
+    amount: 4200.00,
+    currency: "USD",
+    paymentMethod: "Wire Transfer",
+    description: "Equipment purchase - Industrial machinery",
+    requestDate: "2024-09-10T14:45:00Z",
+    dueDate: "2024-09-20T16:00:00Z",
+    status: "rejected",
+    notes: "Large equipment order. Requires additional verification.",
+    statusHistory: [
+      {
+        status: "pending",
+        timestamp: "2024-09-10T14:45:00Z",
+        adminId: "ADM-001",
+        adminName: "System",
+        notes: "Payment request submitted"
+      },
+      {
+        status: "approved",
+        timestamp: "2024-09-10T16:20:00Z",
+        adminId: "ADM-002",
+        adminName: "Admin User",
+        notes: "Initial approval pending verification"
+      },
+      {
+        status: "rejected",
+        timestamp: "2024-09-11T09:45:00Z",
+        adminId: "ADM-003",
+        adminName: "Senior Admin",
+        notes: "Insufficient documentation provided"
+      }
+    ]
+  },
+  {
+    id: "PR-004",
+    salesmanId: "SM-001",
+    salesmanName: "John Smith",
+    salesmanEmail: "john.smith@company.com",
+    clientName: "Retail Chain LLC",
+    clientId: "CL-004",
+    amount: 750.25,
+    currency: "USD",
+    paymentMethod: "Check",
+    description: "Product delivery payment - Retail inventory",
+    requestDate: "2024-09-09T16:20:00Z",
+    dueDate: "2024-09-16T15:00:00Z",
+    status: "approved",
+    notes: "Check deposited successfully. Payment confirmed.",
+    statusHistory: [
+      {
+        status: "pending",
+        timestamp: "2024-09-09T16:20:00Z",
+        adminId: "ADM-001",
+        adminName: "System",
+        notes: "Payment request submitted"
+      },
+      {
+        status: "approved",
+        timestamp: "2024-09-09T18:15:00Z",
+        adminId: "ADM-002",
+        adminName: "Admin User",
+        notes: "Check verified and approved"
+      }
+    ]
+  },
+  {
+    id: "PR-005",
+    salesmanId: "SM-004",
+    salesmanName: "Emily Davis",
+    salesmanEmail: "emily.davis@company.com",
+    clientName: "Manufacturing Corp",
+    clientId: "CL-005",
+    amount: 3200.50,
+    currency: "USD",
+    paymentMethod: "Bank Transfer",
+    transactionId: "TXN-456789",
+    description: "Raw materials payment - Q3 supply order",
+    requestDate: "2024-09-11T14:20:00Z",
+    dueDate: "2024-09-18T16:00:00Z",
+    status: "pending",
+    notes: "Urgent payment required for production schedule.",
+    statusHistory: [
+      {
+        status: "pending",
+        timestamp: "2024-09-11T14:20:00Z",
+        adminId: "ADM-001",
+        adminName: "System",
+        notes: "Payment request submitted"
+      }
+    ]
+  }
 ]
 
-export default function Payments() {
-  const [rows, setRows] = useState(seed)
-  const [search, setSearch] = useState("")
+export function Payments() {
+  const [paymentRequests, setPaymentRequests] = useState(mockPaymentRequests)
+  const [selectedRequest, setSelectedRequest] = useState(null)
+  const [showDetailsDialog, setShowDetailsDialog] = useState(false)
   const [filterStatus, setFilterStatus] = useState("all")
+  const [filterSalesman, setFilterSalesman] = useState("all")
+  const [searchTerm, setSearchTerm] = useState("")
+  const [adminNotes, setAdminNotes] = useState("")
   const [sortBy, setSortBy] = useState("date")
   const [sortOrder, setSortOrder] = useState("desc")
 
-  const filtered = useMemo(() => rows
-    .filter(r => (filterStatus === 'all' || r.status === filterStatus) && (
-      r.salesmanName.toLowerCase().includes(search.toLowerCase()) ||
-      r.clientName.toLowerCase().includes(search.toLowerCase()) ||
-      r.id.toLowerCase().includes(search.toLowerCase())
-    ))
-    .sort((a, b) => {
-      let cmp = 0
-      if (sortBy === 'date') cmp = new Date(a.requestDate) - new Date(b.requestDate)
-      if (sortBy === 'amount') cmp = a.amount - b.amount
-      if (sortBy === 'status') cmp = a.status.localeCompare(b.status)
-      return sortOrder === 'asc' ? cmp : -cmp
+  const handleStatusChange = (requestId, newStatus, notes) => {
+    setPaymentRequests(prev =>
+      prev.map(request => {
+        if (request.id === requestId) {
+          const newHistoryEntry = {
+            status: newStatus,
+            timestamp: new Date().toISOString(),
+            adminId: "ADM-002",
+            adminName: "Current Admin",
+            notes: notes || `Status changed to ${newStatus}`
+          }
+
+          return {
+            ...request,
+            status: newStatus,
+            statusHistory: [...request.statusHistory, newHistoryEntry]
+          }
+        }
+        return request
+      })
+    )
+
+    const statusMessages = {
+      approved: "Payment request approved successfully!",
+      rejected: "Payment request rejected",
+      pending: "Payment request returned to pending status"
+    }
+
+    toast.success(statusMessages[newStatus])
+    setShowDetailsDialog(false)
+    setAdminNotes("")
+  }
+
+  const handleBulkStatusChange = (newStatus) => {
+    const eligibleRequests = paymentRequests.filter(req => req.status !== newStatus)
+
+    setPaymentRequests(prev =>
+      prev.map(request => {
+        if (request.status !== newStatus) {
+          const newHistoryEntry = {
+            status: newStatus,
+            timestamp: new Date().toISOString(),
+            adminId: "ADM-002",
+            adminName: "Current Admin",
+            notes: `Bulk ${newStatus} operation`
+          }
+
+          return {
+            ...request,
+            status: newStatus,
+            statusHistory: [...request.statusHistory, newHistoryEntry]
+          }
+        }
+        return request
+      })
+    )
+
+    toast.success(`${eligibleRequests.length} payment requests ${newStatus}!`)
+  }
+
+  // Get unique salesmen for filter dropdown
+  const uniqueSalesmen = Array.from(
+    new Map(paymentRequests.map(req => [req.salesmanId, { id: req.salesmanId, name: req.salesmanName }])).values()
+  )
+
+  // Filter and sort requests
+  const filteredAndSortedRequests = paymentRequests
+    .filter(request => {
+      const matchesStatus = filterStatus === "all" || request.status === filterStatus
+      const matchesSalesman = filterSalesman === "all" || request.salesmanId === filterSalesman
+      const matchesSearch =
+        request.salesmanName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        request.clientName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        request.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        request.description.toLowerCase().includes(searchTerm.toLowerCase())
+      return matchesStatus && matchesSalesman && matchesSearch
     })
-  , [rows, search, filterStatus, sortBy, sortOrder])
+    .sort((a, b) => {
+      let comparison = 0
 
-  const pendingCount = rows.filter(r => r.status === 'pending').length
-  const approvedCount = rows.filter(r => r.status === 'approved').length
-  const rejectedCount = rows.filter(r => r.status === 'rejected').length
-  const pendingAmount = rows.filter(r => r.status === 'pending').reduce((s, r) => s + r.amount, 0)
+      switch (sortBy) {
+        case "date":
+          comparison = new Date(a.requestDate).getTime() - new Date(b.requestDate).getTime()
+          break
+        case "amount":
+          comparison = a.amount - b.amount
+          break
+        case "status":
+          comparison = a.status.localeCompare(b.status)
+          break
+      }
 
-  const fmt = (n) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(n)
+      return sortOrder === "asc" ? comparison : -comparison
+    })
+
+  const getStatusColor = (status) => {
+    switch (status) {
+      case "pending": return "bg-amber-primary text-white"
+      case "approved": return "bg-green-primary text-white"
+      case "rejected": return "bg-red-primary text-white"
+      default: return "bg-gray-500 text-white"
+    }
+  }
+
+  const getStatusIcon = (status) => {
+    switch (status) {
+      case "pending": return <Clock className="h-3 w-3" />
+      case "approved": return <CheckCircle className="h-3 w-3" />
+      case "rejected": return <XCircle className="h-3 w-3" />
+      default: return <AlertCircle className="h-3 w-3" />
+    }
+  }
+
+  const pendingCount = paymentRequests.filter(req => req.status === "pending").length
+  const approvedCount = paymentRequests.filter(req => req.status === "approved").length
+  const rejectedCount = paymentRequests.filter(req => req.status === "rejected").length
+  const totalAmount = paymentRequests
+    .filter(req => req.status === "pending")
+    .reduce((sum, req) => sum + req.amount, 0)
+
+  const formatCurrency = (amount) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      minimumFractionDigits: 2,
+    }).format(amount)
+  }
+
+  const formatDate = (dateString) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    })
+  }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
+      {/* Header */}
       <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
         <div className="space-y-1">
-          <h2 className="text-xl">Payment Confirmations</h2>
-          <p className="text-sm text-muted-foreground">Review and manage sales payment updates</p>
+          <h2 className="text-responsive-xl">Payment Confirmations</h2>
+          <p className="text-responsive-xs text-muted-foreground">
+            Review and manage payment updates from sales team with reversible actions
+          </p>
+        </div>
+
+        <div className="flex flex-col sm:flex-row gap-2 w-full lg:w-auto">
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button
+                disabled={pendingCount === 0}
+                className="w-full sm:w-auto bg-green-primary hover:bg-green-600"
+              >
+                <CheckCircle className="icon-responsive-sm mr-2" />
+                Approve All ({pendingCount})
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Approve All Pending Payments</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Are you sure you want to approve all {pendingCount} pending payment requests? This action can be reversed later if needed.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={() => handleBulkStatusChange("approved")}
+                  className="bg-green-primary hover:bg-green-600"
+                >
+                  Approve All
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button
+                variant="destructive"
+                disabled={paymentRequests.filter(req => req.status !== "rejected").length === 0}
+                className="w-full sm:w-auto"
+              >
+                <XCircle className="icon-responsive-sm mr-2" />
+                Reject All
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Reject All Non-Rejected Payments</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Are you sure you want to reject all non-rejected payment requests? This action can be reversed later if needed.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={() => handleBulkStatusChange("rejected")}
+                  className="bg-red-primary hover:bg-red-600"
+                >
+                  Reject All
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="rounded-lg border p-4 flex items-center justify-between"><div><div className="text-xs text-muted-foreground">Pending</div><div className="text-2xl font-semibold">{pendingCount}</div></div><Clock className="h-6 w-6 text-amber-600"/></div>
-        <div className="rounded-lg border p-4 flex items-center justify-between"><div><div className="text-xs text-muted-foreground">Approved</div><div className="text-2xl font-semibold">{approvedCount}</div></div><CheckCircle className="h-6 w-6 text-green-600"/></div>
-        <div className="rounded-lg border p-4 flex items-center justify-between"><div><div className="text-xs text-muted-foreground">Rejected</div><div className="text-2xl font-semibold">{rejectedCount}</div></div><XCircle className="h-6 w-6 text-red-600"/></div>
-        <div className="rounded-lg border p-4 flex items-center justify-between"><div><div className="text-xs text-muted-foreground">Pending Amount</div><div className="text-2xl font-semibold">{fmt(pendingAmount)}</div></div><CreditCard className="h-6 w-6 text-blue-600"/></div>
+      {/* Stats Cards */}
+      <div className="grid-responsive-1-2-4 gap-4">
+        <Card>
+          <CardContent className="responsive-padding">
+            <div className="flex items-center justify-between">
+              <div className="space-y-1">
+                <p className="text-responsive-xs text-muted-foreground">Pending</p>
+                <p className="text-responsive-lg font-semibold">{pendingCount}</p>
+              </div>
+              <div className="p-2 bg-amber-light rounded-lg">
+                <Clock className="icon-responsive-base text-amber-primary" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="responsive-padding">
+            <div className="flex items-center justify-between">
+              <div className="space-y-1">
+                <p className="text-responsive-xs text-muted-foreground">Approved</p>
+                <p className="text-responsive-lg font-semibold">{approvedCount}</p>
+              </div>
+              <div className="p-2 bg-green-light rounded-lg">
+                <CheckCircle className="icon-responsive-base text-green-primary" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="responsive-padding">
+            <div className="flex items-center justify-between">
+              <div className="space-y-1">
+                <p className="text-responsive-xs text-muted-foreground">Rejected</p>
+                <p className="text-responsive-lg font-semibold">{rejectedCount}</p>
+              </div>
+              <div className="p-2 bg-red-light rounded-lg">
+                <XCircle className="icon-responsive-base text-red-primary" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="responsive-padding">
+            <div className="flex items-center justify-between">
+              <div className="space-y-1">
+                <p className="text-responsive-xs text-muted-foreground">Pending Amount</p>
+                <p className="text-responsive-lg font-semibold">{formatCurrency(totalAmount)}</p>
+              </div>
+              <div className="p-2 bg-blue-light rounded-lg">
+                <DollarSign className="icon-responsive-base text-blue-primary" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
-      <div className="rounded-lg border p-4 space-y-4">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div className="relative max-w-md w-full">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <input className="w-full border rounded px-9 py-2" placeholder="Search payments..." value={search} onChange={(e)=>setSearch(e.target.value)} />
+      {/* Filters and Search */}
+      <Card>
+        <CardContent className="responsive-padding">
+          <div className="space-y-4">
+            {/* Search Bar */}
+            <div className="relative max-w-md">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 icon-responsive-sm text-muted-foreground" />
+              <Input
+                placeholder="Search payments..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10 text-responsive-xs"
+              />
+            </div>
+
+            {/* Filter Row */}
+            <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center flex-wrap">
+              {/* Status Filter */}
+              <div className="flex items-center gap-2 min-w-0">
+                <Label className="text-responsive-xs whitespace-nowrap">Status:</Label>
+                <Select value={filterStatus} onValueChange={setFilterStatus}>
+                  <SelectTrigger className="w-40 sm:w-44 text-responsive-xs">
+                    <SelectValue placeholder="All Status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Status</SelectItem>
+                    <SelectItem value="pending">
+                      <div className="flex items-center gap-2">
+                        <Clock className="h-3 w-3 text-amber-primary" />
+                        Pending
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="approved">
+                      <div className="flex items-center gap-2">
+                        <CheckCircle className="h-3 w-3 text-green-primary" />
+                        Approved
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="rejected">
+                      <div className="flex items-center gap-2">
+                        <XCircle className="h-3 w-3 text-red-primary" />
+                        Rejected
+                      </div>
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Salesman Filter */}
+              <div className="flex items-center gap-2 min-w-0">
+                <Label className="text-responsive-xs whitespace-nowrap">Salesman:</Label>
+                <Select value={filterSalesman} onValueChange={setFilterSalesman}>
+                  <SelectTrigger className="w-44 sm:w-52 text-responsive-xs">
+                    <SelectValue placeholder="All Salesmen" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Salesmen</SelectItem>
+                    {uniqueSalesmen.map((salesman) => (
+                      <SelectItem key={salesman.id} value={salesman.id}>
+                        <div className="flex items-center gap-2">
+                          <Avatar className="h-4 w-4">
+                            <AvatarFallback className="text-xs">
+                              {salesman.name.split(' ').map(n => n[0]).join('')}
+                            </AvatarFallback>
+                          </Avatar>
+                          {salesman.name}
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Sort Options */}
+              <div className="flex items-center gap-2 min-w-0">
+                <Label className="text-responsive-xs whitespace-nowrap">Sort:</Label>
+                <div className="flex items-center gap-1">
+                  <Select value={sortBy} onValueChange={(value) => setSortBy(value)}>
+                    <SelectTrigger className="w-32 sm:w-36 text-responsive-xs">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="date">
+                        <div className="flex items-center gap-2">
+                          <Calendar className="h-3 w-3" />
+                          Date
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="amount">
+                        <div className="flex items-center gap-2">
+                          <DollarSign className="h-3 w-3" />
+                          Amount
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="status">
+                        <div className="flex items-center gap-2">
+                          <Filter className="h-3 w-3" />
+                          Status
+                        </div>
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}
+                    className="p-2 h-9"
+                    title={`Sort ${sortOrder === "asc" ? "Descending" : "Ascending"}`}
+                  >
+                    <ArrowUpDown className="h-3 w-3" />
+                  </Button>
+                </div>
+              </div>
+            </div>
           </div>
-          <div className="flex items-center gap-2">
-            <select className="border rounded px-3 py-2" value={filterStatus} onChange={(e)=>setFilterStatus(e.target.value)}>
-              <option value="all">All Status</option>
-              <option value="pending">Pending</option>
-              <option value="approved">Approved</option>
-              <option value="rejected">Rejected</option>
-            </select>
-            <select className="border rounded px-3 py-2" value={sortBy} onChange={(e)=>setSortBy(e.target.value)}>
-              <option value="date">Date</option>
-              <option value="amount">Amount</option>
-              <option value="status">Status</option>
-            </select>
-            <button className="h-9 px-3 rounded border inline-flex items-center gap-2" onClick={()=>setSortOrder(sortOrder==='asc'?'desc':'asc')} title={`Sort ${sortOrder==='asc'?'Descending':'Ascending'}`}>
-              <ArrowUpDown className="h-4 w-4" />
-            </button>
-          </div>
-        </div>
+        </CardContent>
+      </Card>
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead className="bg-muted/40">
-              <tr>
-                <th className="text-left px-3 py-2">Request</th>
-                <th className="text-left px-3 py-2 hidden sm:table-cell">Salesman</th>
-                <th className="text-left px-3 py-2">Client</th>
-                <th className="text-left px-3 py-2">Amount</th>
-                <th className="text-left px-3 py-2">Status</th>
-                <th className="text-left px-3 py-2 hidden lg:table-cell">Date</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.map(r => (
-                <tr key={r.id} className="border-t">
-                  <td className="px-3 py-2">
-                    <div className="text-sm font-medium">{r.id}</div>
-                    <div className="text-xs text-muted-foreground">{r.paymentMethod}</div>
-                  </td>
-                  <td className="px-3 py-2 hidden sm:table-cell">
-                    <div className="text-sm font-medium">{r.salesmanName}</div>
-                    <div className="text-xs text-muted-foreground">{r.salesmanEmail}</div>
-                  </td>
-                  <td className="px-3 py-2">
-                    <div className="text-sm font-medium">{r.clientName}</div>
-                    <div className="text-xs text-muted-foreground">{r.clientId}</div>
-                  </td>
-                  <td className="px-3 py-2">
-                    <div className="text-sm font-semibold">{fmt(r.amount)}</div>
-                    <div className="text-xs text-muted-foreground">{r.currency}</div>
-                  </td>
-                  <td className="px-3 py-2">
-                    <span className={`inline-flex items-center gap-1 px-2 py-1 rounded text-xs ${r.status==='pending'?'bg-amber-100 text-amber-700': r.status==='approved'?'bg-green-100 text-green-700':'bg-red-100 text-red-700'}`}>
-                      {r.status==='pending' && <Clock className="h-3 w-3"/>}
-                      {r.status==='approved' && <CheckCircle className="h-3 w-3"/>}
-                      {r.status==='rejected' && <XCircle className="h-3 w-3"/>}
-                      {r.status}
-                    </span>
-                  </td>
-                  <td className="px-3 py-2 hidden lg:table-cell">{new Date(r.requestDate).toLocaleString()}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
+      {/* Payment Requests Table */}
+      <Card>
+        <CardHeader className="pb-4">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div>
+              <CardTitle className="flex items-center gap-2 text-responsive-lg">
+                <CreditCard className="icon-responsive-base" />
+                Payment Requests ({filteredAndSortedRequests.length})
+              </CardTitle>
+              <CardDescription className="text-responsive-xs">
+                Manage payment confirmations with reversible status changes
+              </CardDescription>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent className="p-0">
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="text-responsive-xs">Request</TableHead>
+                  <TableHead className="text-responsive-xs hidden sm:table-cell">Salesman</TableHead>
+                  <TableHead className="text-responsive-xs">Client</TableHead>
+                  <TableHead className="text-responsive-xs">Amount</TableHead>
+                  <TableHead className="text-responsive-xs">Status</TableHead>
+                  <TableHead className="text-responsive-xs hidden lg:table-cell">Date</TableHead>
+                  <TableHead className="text-responsive-xs">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredAndSortedRequests.map((request) => (
+                  <TableRow key={request.id} className="hover:bg-muted/50">
+                    <TableCell>
+                      <div className="space-y-1">
+                        <p className="text-responsive-xs font-medium">{request.id}</p>
+                        <p className="text-xs text-muted-foreground">{request.paymentMethod}</p>
+                        <p className="text-xs text-muted-foreground sm:hidden">
+                          {request.salesmanName}
+                        </p>
+                      </div>
+                    </TableCell>
+                    <TableCell className="hidden sm:table-cell">
+                      <div className="flex items-center gap-3">
+                        <Avatar className="h-8 w-8">
+                          <AvatarImage src="" />
+                          <AvatarFallback className="text-xs">
+                            {request.salesmanName.split(' ').map(n => n[0]).join('')}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="space-y-1 min-w-0">
+                          <p className="text-responsive-xs font-medium truncate">{request.salesmanName}</p>
+                          <p className="text-xs text-muted-foreground truncate">{request.salesmanEmail}</p>
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="space-y-1">
+                        <p className="text-responsive-xs font-medium">{request.clientName}</p>
+                        <p className="text-xs text-muted-foreground">{request.clientId}</p>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="space-y-1">
+                        <p className="text-responsive-xs font-semibold">
+                          {formatCurrency(request.amount)}
+                        </p>
+                        <p className="text-xs text-muted-foreground">{request.currency}</p>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <Badge className={`text-xs flex items-center gap-1 w-fit ${getStatusColor(request.status)}`}>
+                        {getStatusIcon(request.status)}
+                        {request.status}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="hidden lg:table-cell">
+                      <p className="text-responsive-xs">
+                        {formatDate(request.requestDate)}
+                      </p>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-1">
+                        {/* View Details */}
+                        <Dialog
+                          open={showDetailsDialog && selectedRequest?.id === request.id}
+                          onOpenChange={(open) => {
+                            setShowDetailsDialog(open)
+                            if (open) setSelectedRequest(request)
+                          }}
+                        >
+                          <DialogTrigger asChild>
+                            <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                              <Eye className="h-3 w-3" />
+                            </Button>
+                          </DialogTrigger>
+                          <DialogContent className="dialog-responsive-lg dialog-responsive-height">
+                            <DialogHeader>
+                              <DialogTitle className="flex items-center gap-2">
+                                <CreditCard className="icon-responsive-base" />
+                                Payment Request Details
+                              </DialogTitle>
+                              <DialogDescription>
+                                Review payment information and change status as needed
+                              </DialogDescription>
+                            </DialogHeader>
+
+                            {selectedRequest && (
+                              <div className="space-y-6 overflow-y-auto">
+                                {/* Basic Information */}
+                                <div className="grid-responsive-1-2 gap-4">
+                                  <div className="space-y-3">
+                                    <div>
+                                      <Label className="text-responsive-xs flex items-center gap-1">
+                                        <Hash className="h-3 w-3" />
+                                        Request ID
+                                      </Label>
+                                      <p className="text-responsive-sm font-medium">{selectedRequest.id}</p>
+                                    </div>
+                                    <div>
+                                      <Label className="text-responsive-xs flex items-center gap-1">
+                                        <User className="h-3 w-3" />
+                                        Salesman
+                                      </Label>
+                                      <div className="flex items-center gap-2 mt-1">
+                                        <Avatar className="h-6 w-6">
+                                          <AvatarFallback className="text-xs">
+                                            {selectedRequest.salesmanName.split(' ').map(n => n[0]).join('')}
+                                          </AvatarFallback>
+                                        </Avatar>
+                                        <div>
+                                          <p className="text-responsive-xs font-medium">{selectedRequest.salesmanName}</p>
+                                          <p className="text-xs text-muted-foreground">{selectedRequest.salesmanEmail}</p>
+                                        </div>
+                                      </div>
+                                    </div>
+                                    <div>
+                                      <Label className="text-responsive-xs flex items-center gap-1">
+                                        <Building className="h-3 w-3" />
+                                        Client
+                                      </Label>
+                                      <p className="text-responsive-sm font-medium">{selectedRequest.clientName}</p>
+                                      <p className="text-xs text-muted-foreground">{selectedRequest.clientId}</p>
+                                    </div>
+                                  </div>
+
+                                  <div className="space-y-3">
+                                    <div>
+                                      <Label className="text-responsive-xs">Amount</Label>
+                                      <p className="text-responsive-lg font-semibold text-green-primary">
+                                        {formatCurrency(selectedRequest.amount)}
+                                      </p>
+                                    </div>
+                                    <div>
+                                      <Label className="text-responsive-xs">Payment Method</Label>
+                                      <p className="text-responsive-sm">{selectedRequest.paymentMethod}</p>
+                                    </div>
+                                    {selectedRequest.transactionId && (
+                                      <div>
+                                        <Label className="text-responsive-xs">Transaction ID</Label>
+                                        <p className="text-responsive-sm font-mono">{selectedRequest.transactionId}</p>
+                                      </div>
+                                    )}
+                                    <div>
+                                      <Label className="text-responsive-xs">Current Status</Label>
+                                      <Badge className={`text-xs flex items-center gap-1 w-fit mt-1 ${getStatusColor(selectedRequest.status)}`}>
+                                        {getStatusIcon(selectedRequest.status)}
+                                        {selectedRequest.status}
+                                      </Badge>
+                                    </div>
+                                  </div>
+                                </div>
+
+                                {/* Status History */}
+                                <div className="space-y-3">
+                                  <Label className="text-responsive-xs flex items-center gap-1">
+                                    <History className="h-3 w-3" />
+                                    Status History
+                                  </Label>
+                                  <div className="space-y-2 max-h-32 overflow-y-auto">
+                                    {selectedRequest.statusHistory.map((history, index) => (
+                                      <div key={index} className="flex items-start gap-3 p-2 bg-muted rounded-lg">
+                                        <Badge className={`text-xs flex items-center gap-1 ${getStatusColor(history.status)}`}>
+                                          {getStatusIcon(history.status)}
+                                          {history.status}
+                                        </Badge>
+                                        <div className="flex-1 min-w-0">
+                                          <p className="text-xs">
+                                            <span className="font-medium">{history.adminName}</span> - {formatDate(history.timestamp)}
+                                          </p>
+                                          {history.notes && (
+                                            <p className="text-xs text-muted-foreground mt-1">{history.notes}</p>
+                                          )}
+                                        </div>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+
+                                {/* Admin Notes */}
+                                <div className="space-y-2">
+                                  <Label htmlFor="admin-notes" className="text-responsive-xs">Admin Notes</Label>
+                                  <Textarea
+                                    id="admin-notes"
+                                    placeholder="Add notes for this status change..."
+                                    value={adminNotes}
+                                    onChange={(e) => setAdminNotes(e.target.value)}
+                                    rows={3}
+                                    className="text-responsive-xs"
+                                  />
+                                </div>
+
+                                {/* Action Buttons */}
+                                <div className="flex flex-col sm:flex-row gap-2 pt-4 border-t">
+                                  {selectedRequest.status !== "approved" && (
+                                    <AlertDialog>
+                                      <AlertDialogTrigger asChild>
+                                        <Button className="flex-1 bg-green-primary hover:bg-green-600">
+                                          <Check className="icon-responsive-sm mr-2" />
+                                          Approve Payment
+                                        </Button>
+                                      </AlertDialogTrigger>
+                                      <AlertDialogContent>
+                                        <AlertDialogHeader>
+                                          <AlertDialogTitle>Approve Payment Request</AlertDialogTitle>
+                                          <AlertDialogDescription>
+                                            Are you sure you want to approve this payment request for {formatCurrency(selectedRequest.amount)}?
+                                          </AlertDialogDescription>
+                                        </AlertDialogHeader>
+                                        <AlertDialogFooter>
+                                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                          <AlertDialogAction
+                                            onClick={() => handleStatusChange(selectedRequest.id, "approved", adminNotes)}
+                                            className="bg-green-primary hover:bg-green-600"
+                                          >
+                                            Approve
+                                          </AlertDialogAction>
+                                        </AlertDialogFooter>
+                                      </AlertDialogContent>
+                                    </AlertDialog>
+                                  )}
+
+                                  {selectedRequest.status !== "rejected" && (
+                                    <AlertDialog>
+                                      <AlertDialogTrigger asChild>
+                                        <Button variant="destructive" className="flex-1">
+                                          <X className="icon-responsive-sm mr-2" />
+                                          Reject Payment
+                                        </Button>
+                                      </AlertDialogTrigger>
+                                      <AlertDialogContent>
+                                        <AlertDialogHeader>
+                                          <AlertDialogTitle>Reject Payment Request</AlertDialogTitle>
+                                          <AlertDialogDescription>
+                                            Are you sure you want to reject this payment request? This action can be reversed later.
+                                          </AlertDialogDescription>
+                                        </AlertDialogHeader>
+                                        <AlertDialogFooter>
+                                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                          <AlertDialogAction
+                                            onClick={() => handleStatusChange(selectedRequest.id, "rejected", adminNotes)}
+                                            className="bg-red-primary hover:bg-red-600"
+                                          >
+                                            Reject
+                                          </AlertDialogAction>
+                                        </AlertDialogFooter>
+                                      </AlertDialogContent>
+                                    </AlertDialog>
+                                  )}
+
+                                  {selectedRequest.status !== "pending" && (
+                                    <AlertDialog>
+                                      <AlertDialogTrigger asChild>
+                                        <Button variant="outline" className="flex-1">
+                                          <RotateCcw className="icon-responsive-sm mr-2" />
+                                          Return to Pending
+                                        </Button>
+                                      </AlertDialogTrigger>
+                                      <AlertDialogContent>
+                                        <AlertDialogHeader>
+                                          <AlertDialogTitle>Return to Pending</AlertDialogTitle>
+                                          <AlertDialogDescription>
+                                            Are you sure you want to return this payment request to pending status?
+                                          </AlertDialogDescription>
+                                        </AlertDialogHeader>
+                                        <AlertDialogFooter>
+                                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                          <AlertDialogAction
+                                            onClick={() => handleStatusChange(selectedRequest.id, "pending", adminNotes)}
+                                          >
+                                            Return to Pending
+                                          </AlertDialogAction>
+                                        </AlertDialogFooter>
+                                      </AlertDialogContent>
+                                    </AlertDialog>
+                                  )}
+                                </div>
+                              </div>
+                            )}
+                          </DialogContent>
+                        </Dialog>
+
+                        {/* Quick Actions */}
+                        {request.status !== "approved" && (
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                                <Check className="h-3 w-3 text-green-primary" />
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Quick Approve</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  Approve payment request {request.id} for {formatCurrency(request.amount)}?
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogAction
+                                  onClick={() => handleStatusChange(request.id, "approved")}
+                                  className="bg-green-primary hover:bg-green-600"
+                                >
+                                  Approve
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        )}
+
+                        {request.status !== "rejected" && (
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                                <X className="h-3 w-3 text-red-primary" />
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Quick Reject</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  Reject payment request {request.id} for {formatCurrency(request.amount)}?
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogAction
+                                  onClick={() => handleStatusChange(request.id, "rejected")}
+                                  className="bg-red-primary hover:bg-red-600"
+                                >
+                                  Reject
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        )}
+
+                        {request.status !== "pending" && (
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                                <RotateCcw className="h-3 w-3 text-amber-primary" />
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Return to Pending</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  Return payment request {request.id} to pending status?
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogAction
+                                  onClick={() => handleStatusChange(request.id, "pending")}
+                                >
+                                  Return to Pending
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        )}
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        </CardContent>
+      </Card>
+
+      {filteredAndSortedRequests.length === 0 && (
+        <Card>
+          <CardContent className="responsive-padding text-center">
+            <div className="space-y-2">
+              <CreditCard className="h-12 w-12 mx-auto text-muted-foreground" />
+              <p className="text-responsive-sm text-muted-foreground">No payment requests found</p>
+              <p className="text-responsive-xs text-muted-foreground">
+                Try adjusting your search or filter criteria
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   )
 }
 
-
+export default Payments

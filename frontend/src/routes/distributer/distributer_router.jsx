@@ -10,38 +10,37 @@ import Company from "./Company.jsx"
 import Packaging from "./Packaging.jsx"
 import Billing from "./Billing.jsx"
 import Payments from "./Payments.jsx"
-import Settings from "./Settings.jsx"
+import SettingsPanel from "./Settings.jsx"
 import { InventoryProvider } from "./InventoryContext";
 import { CompanyProvider } from "./CompanyContext.jsx"
+import { StaffProvider } from "./StaffContext"
+import { FileManagementProvider } from "./FileManagementContext.jsx"
+import { SettingsProvider } from "./SettingsContext.jsx"
 
 export default function Distributer_router() {
 
   return (
-      <Routes>        
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/clients" element={<ClientList />} />
-        <Route path="/sales" element={<SalesPanel />} />
-        <Route path="/staff" element={<StaffAccount />} />
-        <Route
-        path="/inventory"
-        element={
-          <CompanyProvider>
-          <InventoryProvider>
-            <Inventory />
-          </InventoryProvider>
-          </CompanyProvider>
-        }
-      />
-        <Route path="/company" element={
-          <CompanyProvider>
-            <InventoryProvider>
-              <Company />
-            </InventoryProvider>
-          </CompanyProvider>} />
-        <Route path="/packaging" element={<Packaging />} />
-        <Route path="/billing" element={<Billing />} />
-        <Route path="/payments" element={<Payments />} />
-        <Route path="/settings" element={<Settings />} />
-    </Routes>
+    <SettingsProvider>
+    <StaffProvider>
+    <FileManagementProvider>
+    <CompanyProvider>
+      <InventoryProvider>
+        <Routes>        
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/clients" element={<ClientList />} />
+          <Route path="/sales" element={<SalesPanel />} />
+          <Route path="/staff" element={<StaffAccount />} />
+          <Route path="/inventory" element={<Inventory />}/>
+          <Route path="/company" element={<Company />} />
+          <Route path="/packaging" element={<Packaging />} />
+          <Route path="/billing" element={<Billing />} />
+          <Route path="/payments" element={<Payments />} />
+          <Route path="/settings" element={<SettingsPanel />} />
+        </Routes>
+      </InventoryProvider>
+    </CompanyProvider>
+    </FileManagementProvider>
+    </StaffProvider>
+    </SettingsProvider>
   )
 }

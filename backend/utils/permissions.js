@@ -21,6 +21,7 @@ const permissions = {
         "add_company",
         "edit_company",
         "get_all_company",
+        "get_company",
         "delete_company",
         "add_payment",
         "delete_payment",

@@ -1,178 +1,431 @@
-const express = require('express')
+const express = require('express');
 const manualLog = require('../utils/manuallogger');
 const path = require('path');
-const {cloudinary_upload} = require('../utils/uploadWithCloudinary');
-const {upload,multerErrorHandler} = require('../middleware/multer');
+const { cloudinary_upload } = require('../utils/uploadWithCloudinary');
+const { upload, multerErrorHandler } = require('../middleware/multer');
 const cloudinary_delete = require('../utils/deleteWithCloudinary');
 const user_session_checker = require('../middleware/user_session');
 
 const router = express.Router();
 
-
-router.post('/addproduct', user_session_checker("add_product"), upload.array('images',6), multerErrorHandler, async(req,res)=>{
-    manualLog('entered add products route')
+// ------------------- ADD PRODUCT -------------------
+router.post(
+  '/addproduct',
+  user_session_checker('add_product'),
+  upload.array('images', 6),
+  multerErrorHandler,
+  async (req, res) => {
+    manualLog('entered add products route');
     try {
-        const {product_name,product_company,product_size,product_color,product_type,product_stock,product_price,product_photos,product_firm} = req.body;
-        const tenent_username = req.tenent.D_dbname;
+      const {
+        name,
+        description,
+        category,
+        subcategory,
+        brand,
+        companyId,
+        price,
+        costPrice,
+        stockQuantity,
+        lowStockThreshold,
+        status,
+        tags,
+        supplier,
+        barcode,
+        dimensions,
+        skus, // full SKUs come from req.body
+      } = req.body;
 
-        //get the size and color 
-        const colors = Array.isArray(product_color) ? product_color : product_color.split(',');
-        const sizes = Array.isArray(product_size) ? product_size : product_size.split(',');
-        // console.log("req.files ===>", req.files);
+      const tenent_username = req.tenent.D_dbname;
 
-        const uploadPromises = req.files.map(file => {
-            const customFileName = `${Date.now()}-${path.parse(file.originalname).name}`;
-            const local_path = path.join(file.destination, file.filename);
-            // console.log(cloudinary_upload)
-            return cloudinary_upload(local_path, tenent_username,customFileName);
-        });
-        const imageUrls = await Promise.all(uploadPromises);
-        const Product = req.db.model("Product");
-        const new_product = new Product({product_name,product_company,product_size:sizes,product_color:colors,product_type,product_stock,product_price,product_photos:imageUrls,product_firm})
-        await new_product.save();
+      // Handle tags array
+      const tagsArray = Array.isArray(tags)
+        ? tags
+        : tags
+        ? tags.split(',').map((t) => t.trim()).filter((t) => t)
+        : [];
 
-        manualLog(`new product added :: ${new_product._id} by user: ${req.session.user.username}`)
-        res.status(200).json({message:"new product added successfully",product:{new_product}});
+      // Handle dimensions object
+      const dimensionsObj =
+        typeof dimensions === 'string' ? JSON.parse(dimensions) : dimensions || {};
+
+      // Upload images to Cloudinary
+      const uploadPromises = req.files.map((file) => {
+        const customFileName = `${Date.now()}-${path.parse(file.originalname).name}`;
+        const local_path = path.join(file.destination, file.filename);
+        return cloudinary_upload(local_path, tenent_username, customFileName);
+      });
+      const imageUrls = await Promise.all(uploadPromises);
+
+      // Use SKUs directly from request body (no generation)
+      const skusArray = Array.isArray(skus) ? skus : [];
+
+      const Product = req.db.model('Product');
+      const new_product = new Product({
+        name,
+        description,
+        category,
+        subcategory,
+        brand,
+        companyId,
+        price: price ? parseFloat(price) : undefined,
+        costPrice: costPrice ? parseFloat(costPrice) : undefined,
+        stockQuantity: stockQuantity ? parseInt(stockQuantity) : 0,
+        lowStockThreshold: lowStockThreshold ? parseInt(lowStockThreshold) : 0,
+        status: status || 'active',
+        tags: tagsArray,
+        supplier,
+        barcode,
+        images: imageUrls,
+        dimensions: dimensionsObj,
+        skus: skusArray,
+      });
+
+      await new_product.save();
+
+      manualLog(
+        `new product added :: ${new_product._id} by user: ${req.session.user.username}`
+      );
+      res
+        .status(200)
+        .json({ message: 'new product added successfully', product: new_product });
     } catch (error) {
-        console.log("there is error in add new products")
-        manualLog(`there is error in add new products :: ${JSON.stringify(error)}`)
-        res.status(500).json({message:"there is error in add new products",error:error})
+      console.log('there is error in add new products');
+      manualLog(`there is error in add new products :: ${JSON.stringify(error)}`);
+      res
+        .status(500)
+        .json({ message: 'there is error in add new products', error: error });
     }
-})
+  }
+);
 
-router.post('/updateproduct/:id', user_session_checker("edit_product"), upload.array('images',6), multerErrorHandler, async(req,res)=>{
-    manualLog("entered in update products")
+// ------------------- UPDATE PRODUCT -------------------
+router.post(
+  '/updateproduct/:id',
+  user_session_checker('edit_product'),
+  upload.array('images', 6),
+  multerErrorHandler,
+  async (req, res) => {
+    manualLog('entered in update products');
     try {
-        const { id } = req.params;
-        const req_product_data = req.body;
+      const { id } = req.params;
+      const req_product_data = req.body;
 
-        //fix the updated size and color 
-        if (typeof req_product_data.product_color === "string") {
-        product_color = req_product_data.product_color.split(',');
-        } else if (!Array.isArray(product_color)) {
-        product_color = [];
-        }
+      // Handle tags array
+      if (typeof req_product_data.tags === 'string') {
+        req_product_data.tags = req_product_data.tags
+          .split(',')
+          .map((t) => t.trim())
+          .filter((t) => t);
+      } else if (!Array.isArray(req_product_data.tags)) {
+        req_product_data.tags = [];
+      }
 
-        if (typeof req_product_data.product_size === "string") {
-        product_size = req_product_data.product_size.split(',');
-        } else if (!Array.isArray(product_size)) {
-        product_size = [];
-        }
+      // Handle dimensions object
+      if (typeof req_product_data.dimensions === 'string') {
+        req_product_data.dimensions = JSON.parse(req_product_data.dimensions);
+      }
 
-        req_product_data.product_color = product_color;
-        req_product_data.product_size = product_size;
-
-        const Product = req.db.model("Product");
-        const product_data = await Product.findById(id);
-        if (!product_data) return res.status(404).json({ message: "Product not found" });
-
-        const tenent_username = req.tenent.D_dbname;
-
-        // Normalize product_photos from body
-        const updatedPublicIds = Array.isArray(req_product_data.product_photos)
-            ? req_product_data.product_photos
-            : req_product_data.product_photos
-                ? [req_product_data.product_photos]
-                : [];
-
-        // Find removed image public_ids
-        const removedImgs = product_data.product_photos.filter(
-            img => !updatedPublicIds.includes(img.public_id)
+      // Convert numeric fields
+      if (req_product_data.price)
+        req_product_data.price = parseFloat(req_product_data.price);
+      if (req_product_data.costPrice)
+        req_product_data.costPrice = parseFloat(req_product_data.costPrice);
+      if (req_product_data.stockQuantity)
+        req_product_data.stockQuantity = parseInt(req_product_data.stockQuantity);
+      if (req_product_data.lowStockThreshold)
+        req_product_data.lowStockThreshold = parseInt(
+          req_product_data.lowStockThreshold
         );
-        const removedPublicIds = removedImgs.map(img => img.public_id);
 
-        // Delete them from Cloudinary in parallel
-        await cloudinary_delete(removedPublicIds);
+      const Product = req.db.model('Product');
+      const product_data = await Product.findById(id);
+      if (!product_data) return res.status(404).json({ message: 'Product not found' });
 
-        // Retain images still present
-        const retainedImages = product_data.product_photos.filter(
-            img => updatedPublicIds.includes(img.public_id)
-        );
+      const tenent_username = req.tenent.D_dbname;
 
-        // Upload new files in parallel
-        const uploadPromises = req.files.map(file => {
-            const local_path = path.join(file.destination, file.filename); 
-            const customFileName = `${Date.now()}-${path.parse(file.originalname).name}`;
-            return cloudinary_upload(local_path, tenent_username,customFileName);
-        });
-        const newImages = await Promise.all(uploadPromises);
+      // Normalize images from body
+      const updatedPublicIds = Array.isArray(req_product_data.images)
+        ? req_product_data.images
+        : req_product_data.images
+        ? [req_product_data.images]
+        : [];
 
-        // Merge retained + new
-        req_product_data.product_photos = [...retainedImages, ...newImages];
+      // Find removed image public_ids
+      const removedImgs = product_data.images.filter(
+        (img) => !updatedPublicIds.includes(img.public_id)
+      );
+      const removedPublicIds = removedImgs.map((img) => img.public_id);
 
-        // Save product
-        const updated_product = await Product.findByIdAndUpdate(
-            { _id: id },
-            { $set: req_product_data },
-            { new: true }
-        );
+      // Delete them from Cloudinary in parallel
+      await cloudinary_delete(removedPublicIds);
 
-        manualLog(`Product updated: ${updated_product._id}`);
-        res.status(200).json({
-            message: "Product updated successfully",
-            product: updated_product,
-        });
+      // Retain images still present
+      const retainedImages = product_data.images.filter((img) =>
+        updatedPublicIds.includes(img.public_id)
+      );
 
+      // Upload new files in parallel
+      const uploadPromises = req.files.map((file) => {
+        const local_path = path.join(file.destination, file.filename);
+        const customFileName = `${Date.now()}-${path.parse(file.originalname).name}`;
+        return cloudinary_upload(local_path, tenent_username, customFileName);
+      });
+      const newImages = await Promise.all(uploadPromises);
+
+      // Merge retained + new
+      req_product_data.images = [...retainedImages, ...newImages];
+
+      // Handle SKU updates (take directly from body)
+      if (req_product_data.skus && Array.isArray(req_product_data.skus)) {
+        req_product_data.skus = req_product_data.skus;
+      }
+
+      // Save product
+      const updated_product = await Product.findByIdAndUpdate(
+        { _id: id },
+        { $set: req_product_data },
+        { new: true }
+      );
+
+      manualLog(`Product updated: ${updated_product._id}`);
+      res.status(200).json({
+        message: 'Product updated successfully',
+        product: updated_product,
+      });
     } catch (error) {
-        console.log("Error in update products", error);
-        manualLog(`Error in update products :: ${JSON.stringify(error)}`);
-        res.status(500).json({ message: "There was an error updating the product" });
+      console.log('Error in update products', error);
+      manualLog(`Error in update products :: ${JSON.stringify(error)}`);
+      res.status(500).json({ message: 'There was an error updating the product' });
     }
-})
+  }
+);
 
-router.get('/getproduct/:id',user_session_checker("get_by_id_product"),async(req,res)=>{
-    manualLog('entered in get by id product')
+// ------------------- GET / DELETE / COUNT ROUTES -------------------
+router.get(
+  '/getproduct/:id',
+  user_session_checker('get_by_id_product'),
+  async (req, res) => {
+    manualLog('entered in get by id product');
     try {
-        const {id} = req.params;
-        const Product = req.db.model('Product');
-        const product_data = await Product.findById(id);
-        manualLog(`get the prodcut by id :: ${product_data._id}`)
-        res.status(200).json({
-            message:"got the product",
-            product:product_data
-        });
+      const { id } = req.params;
+      const Product = req.db.model('Product');
+      const product_data = await Product.findById(id);
+      if (!product_data) return res.status(404).json({ message: 'Product not found' });
 
+      manualLog(`get the product by id :: ${product_data._id}`);
+      res.status(200).json({
+        message: 'got the product',
+        product: product_data,
+      });
     } catch (error) {
-        console.log("there is error in get by id product");
-        manualLog(`error in get by id product :: ${JSON.stringify(error)}`)
-        res.status(500).json({message:"errror in get by id product",error:error})
+      console.log('there is error in get by id product');
+      manualLog(`error in get by id product :: ${JSON.stringify(error)}`);
+      res.status(500).json({ message: 'errror in get by id product', error: error });
     }
-})
+  }
+);
 
-router.get('/getallproduct',user_session_checker("get_all_product"),async(req,res)=>{
-    manualLog('entered in get all product')
+router.get(
+  '/getallproduct',
+  user_session_checker('get_all_product'),
+  async (req, res) => {
+    manualLog('entered in get all product');
     try {
-        const Product = req.db.model('Product');
-        const product_data = await Product.find();
-        manualLog(`get all the prodcut`)
-        res.status(200).json({
-            message:"got all the product",
-            product:product_data
-        });
+      const { page = 1, limit = 10 } = req.query;
+      const pageNumber = parseInt(page);
+      const limitNumber = parseInt(limit);
+      const skip = (pageNumber - 1) * limitNumber;
 
+      const Product = req.db.model('Product');
+
+      // Get products with pagination
+      const product_data = await Product.find()
+        .skip(skip)
+        .limit(limitNumber)
+        .sort({ createdAt: -1 }); // Sort by newest first
+
+      // Get total count for pagination info
+      const totalProducts = await Product.countDocuments();
+      const totalPages = Math.ceil(totalProducts / limitNumber);
+
+      manualLog(`get all the products - page: ${pageNumber}, limit: ${limitNumber}`);
+      res.status(200).json({
+        message: 'got all the product',
+        product: product_data,
+        pagination: {
+          currentPage: pageNumber,
+          totalPages: totalPages,
+          totalProducts: totalProducts,
+          hasNextPage: pageNumber < totalPages,
+          hasPrevPage: pageNumber > 1,
+        },
+      });
     } catch (error) {
-        console.log("there is error in get all product");
-        manualLog(`error in get all product :: ${JSON.stringify(error)}`)
-        res.status(500).json({message:"errror in get all product",error:error})
+      console.log('there is error in get all product');
+      manualLog(`error in get all product :: ${JSON.stringify(error)}`);
+      res.status(500).json({ message: 'errror in get all product', error: error });
     }
-})
+  }
+);
 
-router.delete('/deleteproduct/:id',user_session_checker("delete_product"),async(req,res)=>{
+router.delete(
+  '/deleteproduct/:id',
+  user_session_checker('delete_product'),
+  async (req, res) => {
     try {
-        const {id} = req.params;
-        const Product = req.db.model("Product");
-        const deleted_product = await Product.findByIdAndDelete(id);
-        const removed_imgs = deleted_product.product_photos.map((img)=>img.public_id)
-        await cloudinary_delete(removed_imgs);
-        res.status(200).json({
-            message:"product deleted",
-            product: deleted_product
-        })
+      const { id } = req.params;
+      const Product = req.db.model('Product');
+      const deleted_product = await Product.findByIdAndDelete(id);
+      if (!deleted_product)
+        return res.status(404).json({ message: 'Product not found' });
+
+      const removed_imgs = deleted_product.images.map((img) => img.public_id);
+      await cloudinary_delete(removed_imgs);
+
+      res.status(200).json({
+        message: 'product deleted',
+        product: deleted_product,
+      });
     } catch (error) {
-        console.log('there is error in delete products')
-        manualLog(`error in delete product :: ${JSON.stringify(error)}`)
-        res.status(500).json({message:"error in delete product",error:error});
+      console.log('there is error in delete products');
+      manualLog(`error in delete product :: ${JSON.stringify(error)}`);
+      res.status(500).json({ message: 'error in delete product', error: error });
     }
-})
+  }
+);
+
+router.delete(
+  '/deleteproductsbycompany/:companyId',
+  user_session_checker('delete_company'),
+  async (req, res) => {
+    try {
+      const { companyId } = req.params;
+      const Product = req.db.model('Product');
+
+      // Find all products for that company
+      const products = await Product.find({ companyId });
+
+      if (!products || products.length === 0) {
+        return res.status(404).json({ message: 'No products found for this company' });
+      }
+
+      // Collect all Cloudinary image public_ids
+      const all_imgs = products.flatMap((p) =>
+        p.images ? p.images.map((img) => img.public_id) : []
+      );
+
+      // Delete products from DB
+      const deleteResult = await Product.deleteMany({ companyId });
+
+      // Delete images from Cloudinary
+      if (all_imgs.length > 0) {
+        await cloudinary_delete(all_imgs);
+      }
+
+      res.status(200).json({
+        message: `All products of company ${companyId} deleted`,
+        deletedCount: deleteResult.deletedCount,
+      });
+    } catch (error) {
+      console.log('Error in delete products by company:', error);
+      manualLog(
+        `error in delete products by company :: ${JSON.stringify(error)}`
+      );
+      res
+        .status(500)
+        .json({ message: 'Error in delete products by company', error });
+    }
+  }
+);
+
+router.get(
+  '/productcount/:companyId',
+  user_session_checker('get_product'),
+  async (req, res) => {
+    try {
+      const { companyId } = req.params;
+      const Product = req.db.model('Product');
+
+      const count = await Product.countDocuments({ companyId });
+
+      res.status(200).json({
+        message: 'Product count fetched successfully',
+        companyId,
+        productCount: count,
+      });
+    } catch (error) {
+      console.log('Error in fetching product count:', error);
+      manualLog(`error in product count :: ${JSON.stringify(error)}`);
+      res.status(500).json({ message: 'Error in fetching product count', error });
+    }
+  }
+);
+
+// ------------------- SKU ROUTES -------------------
+router.get(
+  '/getskus/:productId',
+  user_session_checker('get_by_id_product'),
+  async (req, res) => {
+    try {
+      const { productId } = req.params;
+      const Product = req.db.model('Product');
+      const product = await Product.findById(productId).select('skus name');
+
+      if (!product) {
+        return res.status(404).json({ message: 'Product not found' });
+      }
+
+      res.status(200).json({
+        message: 'SKUs retrieved successfully',
+        productId: productId,
+        productName: product.name,
+        skus: product.skus,
+      });
+    } catch (error) {
+      console.log('Error in get SKUs:', error);
+      manualLog(`error in get SKUs :: ${JSON.stringify(error)}`);
+      res.status(500).json({ message: 'Error retrieving SKUs', error });
+    }
+  }
+);
+
+router.put(
+  '/updatesku/:productId/:skuId',
+  user_session_checker('edit_product'),
+  async (req, res) => {
+    try {
+      const { productId, skuId } = req.params;
+      const skuData = req.body;
+
+      const Product = req.db.model('Product');
+      const product = await Product.findById(productId);
+
+      if (!product) {
+        return res.status(404).json({ message: 'Product not found' });
+      }
+
+      const skuIndex = product.skus.findIndex(
+        (sku) => sku._id.toString() === skuId
+      );
+      if (skuIndex === -1) {
+        return res.status(404).json({ message: 'SKU not found' });
+      }
+
+      // Update SKU
+      Object.assign(product.skus[skuIndex], skuData);
+      await product.save();
+
+      res.status(200).json({
+        message: 'SKU updated successfully',
+        sku: product.skus[skuIndex],
+      });
+    } catch (error) {
+      console.log('Error in update SKU:', error);
+      manualLog(`error in update SKU :: ${JSON.stringify(error)}`);
+      res.status(500).json({ message: 'Error updating SKU', error });
+    }
+  }
+);
 
 module.exports = router;

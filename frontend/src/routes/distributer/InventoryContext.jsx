@@ -1,4 +1,8 @@
-import { createContext, useContext, useState } from "react";
+import { createContext, useContext, useEffect, useState } from "react";
+import { useDeleteProduct } from "../../hooks/product/useDeleteProduct";
+import { useUpdateProduct } from "../../hooks/product/useUpdateProduct";
+import { useAddProduct } from "../../hooks/product/useAddProduct";
+import { useGetAllProduct, useGetAllProductCountByCompany } from "../../hooks/product/useGetAllProduct";
 
 const InventoryContext = createContext(undefined);
 
@@ -21,52 +25,70 @@ const initialProducts = [];
 
 export function InventoryProvider({ children }) {
   const [products, setProducts] = useState(initialProducts);
+  const { 
+  data: getProductList, 
+  isPending: productListPending, 
+  isError: isProductListError, 
+  error: productListError 
+} = useGetAllProduct();
+
+const { 
+  data: getAllProductCountByCompany, 
+  isPending: productCountPending, 
+  isError: isProductCountError, 
+  error: productCountError 
+} = useGetAllProductCountByCompany();
+
+useEffect(() => {
+  if (getProductList?.data) {
+    setProducts(getProductList.data.product);
+  }
+}, [getProductList]);
+
+const { 
+  mutate: addProductFn, 
+  isPending: isAddProductFnPending, 
+  isError: isAddProductFnError, 
+  error: addProductFnError 
+} = useAddProduct({});
+
+const { 
+  mutate: updateProductFn, 
+  isPending: isUpdateProductFnPending, 
+  isError: isUpdateProductFnError, 
+  error: updateProductFnError 
+} = useUpdateProduct({});
+
+const { 
+  mutate: deleteProductFn, 
+  isPending: isDeleteProductFnPending, 
+  isError: isDeleteProductFnError, 
+  error: deleteProductFnError 
+} = useDeleteProduct({});
+
 
   const addProduct = (productData) => {
-    const newProduct = {
-      ...productData,
-      id: `prod-${Date.now()}`,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
-
+    addProductFn(productData)
     setProducts((prev) => [...prev, newProduct]);
-    return newProduct.id;
   };
 
   const updateProduct = (id, updates) => {
-    setProducts((prev) =>
-      prev.map((product) =>
-        product.id === id
-          ? { ...product, ...updates, updatedAt: new Date().toISOString() }
-          : product
-      )
-    );
+    updateProductFn({id,updates})
     return true;
   };
 
   const deleteProduct = (id) => {
-    setProducts((prev) => prev.filter((product) => product.id !== id));
+    deleteProductFn({id})
     return true;
   };
 
   const deleteProductsByCompany = (companyId) => {
-    let deletedCount = 0;
-    setProducts((prev) => {
-      const filtered = prev.filter((product) => {
-        if (product.companyId === companyId) {
-          deletedCount++;
-          return false;
-        }
-        return true;
-      });
-      return filtered;
-    });
+    let deletedCount = getAllProductCountByCompany({id:companyId})?.data?.count || 0;
     return deletedCount;
   };
 
   const getProduct = (id) => {
-    return products.find((product) => product.id === id);
+    return products.find((product) => product._id === id);
   };
 
   const getProductsByCompany = (companyId) => {
@@ -76,7 +98,7 @@ export function InventoryProvider({ children }) {
   const updateStock = (id, quantity) => {
     setProducts((prev) =>
       prev.map((product) =>
-        product.id === id
+        product._id === id
           ? {
               ...product,
               stockQuantity: quantity,

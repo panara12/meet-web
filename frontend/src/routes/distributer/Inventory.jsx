@@ -58,6 +58,8 @@ function Inventory() {
   const [viewMode, setViewMode] = useState("table")
   const [sortField, setSortField] = useState("created")
   const [sortOrder, setSortOrder] = useState("desc")
+  const [commonColors, setCommonColors] = useState("")
+  const [isCommonColorSelected, setIsCommonColorSelected] = useState(false)
   
   const [showAddDialog, setShowAddDialog] = useState(false)
   const [showEditDialog, setShowEditDialog] = useState(false)
@@ -69,28 +71,41 @@ function Inventory() {
   // Form states
   const [formData, setFormData] = useState({
     name: "",
-    description: "",
-    category: "",
-    subcategory: "",
-    brand: "",
-    companyId: "",
-    price: "",
-    costPrice: "",
-    stockQuantity: "",
-    lowStockThreshold: "",
-    status: "active",
-    tags: "",
-    supplier: "",
-    barcode: "",
-    images: [],
-    dimensions: {
-      length: "",
-      width: "",
-      height: "",
-      weight: "",
-      unit: "cm",
-      weightUnit: "kg"
+  description: "",
+  category: "",
+  subcategory: "",
+  brand: "",
+  companyId: "",
+  sizes: [],        // still useful for generating SKUs
+  colors: [],       // still useful for generating SKUs
+  lowStockThreshold: "",
+  status: "active",
+  tags: [],
+  supplier: "",
+  barcode: "",      // optional: global barcode (SKUs have their own barcode too)
+  images: [],
+  dimensions: {
+    length: "",
+    width: "",
+    height: "",
+    weight: "",
+    unit: "cm",
+    weightUnit: "kg"
+  },
+
+  // ✅ new field for variants
+  skus: [
+    // Example structure:
+    {
+      sku: "WAT-BLUE-1L-1234",
+      color: "Blue",
+      size: "1L",
+      price: 500,
+      costPrice: 400,
+      stockQuantity: 100,
+      barcode: "ABC123"
     }
+  ]
   })
   
   const [dragActive, setDragActive] = useState(false)
@@ -156,6 +171,8 @@ function Inventory() {
       subcategory: "",
       brand: "",
       companyId: "",
+      sizes:[],
+      colors:[],
       price: "",
       costPrice: "",
       stockQuantity: "",
@@ -184,7 +201,7 @@ function Inventory() {
 
     setIsSubmitting(true)
     try {
-      const company = companies.find(c => c.id === formData.companyId)
+      const company = companies.find(c => c._id === formData.companyId)
       if (!company) {
         toast.error("Invalid company selected")
         return
@@ -197,11 +214,13 @@ function Inventory() {
         category: formData.category,
         subcategory: formData.subcategory,
         brand: formData.brand || company.name,
+        sizes:formData.sizes||[],
+        colors:formData.colors||[],
         companyId: formData.companyId,
         companyName: company.name,
         price: parseFloat(formData.price) || 0,
         costPrice: parseFloat(formData.costPrice) || 0,
-        currency: "USD",
+        currency: "INR",
         stockQuantity: parseInt(formData.stockQuantity) || 0,
         lowStockThreshold: parseInt(formData.lowStockThreshold) || 10,
         status: formData.status,
@@ -239,7 +258,7 @@ function Inventory() {
 
     setIsSubmitting(true)
     try {
-      const company = companies.find(c => c.id === formData.companyId)
+      const company = companies.find(c => c._id === formData.companyId)
       if (!company) {
         toast.error("Invalid company selected")
         return
@@ -272,7 +291,7 @@ function Inventory() {
         barcode: formData.barcode
       }
 
-      updateProduct(selectedProduct.id, updates)
+      updateProduct(selectedproduct._id, updates)
       toast.success(`Product "${formData.name}" updated successfully`)
       setShowEditDialog(false)
       setSelectedProduct(null)
@@ -289,7 +308,7 @@ function Inventory() {
 
     setIsSubmitting(true)
     try {
-      deleteProduct(selectedProduct.id)
+      deleteProduct(selectedproduct._id)
       decrementProductsCount(selectedProduct.companyId)
       toast.success(`Product "${selectedProduct.name}" deleted successfully`)
       setShowDeleteDialog(false)
@@ -436,7 +455,7 @@ function Inventory() {
               Add Product
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Add New Product</DialogTitle>
               <DialogDescription>
@@ -445,10 +464,11 @@ function Inventory() {
             </DialogHeader>
 
             <Tabs defaultValue="basic" className="w-full">
-              <TabsList className="grid w-full grid-cols-3">
+              <TabsList className="grid w-full grid-cols-4">
                 <TabsTrigger value="basic">Basic Info</TabsTrigger>
-                <TabsTrigger value="pricing">Pricing & Stock</TabsTrigger>
+                <TabsTrigger value="variants">Variants/SKUs</TabsTrigger>
                 <TabsTrigger value="details">Details</TabsTrigger>
+                <TabsTrigger value="images">Images</TabsTrigger>
               </TabsList>
 
               <TabsContent value="basic" className="space-y-4">
@@ -471,7 +491,7 @@ function Inventory() {
                       </SelectTrigger>
                       <SelectContent>
                         {companies.filter(c => c.status === 'active').map(company => (
-                          <SelectItem key={company.id} value={company.id}>{company.name}</SelectItem>
+                          <SelectItem key={company._id} value={company._id}>{company.name}</SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
@@ -525,6 +545,27 @@ function Inventory() {
                     </Select>
                   </div>
 
+                  <div className="space-y-2">
+                    <Label htmlFor="supplier">Supplier</Label>
+                    <Input
+                      id="supplier"
+                      value={formData.supplier}
+                      onChange={(e) => setFormData({...formData, supplier: e.target.value})}
+                      placeholder="Supplier name"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="lowStockThreshold">Low Stock Alert Threshold</Label>
+                    <Input
+                      id="lowStockThreshold"
+                      type="number"
+                      value={formData.lowStockThreshold}
+                      onChange={(e) => setFormData({...formData, lowStockThreshold: e.target.value})}
+                      placeholder="10"
+                    />
+                  </div>
+
                   <div className="md:col-span-2 space-y-2">
                     <Label htmlFor="description">Description</Label>
                     <Textarea
@@ -536,13 +577,353 @@ function Inventory() {
                     />
                   </div>
                 </div>
+              </TabsContent>
 
+              <TabsContent value="variants" className="space-y-4">
+
+                {/* SKU Management */}
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-lg font-medium">Enter Common Colors</Label>
+                    <div className="space-y-2">
+                      <Label>Color</Label>
+                      <Input
+                        value={commonColors}
+                        onChange={(e) => {
+                          setCommonColors(e.target.value)
+                        }}
+                        placeholder="Red, Blue, etc."
+                      />
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <Label className="text-lg font-medium">Product SKUs & Pricing</Label>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        const validSizes = formData.sizes?.filter(s => s.trim()) || [''];
+                        const validColors = formData.colors?.filter(c => c.trim()) || [''];
+                        const newSkus = [];
+                        
+                        if (validColors.length > 0 && validColors[0] !== '' && validSizes.length > 0 && validSizes[0] !== '') {
+                          validColors.forEach(color => {
+                            validSizes.forEach(size => {
+                              newSkus.push({
+                                sku: `${formData.name?.substring(0,3).toUpperCase() || 'PRD'}-${color.substring(0,2).toUpperCase()}-${size.substring(0,2).toUpperCase()}-${Date.now().toString().slice(-4)}`,
+                                color: color,
+                                size: size,
+                                price: '',
+                                costPrice: '',
+                                stockQuantity: '',
+                                barcode: ''
+                              });
+                            });
+                          });
+                        } else if (validColors.length > 0 && validColors[0] !== '') {
+                          validColors.forEach(color => {
+                            newSkus.push({
+                              sku: `${formData.name?.substring(0,3).toUpperCase() || 'PRD'}-${color.substring(0,2).toUpperCase()}-${Date.now().toString().slice(-4)}`,
+                              color: color,
+                              size: '',
+                              price: '',
+                              costPrice: '',
+                              stockQuantity: '',
+                              barcode: ''
+                            });
+                          });
+                        } else if (validSizes.length > 0 && validSizes[0] !== '') {
+                          validSizes.forEach(size => {
+                            newSkus.push({
+                              sku: `${formData.name?.substring(0,3).toUpperCase() || 'PRD'}-${size.substring(0,2).toUpperCase()}-${Date.now().toString().slice(-4)}`,
+                              color: '',
+                              size: size,
+                              price: '',
+                              costPrice: '',
+                              stockQuantity: '',
+                              barcode: ''
+                            });
+                          });
+                        } else {
+                          newSkus.push({
+                            sku: `${formData.name?.substring(0,3).toUpperCase() || 'PRD'}-${Date.now().toString().slice(-4)}`,
+                            color: '',
+                            size: '',
+                            price: '',
+                            costPrice: '',
+                            stockQuantity: '',
+                            barcode: ''
+                          });
+                        }
+                        
+                        setFormData({...formData, skus: newSkus});
+                      }}
+                    >
+                      Generate SKUs
+                    </Button>
+                  </div>
+
+                  {/* Manual SKU Addition */}
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      const newSku = {
+                        sku: `${formData.name?.substring(0,3).toUpperCase() || 'PRD'}-${Date.now().toString().slice(-4)}`,
+                        color: '',
+                        size: '',
+                        price: '',
+                        costPrice: '',
+                        stockQuantity: '',
+                        barcode: ''
+                      };
+                      setFormData({
+                        ...formData, 
+                        skus: [...(formData.skus || []), newSku]
+                      });
+                    }}
+                    className="w-full"
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add Manual SKU
+                  </Button>
+
+                  {/* SKU List */}
+                  {formData.skus && formData.skus.length > 0 && (
+                    <div className="space-y-4">
+                      {formData.skus.map((sku, index) => (
+                        <div key={index} className="p-4 border rounded-lg space-y-3">
+                          <div className="flex items-center justify-between">
+                            <Label className="font-medium">SKU #{index + 1}</Label>
+                            <Button
+                              type="button"
+                              variant="destructive"
+                              size="sm"
+                              onClick={() => {
+                                const newSkus = formData.skus.filter((_, i) => i !== index);
+                                setFormData({...formData, skus: newSkus});
+                              }}
+                            >
+                              <XIcon className="h-4 w-4" />
+                            </Button>
+                          </div>
+                          
+                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                            <div className="space-y-2">
+                              <Label>SKU Code *</Label>
+                              <Input
+                                value={sku.sku}
+                                onChange={(e) => {
+                                  const newSkus = [...formData.skus];
+                                  newSkus[index].sku = e.target.value;
+                                  setFormData({...formData, skus: newSkus});
+                                }}
+                                placeholder="SKU-001"
+                              />
+                            </div>
+                            
+                            <div className="space-y-2">
+                              <Label>Color <button className="border border-gray-300 rounded-md px-2 py-1" onClick={() => {setIsCommonColorSelected((prev) => !prev); setCommonColors(sku.color)}}>common</button></Label>
+                              <Input
+                                value={sku.color}
+                                disabled={isCommonColorSelected}
+                                onChange={(e) => {
+                                  const newSkus = [...formData.skus];
+                                  newSkus[index].color = e.target.value;
+                                  setFormData({...formData, skus: newSkus});
+                                }}
+                                placeholder="Red, Blue, etc."
+                              />
+                            </div>
+                            
+                            <div className="space-y-2">
+                              <Label>Size</Label>
+                              <Input
+                                value={sku.size}
+                                onChange={(e) => {
+                                  const newSkus = [...formData.skus];
+                                  newSkus[index].size = e.target.value;
+                                  setFormData({...formData, skus: newSkus});
+                                }}
+                                placeholder="S, M, L, etc."
+                              />
+                            </div>
+                            
+                            <div className="space-y-2">
+                              <Label>Price *</Label>
+                              <Input
+                                type="number"
+                                step="0.01"
+                                value={sku.price}
+                                onChange={(e) => {
+                                  const newSkus = [...formData.skus];
+                                  newSkus[index].price = e.target.value;
+                                  setFormData({...formData, skus: newSkus});
+                                }}
+                                placeholder="0.00"
+                              />
+                            </div>
+                            
+                            <div className="space-y-2">
+                              <Label>Cost Price</Label>
+                              <Input
+                                type="number"
+                                step="0.01"
+                                value={sku.costPrice}
+                                onChange={(e) => {
+                                  const newSkus = [...formData.skus];
+                                  newSkus[index].costPrice = e.target.value;
+                                  setFormData({...formData, skus: newSkus});
+                                }}
+                                placeholder="0.00"
+                              />
+                            </div>
+                            
+                            <div className="space-y-2">
+                              <Label>Stock Quantity</Label>
+                              <Input
+                                type="number"
+                                value={sku.stockQuantity}
+                                onChange={(e) => {
+                                  const newSkus = [...formData.skus];
+                                  newSkus[index].stockQuantity = e.target.value;
+                                  setFormData({...formData, skus: newSkus});
+                                }}
+                                placeholder="0"
+                              />
+                            </div>
+                            
+                            <div className="space-y-2 md:col-span-2 lg:col-span-3">
+                              <Label>Barcode</Label>
+                              <Input
+                                value={sku.barcode}
+                                onChange={(e) => {
+                                  const newSkus = [...formData.skus];
+                                  newSkus[index].barcode = e.target.value;
+                                  setFormData({...formData, skus: newSkus});
+                                }}
+                                placeholder="Barcode for this specific SKU"
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </TabsContent>
+
+              <TabsContent value="details" className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="tags">Tags (comma-separated)</Label>
+                    <Input
+                      id="tags"
+                      value={formData.tags}
+                      onChange={(e) => setFormData({...formData, tags: e.target.value})}
+                      placeholder="premium, bestseller, new"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="barcode">General Barcode</Label>
+                    <Input
+                      id="barcode"
+                      value={formData.barcode}
+                      onChange={(e) => setFormData({...formData, barcode: e.target.value})}
+                      placeholder="General product barcode"
+                    />
+                    <p className="text-xs text-muted-foreground">Individual SKUs can have their own barcodes</p>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <Label>Dimensions</Label>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="length">Length</Label>
+                      <Input
+                        id="length"
+                        type="number"
+                        step="0.01"
+                        value={formData.dimensions.length}
+                        onChange={(e) => setFormData({...formData, dimensions: {...formData.dimensions, length: e.target.value}})}
+                        placeholder="0"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="width">Width</Label>
+                      <Input
+                        id="width"
+                        type="number"
+                        step="0.01"
+                        value={formData.dimensions.width}
+                        onChange={(e) => setFormData({...formData, dimensions: {...formData.dimensions, width: e.target.value}})}
+                        placeholder="0"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="height">Height</Label>
+                      <Input
+                        id="height"
+                        type="number"
+                        step="0.01"
+                        value={formData.dimensions.height}
+                        onChange={(e) => setFormData({...formData, dimensions: {...formData.dimensions, height: e.target.value}})}
+                        placeholder="0"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="unit">Unit</Label>
+                      <Select value={formData.dimensions.unit} onValueChange={(value) => setFormData({...formData, dimensions: {...formData.dimensions, unit: value}})}>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="cm">cm</SelectItem>
+                          <SelectItem value="inch">inch</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="weight">Weight</Label>
+                      <Input
+                        id="weight"
+                        type="number"
+                        step="0.01"
+                        value={formData.dimensions.weight}
+                        onChange={(e) => setFormData({...formData, dimensions: {...formData.dimensions, weight: e.target.value}})}
+                        placeholder="0"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="weightUnit">Weight Unit</Label>
+                      <Select value={formData.dimensions.weightUnit} onValueChange={(value) => setFormData({...formData, dimensions: {...formData.dimensions, weightUnit: value}})}>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="kg">kg</SelectItem>
+                          <SelectItem value="lb">lb</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                </div>
+              </TabsContent>
+
+              <TabsContent value="images" className="space-y-4">
                 {/* Photo Upload Section */}
                 <div className="space-y-4">
                   <div className="space-y-2">
                     <Label className="text-responsive-sm flex items-center gap-2">
                       <ImagePlus className="icon-responsive-sm" />
-                      Product Photos
+                      Product Photos *
                     </Label>
                     <p className="text-responsive-xs text-muted-foreground">
                       Upload up to 5 photos (max 5MB each). Drag and drop or click to browse.
@@ -625,167 +1006,6 @@ function Inventory() {
                       </p>
                     </div>
                   )}
-                </div>
-              </TabsContent>
-
-              <TabsContent value="pricing" className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="price">Selling Price</Label>
-                    <Input
-                      id="price"
-                      type="number"
-                      step="0.01"
-                      value={formData.price}
-                      onChange={(e) => setFormData({...formData, price: e.target.value})}
-                      placeholder="0.00"
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="costPrice">Cost Price</Label>
-                    <Input
-                      id="costPrice"
-                      type="number"
-                      step="0.01"
-                      value={formData.costPrice}
-                      onChange={(e) => setFormData({...formData, costPrice: e.target.value})}
-                      placeholder="0.00"
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="stockQuantity">Stock Quantity</Label>
-                    <Input
-                      id="stockQuantity"
-                      type="number"
-                      value={formData.stockQuantity}
-                      onChange={(e) => setFormData({...formData, stockQuantity: e.target.value})}
-                      placeholder="0"
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="lowStockThreshold">Low Stock Alert Threshold</Label>
-                    <Input
-                      id="lowStockThreshold"
-                      type="number"
-                      value={formData.lowStockThreshold}
-                      onChange={(e) => setFormData({...formData, lowStockThreshold: e.target.value})}
-                      placeholder="10"
-                    />
-                  </div>
-                </div>
-              </TabsContent>
-
-              <TabsContent value="details" className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="tags">Tags (comma-separated)</Label>
-                    <Input
-                      id="tags"
-                      value={formData.tags}
-                      onChange={(e) => setFormData({...formData, tags: e.target.value})}
-                      placeholder="premium, bestseller, new"
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="supplier">Supplier</Label>
-                    <Input
-                      id="supplier"
-                      value={formData.supplier}
-                      onChange={(e) => setFormData({...formData, supplier: e.target.value})}
-                      placeholder="Supplier name"
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="barcode">Barcode/SKU</Label>
-                    <Input
-                      id="barcode"
-                      value={formData.barcode}
-                      onChange={(e) => setFormData({...formData, barcode: e.target.value})}
-                      placeholder="Barcode or internal SKU"
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-4">
-                  <Label>Dimensions</Label>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="length">Length</Label>
-                      <Input
-                        id="length"
-                        type="number"
-                        step="0.01"
-                        value={formData.dimensions.length}
-                        onChange={(e) => setFormData({...formData, dimensions: {...formData.dimensions, length: e.target.value}})}
-                        placeholder="0"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="width">Width</Label>
-                      <Input
-                        id="width"
-                        type="number"
-                        step="0.01"
-                        value={formData.dimensions.width}
-                        onChange={(e) => setFormData({...formData, dimensions: {...formData.dimensions, width: e.target.value}})}
-                        placeholder="0"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="height">Height</Label>
-                      <Input
-                        id="height"
-                        type="number"
-                        step="0.01"
-                        value={formData.dimensions.height}
-                        onChange={(e) => setFormData({...formData, dimensions: {...formData.dimensions, height: e.target.value}})}
-                        placeholder="0"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="unit">Unit</Label>
-                      <Select value={formData.dimensions.unit} onValueChange={(value) => setFormData({...formData, dimensions: {...formData.dimensions, unit: value}})}>
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="cm">cm</SelectItem>
-                          <SelectItem value="inch">inch</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="weight">Weight</Label>
-                      <Input
-                        id="weight"
-                        type="number"
-                        step="0.01"
-                        value={formData.dimensions.weight}
-                        onChange={(e) => setFormData({...formData, dimensions: {...formData.dimensions, weight: e.target.value}})}
-                        placeholder="0"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="weightUnit">Weight Unit</Label>
-                      <Select value={formData.dimensions.weightUnit} onValueChange={(value) => setFormData({...formData, dimensions: {...formData.dimensions, weightUnit: value}})}>
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="kg">kg</SelectItem>
-                          <SelectItem value="lb">lb</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
                 </div>
               </TabsContent>
             </Tabs>
@@ -922,7 +1142,7 @@ function Inventory() {
             <SelectContent>
               <SelectItem value="all">All Companies</SelectItem>
               {companies.map(company => (
-                <SelectItem key={company.id} value={company.id}>{company.name}</SelectItem>
+                <SelectItem key={company._id} value={company._id}>{company.name}</SelectItem>
               ))}
             </SelectContent>
           </Select>
@@ -1013,7 +1233,7 @@ function Inventory() {
               {filteredAndSortedProducts.map((product) => {
                 const stockStatus = getStockStatus(product)
                 return (
-                  <TableRow key={product.id}>
+                  <TableRow key={product._id}>
                     <TableCell>
                       <div>
                         <div className="font-medium">{product.name}</div>
@@ -1079,7 +1299,7 @@ function Inventory() {
           {filteredAndSortedProducts.map((product) => {
             const stockStatus = getStockStatus(product)
             return (
-              <Card key={product.id} className="hover:shadow-lg transition-shadow">
+              <Card key={product._id} className="hover:shadow-lg transition-shadow">
                 <CardHeader className="pb-3">
                   <div className="flex items-start justify-between">
                     <div className="flex-1 min-w-0">
@@ -1280,7 +1500,7 @@ function Inventory() {
                     </SelectTrigger>
                     <SelectContent>
                       {companies.filter(c => c.status === 'active').map(company => (
-                        <SelectItem key={company.id} value={company.id}>{company.name}</SelectItem>
+                        <SelectItem key={company._id} value={company._id}>{company.name}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>

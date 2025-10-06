@@ -164,7 +164,7 @@ function Company() {
 
     setIsSubmitting(true)
     try {
-      updateCompany(selectedCompany.id, formData)
+      updateCompany(selectedCompany._id, formData)
       toast.success(`${formData.name} updated successfully`)
       setShowEditDialog(false)
       setSelectedCompany(null)
@@ -173,6 +173,7 @@ function Company() {
       toast.error("Failed to update company")
     } finally {
       setIsSubmitting(false)
+      setShowActionsDialog(false)
     }
   }
 
@@ -182,10 +183,10 @@ function Company() {
     setIsSubmitting(true)
     try {
       // Delete all products associated with this company
-      const deletedProductsCount = deleteProductsByCompany(selectedCompany.id)
+      const deletedProductsCount = deleteProductsByCompany(selectedCompany._id)
       
       // Delete the company
-      deleteCompany(selectedCompany.id)
+      deleteCompany(selectedCompany._id)
       
       toast.success(`${selectedCompany.name} and ${deletedProductsCount} associated products deleted`)
       setShowDeleteDialog(false)
@@ -211,7 +212,7 @@ function Company() {
         description: productFormData.description,
         category: productFormData.category,
         brand: productFormData.brand || selectedCompany.name,
-        companyId: selectedCompany.id,
+        companyId: selectedCompany._id,
         companyName: selectedCompany.name,
         price: parseFloat(productFormData.price) || 0,
         costPrice: parseFloat(productFormData.costPrice) || 0,
@@ -603,7 +604,7 @@ function Company() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {companies.reduce((sum, c) => sum + c.productsCount, 0)}
+              {companies.reduce((sum, c) => sum + c.productsCount|| 0, 0)}
             </div>
           </CardContent>
         </Card>
@@ -622,11 +623,11 @@ function Company() {
       {/* Company Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
         {filteredCompanies.map((company) => (
-          <Card key={company.id} className="hover:shadow-lg transition-all duration-200 hover:scale-[1.02]">
+          <Card key={company._id} className="hover:shadow-lg transition-all duration-200 hover:scale-[1.02]">
             <CardHeader className="pb-3">
               <div className="flex items-start justify-between gap-2">
                 <div className="flex items-center gap-3 min-w-0 flex-1">
-                  <div className="h-12 w-12 bg-primary/10 rounded-lg flex items-center justify-center flex-shrink-0">
+                  <div className="h-12 w-12 bg-[#3B82F6]/30 rounded-lg flex items-center justify-center flex-shrink-0">
                     <Building2 className="h-6 w-6 text-primary" />
                   </div>
                   <div className="min-w-0 flex-1">
@@ -1146,7 +1147,7 @@ function Company() {
             <AlertDialogAction
               onClick={handleDeleteCompany}
               disabled={isSubmitting}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              className="bg-[#d4183d] text-white hover:bg-[#d4183d]/90"
             >
               {isSubmitting ? (
                 <>
