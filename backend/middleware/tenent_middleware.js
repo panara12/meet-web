@@ -7,14 +7,14 @@ const tenent_checker = async(req,res,next)=>{
     try {
         //get the domain name and start the connection to the tenent db
         console.log("all tenents data",tenentCache);
-        const user_tenant = "";
+        let user_tenant_data = "";
         // console.log(req.session.user);
         if(!req.session.user){
             const {user_tenant} = req.body;
-            user_tenant = user_tenant;
+            user_tenant_data = user_tenant;
         }
-        
-        const domain = req.session?.user?.tenant || user_tenant;
+
+        const domain = req.session?.user?.tenant || user_tenant_data;
         const tenent_list = tenentCache.tenent;
         console.log("tenent domain ===",domain)
         //filter one records which req from frontend

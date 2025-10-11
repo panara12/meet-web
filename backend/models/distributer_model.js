@@ -44,7 +44,6 @@ const distributerSchema = mongoose.Schema({
         type:String,
         enum:['Distributer','Seller','Salesman'],
         required: true,
-        lowercase: true, // optional: ensures value is stored in lowercase
         trim: true,
         default:"Distributer"
     }
