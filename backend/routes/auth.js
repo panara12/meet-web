@@ -72,7 +72,7 @@ router.post('/login',async(req,res)=>{
 
 router.get('/me',(req,res)=>{
     manualLog(`entered in get me`);
-    console.log("auth me")
+    console.log("auth me",req.session)
     try {
         if(req.session && req.session.user){
             manualLog(`got the user data`);
