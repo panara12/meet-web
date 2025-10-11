@@ -22,13 +22,24 @@ const Location = require('./routes/location');
 const email = require('./routes/email');
 const payment = require('./routes/payment')
 
-const allowedOrigins = [
-  "https://oms.voidvortextech.com"
-];
+// const allowedOrigins = [
+//   "https://oms.voidvortextech.com"
+// ];
+
+// app.use(cors({
+//     origin: allowedOrigins,
+//     credentials: true
+// }));
+
+const allowedOrigins = ["https://oms.voidvortextech.com"];
 
 app.use(cors({
-    origin: allowedOrigins,
-    credentials: true
+  origin: function(origin, callback) {
+    if (!origin) return callback(null, true); // allow Postman or server-side requests
+    if (allowedOrigins.includes(origin)) return callback(null, true);
+    return callback(new Error("CORS not allowed"));
+  },
+  credentials: true,
 }));
 // Body parser for JSON
 app.use(express.json());
