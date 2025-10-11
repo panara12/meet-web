@@ -23,7 +23,7 @@ const email = require('./routes/email');
 const payment = require('./routes/payment')
 
 const allowedOrigins = [
-  "https://oms.voidvortextech.com","*"
+  "https://oms.voidvortextech.com"
 ];
 
 app.use(cors({
