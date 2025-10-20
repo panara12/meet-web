@@ -48,7 +48,7 @@ app.use(express.urlencoded({ extended: true }));
 
 
 
-mongoose.connect(process.env.MONGODB_URL+'user_master')
+mongoose.connect(process.env.MONGODB_URL+'user_master'+'?authSource=admin')
 .then(async ()=>{
     console.log('db connected');
     //get all  the tenents list on server starts
