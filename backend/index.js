@@ -31,6 +31,7 @@ const payment = require('./routes/payment')
 //     credentials: true
 // }));
 
+
 const allowedOrigins = ["https://oms.voidvortextech.com"];
 
 app.use(cors({
