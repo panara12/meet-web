@@ -31,9 +31,9 @@ export function LoadingPage() {
         if (clampedProgress >= 100) {
           clearInterval(interval);
           setTimeout(() => {
-            if (useInfo.user_role === "Salesman") navigate("/salesman/dashboard");
-            else if (useInfo.user_role === "Packaging") navigate("/packaging/dashboard");
-            else if (useInfo.user_role === "Billing") navigate("/billing/dashboard");
+            if (useInfo.user_role === "salesman") navigate("/salesman/dashboard");
+            else if (useInfo.user_role === "packaging") navigate("/packaging/dashboard");
+            else if (useInfo.user_role === "billing") navigate("/billing/dashboard");
             else navigate("/distributer/dashboard");
           }, 500); // small delay for smoothness
         }

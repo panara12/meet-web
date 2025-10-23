@@ -1,10 +1,10 @@
 import { useQuery } from '@tanstack/react-query'
 import sellerServices from '../../services/clientService'
 
-export function useGetAllSeller() {
+export function useGetSellerById(id) {
   return useQuery({
-    queryKey:["GetAllSeller"],
-    queryFn:()=>sellerServices.getSellerList(),
+    queryKey:["sellerId",id],
+    queryFn:()=>sellerServices.getSellerById(id),
     onSuccess:(res)=>{
         return res.data;
     }

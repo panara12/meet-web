@@ -12,16 +12,42 @@ router.use(tenent_checker);
 router.post('/addseller',user_session_checker("add_seller"),async(req,res)=>{
     manualLog('entered in add new seller route')
     try {
-        const {company_name,primary_email,phone_number,website,business_address,city,client_status,business_priority,payment_terms,industry,company_size,credit_limit,primary_contact_person,gst_number,business_note,user_role} = req.body
+        const {name,email,phone,address,contactPerson,website,status,priority,industry,companySize,paymentTerms,gstNumber,creditLimit,tags,notes,userRole} = req.body
         //hash round and convert normal password to hasspassword
-        const seller_password = "youdon'tknow"
+        const password = "youdon'tknow"
         const saltRounds = 10;
-        const hashedPassword = await bcrypt.hash(seller_password, saltRounds);
-        const Seller = req.db.model("Seller");
+        const hashedPassword = await bcrypt.hash(password, saltRounds);
+        const SellerModel = req.db.model("Seller");
 
-        const new_seller = new Seller({company_name,primary_email,phone_number,website,business_address,city,client_status,business_priority,payment_terms,industry,company_size,credit_limit,primary_contact_person,gst_number,business_note,user_role})
+        const new_seller = new SellerModel({
+            name,
+            email,
+            phone,
+            address,
+            contactPerson,
+            password: hashedPassword,
+            website,
+            status,
+            priority,
+            industry,
+            companySize,
+            paymentTerms,
+            gstNumber,
+            creditLimit,
+            tags,
+            notes,
+            userRole,
+            createdBy: req.session.user.master_user_id
+        })
         await new_seller.save();
-        await Tenent_user_master.create({user_email:primary_email,tenant_user_id:new_seller._id,user_password:hashedPassword,user_username:phone_number,user_tenant:req.session.user.tenant,user_role:"Seller"});
+        await Tenent_user_master.create({
+            user_email:email,
+            tenant_user_id:new_seller._id,
+            user_password:hashedPassword,
+            user_username:phone,
+            user_tenant:req.session.user.tenant,
+            user_role:"seller"
+        });
         manualLog(`seller registred successfully :: ${new_seller._id}`)
         res.status(200).json({
             message:"new seller added",
@@ -29,9 +55,10 @@ router.post('/addseller',user_session_checker("add_seller"),async(req,res)=>{
         })
     } catch (error) {
         if(error.name == 'ValidationError'){
+            const validationErrors = Object.values(error.errors).map(err => err.message);
             console.log(error)
             manualLog(`there is a validation error in seller registration :: ${error}`)
-            res.status(400).json({message:"sonething broke",error:error})
+            res.status(400).json({message:"something broke",error:validationErrors})
         }else{
         console.log('failed to add new seller')
         manualLog(`there is error in seller registration :: ${JSON.stringify(error)}`)
@@ -44,9 +71,30 @@ router.post('/updateseller/:id',user_session_checker("edit_seller"),async(req,re
     manualLog('entered in update seller route')
     try {
         const {id} = req.params;
-        const user_data = req.body;
-        const Seller = req.db.model("Seller");
-        const updated_seller = await Seller.findOneAndUpdate({_id:id},{$set:user_data},{new:true})
+        const {name,email,phone,address,contactPerson,website,status,priority,industry,companySize,paymentTerms,gstNumber,creditLimit,tags,notes,userRole} = req.body;
+        
+        const user_data = {
+            name,
+            email,
+            phone,
+            address,
+            contactPerson,
+            website,
+            status,
+            priority,
+            industry,
+            companySize,
+            paymentTerms,
+            gstNumber,
+            creditLimit,
+            tags,
+            notes,
+            userRole,
+            createdBy: req.session.user.master_user_id
+        };
+
+        const SellerModel = req.db.model("Seller");
+        const updated_seller = await SellerModel.findOneAndUpdate({_id:id},{$set:user_data},{new:true})
         manualLog(`seller updated successfully :: ${updated_seller._id}`)
         res.status(200).json({
             message:"seller updated",
@@ -56,7 +104,7 @@ router.post('/updateseller/:id',user_session_checker("edit_seller"),async(req,re
         if(error.name == 'ValidationError'){
             console.log(error)
             const error_message = Object.values(error.errors).map(err => err.message);
-            manualLog(`there is a validation error in seller update :: ${err.message}`)
+            manualLog(`there is a validation error in seller update :: ${error_message}`)
             res.status(400).json({message:error_message})
         }else{
             console.log('failed to update seller')
@@ -69,8 +117,8 @@ router.post('/updateseller/:id',user_session_checker("edit_seller"),async(req,re
 router.get('/allseller',user_session_checker("get_all_seller"),async(req,res)=>{
     manualLog('entered in get all seller route')
     try {
-        const Seller = req.db.model("Seller");
-        const seller_data = await Seller.find();
+        const SellerModel = req.db.model("Seller");
+        const seller_data = await SellerModel.find();
         manualLog(`get all seller  successfully`)
         res.status(200).json({
             message:"got all the sellers",
@@ -87,8 +135,8 @@ router.get('/getseller/:id',user_session_checker("get_by_id_seller"),async(req,r
     manualLog('entered in get seller by id route')
     try {
         const {id} = req.params;
-        const Seller = req.db.model("Seller");
-        const seller_data = await Seller.findOne({_id:id});
+        const SellerModel = req.db.model("Seller");
+        const seller_data = await SellerModel.findOne({_id:id});
         manualLog(`get seller by id successfully :: ${seller_data._id}`)
         res.status(200).json({
             message:"",
@@ -105,8 +153,8 @@ router.delete('/deleteseller/:id',user_session_checker("delete_seller"),async(re
     manualLog('entered in delete seller route')
     try {
         const {id} = req.params;
-        const Seller = req.db.model("Seller");
-        const seller_data = await Seller.findOneAndDelete({_id:id});
+        const SellerModel = req.db.model("Seller");
+        const seller_data = await SellerModel.findOneAndDelete({_id:id});
         manualLog(`seller deleted successfully :: ${seller_data._id}`)
         res.status(200).json({
             message:"seller deleted",

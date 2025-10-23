@@ -1,86 +1,122 @@
+const { create } = require('connect-mongo');
 const mongoose = require('mongoose');
 
 const sellerSchema = mongoose.Schema({
-    company_name:{
-        type:String,
-        required:[true,'Seller name is required']
+    // Required fields
+    name: {
+        type: String,
+        required: [true, 'Company name is required'],
+        trim: true
     },
-    primary_email:{
-        type:String,
-        required:[true,'Email id is required'],
+    email: {
+        type: String,
+        required: [true, 'Email is required'],
         unique: true,
+        lowercase: true,
         match: [/\S+@\S+\.\S+/, 'Please use a valid email address']
     },
-    seller_password:{
-        type:String,
-    },
-    phone_number:{
-        type:Number,
-        required:[true,'must enter phone or mobile number'],
+    phone: {
+        type: String,
+        required: [true, 'Phone number is required'],
         validate: {
             validator: function (v) {
-            return /^\d{10}$/.test(v); // Only allows 10 digits
+                return /^\d{10}$/.test(v.replace(/\D/g, '')); // Allows 10 digits
             },
-            message: 'Mobile number must be exactly 10 digits'
+            message: 'Phone number must be 10 digits'
         }
+    },
+    address: {
+        type: String,
+        required: [true, 'Address is required'],
+        trim: true
+    },
+    contactPerson: {
+        type: String,
+        required: [true, 'Contact person name is required'],
+        trim: true
+    },
+
+    // Nullable fields with defaults
+    password: {
+        type: String,
+        default: null
     },
     website: {
         type: String,
-        required: false,
+        default: null,
         validate: {
             validator: function (v) {
-            // Skip validation if v is falsy (e.g. "", null, undefined)
-            if (!v) return true;
-
-            // Otherwise validate the URL
-            return /^https?:\/\/[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}(\/[^\s]*)?$/.test(v);
+                if (!v) return true;
+                return /^https?:\/\/[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}(\/[^\s]*)?$/.test(v);
             },
-            message: props => `${props.value} is not a valid URL!`,
-        },
+            message: 'Please provide a valid website URL'
+        }
     },
-    business_address:{
-        type:String
+    status: {
+        type: String,
+        enum: ['Active', 'VIP', 'Inactive', 'Pending'],
+        default: 'active'
     },
-    city:{
-        type:String,
-        required:[true,'city must have to enter']
+    priority: {
+        type: String,
+        enum: ['High', 'Medium', 'Low'],
+        default: null
     },
-    client_status:{
-        type:String,
-        enum:['','active','vip client','inactive','pending']
+    industry: {
+        type: String,
+        default: null
     },
-    business_priority:{
-        type:String,
-        enum:['','high priority','medium priority','low priority']
+    companySize: {
+        type: String,
+        default: null
     },
-    payment_terms:{
-        type:String,
+    paymentTerms: {
+        type: String,
+        default: null
     },
-    industry:{
-        type:String,
+    gstNumber: {
+        type: String,
+        default: null
     },
-    company_size:{
-        type:String
+    creditLimit: {
+        type: String,
+        default: null
     },
-    credit_limit:{
-        type:String
+    totalOrders: {
+        type: String,
+        default: "0"
     },
-    primary_contact_person:{
-        type:String
+    totalSpent: {
+        type: String,
+        default: "0"
     },
-    gst_number:{
-        type:String
+    lastOrder: {
+        type: Date,
+        default: null
     },
-    business_note:{
-        type:String
+    tags: {
+        type: [String],
+        default: []
     },
-    user_role:{
-        type:String,
-        enum:['Seller'],
-        required: true, // optional: ensures value is stored in lowercase
-        trim: true,
-        default:"Seller"
+    notes: {
+        type: String,
+        default: null
+    },
+    userRole: {
+        type: String,
+        enum: ['seller'],
+        default: 'seller',
+        trim: true
+    },
+    joinDate: {
+        type: Date,
+        default: Date.now
+    },
+    createdBy: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        required: true
     }
-},{  timestamps: true  })
+}, { timestamps: true });
 
 module.exports = sellerSchema;

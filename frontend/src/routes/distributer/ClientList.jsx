@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from "react"
+import { useState, useCallback, useMemo, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card"
 import { Badge } from "./ui/badge"
 import { Button } from "./ui/button"
@@ -10,143 +10,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import { Textarea } from "./ui/textarea"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs"
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "./ui/alert-dialog"
-import { Search, Plus, Eye, Edit, Trash2, Mail, Phone, MapPin, Building2, Calendar, DollarSign, Package, ArrowUpDown, Star, Clock, TrendingUp, FileText, Users } from "lucide-react"
+import { Search, Plus, Eye, Edit, Trash2, Mail, Phone, MapPin, Building2, Calendar, DollarSign, Package, ArrowUpDown, Star, Clock, TrendingUp, FileText, Users, Loader2 } from "lucide-react"
 import { toast } from "sonner"
+import { useGetAllSeller } from "../../hooks/seller/useGetAllSeller"
+import { useUpdateSeller } from "../../hooks/seller/useUpdateSeller"
+import { useDeleteSeller } from "../../hooks/seller/useDeleteSeller"
+import { useAddSeller } from "../../hooks/seller/useAddSeller"
 
-const initialClients = [
-  {
-    id: "CLT-001",
-    name: "Acme Corporation",
-    email: "contact@acme.com",
-    phone: "+1 (555) 123-4567",
-    address: "123 Business St, NY 10001",
-    status: "VIP",
-    totalOrders: 45,
-    totalSpent: 125000,
-    lastOrder: "2024-01-15",
-    joinDate: "2023-03-10",
-    industry: "Technology",
-    contactPerson: "John Smith",
-    website: "https://acme.com",
-    companySize: "Enterprise (1000+ employees)",
-    priority: "High",
-    tags: ["Enterprise", "Technology", "Long-term"],
-    paymentTerms: "Net 30",
-    creditLimit: 50000,
-    gstNumber: "22AAAAA0000A1Z5",
-    notes: "Key enterprise client with regular monthly orders. Requires custom packaging and dedicated support."
-  },
-  {
-    id: "CLT-002",
-    name: "Tech Solutions Inc",
-    email: "info@techsolutions.com",
-    phone: "+1 (555) 987-6543",
-    address: "456 Tech Ave, CA 94102",
-    status: "Active",
-    totalOrders: 32,
-    totalSpent: 89500,
-    lastOrder: "2024-01-14",
-    joinDate: "2023-05-22",
-    industry: "Software Development",
-    contactPerson: "Sarah Johnson",
-    website: "https://techsolutions.com",
-    companySize: "Medium (100-500 employees)",
-    priority: "High",
-    tags: ["Software", "Growth", "Tech"],
-    paymentTerms: "Net 15",
-    creditLimit: 25000,
-    gstNumber: "29BBBBB0000B1Z6",
-    notes: "Fast-growing startup with potential for expansion. Very responsive to new product offerings."
-  },
-  {
-    id: "CLT-003",
-    name: "Global Trade Co",
-    email: "orders@globaltrade.com",
-    phone: "+1 (555) 555-0123",
-    address: "789 Commerce Blvd, TX 75201",
-    status: "Inactive",
-    totalOrders: 18,
-    totalSpent: 42300,
-    lastOrder: "2023-12-20",
-    joinDate: "2023-08-15",
-    industry: "Import/Export",
-    contactPerson: "Mike Chen",
-    website: "https://globaltrade.com",
-    companySize: "Large (500-1000 employees)",
-    priority: "Medium",
-    tags: ["Trading", "International", "Seasonal"],
-    paymentTerms: "Net 45",
-    creditLimit: 15000,
-    gstNumber: "36CCCCC0000C1Z7",
-    notes: "Seasonal orders, typically inactive during Q1. Specializes in international trade operations."
-  },
-  {
-    id: "CLT-004",
-    name: "Retail Masters",
-    email: "support@retailmasters.com",
-    phone: "+1 (555) 246-8135",
-    address: "321 Retail St, FL 33101",
-    status: "VIP",
-    totalOrders: 67,
-    totalSpent: 198750,
-    lastOrder: "2024-01-16",
-    joinDate: "2023-01-08",
-    industry: "Retail",
-    contactPerson: "Emma Davis",
-    website: "https://retailmasters.com",
-    companySize: "Enterprise (1000+ employees)",
-    priority: "High",
-    tags: ["Retail", "High-volume", "Custom"],
-    paymentTerms: "Net 30",
-    creditLimit: 75000,
-    gstNumber: "33DDDDD0000D1Z8",
-    notes: "High-volume client with custom packaging requirements. Multiple locations across the Southeast."
-  },
-  {
-    id: "CLT-005",
-    name: "StartUp Ventures",
-    email: "hello@startupventures.com",
-    phone: "+1 (555) 369-2580",
-    address: "654 Innovation Dr, WA 98101",
-    status: "Pending",
-    totalOrders: 3,
-    totalSpent: 7500,
-    lastOrder: "2024-01-10",
-    joinDate: "2024-01-05",
-    industry: "Venture Capital",
-    contactPerson: "Alex Wilson",
-    website: "https://startupventures.com",
-    companySize: "Small (10-50 employees)",
-    priority: "Medium",
-    tags: ["Startup", "VC", "New"],
-    paymentTerms: "Net 15",
-    creditLimit: 10000,
-    gstNumber: "07EEEEE0000E1Z9",
-    notes: "New client, awaiting verification of payment terms. Portfolio includes several promising tech startups."
-  },
-  {
-    id: "CLT-006",
-    name: "Manufacturing Plus",
-    email: "procurement@mfgplus.com",
-    phone: "+1 (555) 147-2589",
-    address: "852 Industrial Way, OH 44101",
-    status: "Active",
-    totalOrders: 28,
-    totalSpent: 67800,
-    lastOrder: "2024-01-12",
-    joinDate: "2023-07-18",
-    industry: "Manufacturing",
-    contactPerson: "Robert Lee",
-    website: "https://mfgplus.com",
-    companySize: "Large (500-1000 employees)",
-    priority: "Medium",
-    tags: ["Manufacturing", "Industrial", "B2B"],
-    paymentTerms: "Net 30",
-    creditLimit: 30000,
-    gstNumber: "18FFFFF0000F1Z0",
-    notes: "Reliable manufacturing client with consistent monthly orders for industrial supplies."
-  }
-];
 
 const defaultFormData = {
   name: "",
@@ -189,7 +59,41 @@ const industries = [
 ];
 
 function ClientList() {
-  const [clients, setClients] = useState(initialClients);
+  const [clients, setClients] = useState([]);
+  const [handleError,setHandleError] = useState(false);
+  const [errorMsg,setErrorMsg] = useState(null);
+  const {data:getSellerList, isPending:SellerisPending, isError:SellerisError, error:SellerError} = useGetAllSeller();
+  useEffect(()=>{
+    console.log("Seller List Updated",getSellerList);
+    if(getSellerList?.seller){
+      console.log(getSellerList.seller.seller_data);
+      setClients(getSellerList.seller.seller_data)
+    }
+  },[getSellerList])
+
+  
+  const {mutate:addSeller, isPending:addSellerisPending, isError:addSellerisError, error:addSellerError} = useAddSeller({
+    onSuccess: () => {
+      setIsAddDialogOpen(false);
+      resetForm();
+    },
+    onError:(error)=>{
+      console.error("Add Seller Error:", error);
+      setHandleError(true);
+      const message = error.response?.data?.message || "Something went wrong";
+      setErrorMsg(message);
+    }
+  });
+  console.log(addSellerError)
+  const {mutate:updateSeller, isPending:updateSellerisPending, isError:updateSellerisError, error:updateSellerError} = useUpdateSeller({
+    onSuccess: ()=>{
+      setIsEditDialogOpen(false);
+      setEditingClient(null);
+      resetForm();
+    }
+  });
+  const {mutate:deleteSellerList, isPending:deleteSellerisPending, isError:deleteSellerisError, error:deleteSellerError} = useDeleteSeller();
+
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [priorityFilter, setPriorityFilter] = useState("all");
@@ -201,42 +105,46 @@ function ClientList() {
   const [sortDirection, setSortDirection] = useState('asc');
   const [formData, setFormData] = useState(defaultFormData);
 
-  const filteredAndSortedClients = useMemo(() => {
-    return clients
-      .filter(client => {
-        const matchesSearch =
-          client.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          client.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          client.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          (client.contactPerson?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false) ||
-          (client.industry?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false) ||
-          (client.tags?.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase())) ?? false);
+    const filteredAndSortedClients = useMemo(() => {
+      if(clients.length == 0){
+        return clients
+      }
+      return clients
+        .filter(client => {
+          const matchesSearch =
+            client?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            client?.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            client?._id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            (client.contactPerson?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false) ||
+            (client.industry?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false) ||
+            (client.tags?.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase())) ?? false);
 
-        const matchesStatus = statusFilter === "all" || client.status === statusFilter;
-        const matchesPriority = priorityFilter === "all" || client.priority === priorityFilter;
+          const matchesStatus = statusFilter === "all" || client.status === statusFilter;
+          const matchesPriority = priorityFilter === "all" || client.priority === priorityFilter;
 
-        return matchesSearch && matchesStatus && matchesPriority;
-      })
-      .sort((a, b) => {
-        let aVal = a[sortField] ?? "";
-        let bVal = b[sortField] ?? "";
+          return matchesSearch && matchesStatus && matchesPriority;
+        })
+        .sort((a, b) => {
+          let aVal = a[sortField] ?? "";
+          let bVal = b[sortField] ?? "";
 
-        if (sortField === 'lastOrder' || sortField === 'joinDate') {
-          aVal = new Date(aVal);
-          bVal = new Date(bVal);
-        }
+          if (sortField === 'lastOrder' || sortField === 'joinDate') {
+            aVal = new Date(aVal);
+            bVal = new Date(bVal);
+          }
 
-        if (sortField === 'priority') {
-          const priorityOrder = { 'High': 3, 'Medium': 2, 'Low': 1 };
-          aVal = priorityOrder[a.priority] ?? 0;
-          bVal = priorityOrder[b.priority] ?? 0;
-        }
+          if (sortField === 'priority') {
+            const priorityOrder = { 'High': 3, 'Medium': 2, 'Low': 1 };
+            aVal = priorityOrder[a.priority] ?? 0;
+            bVal = priorityOrder[b.priority] ?? 0;
+          }
 
-        if (aVal < bVal) return sortDirection === 'asc' ? -1 : 1;
-        if (aVal > bVal) return sortDirection === 'asc' ? 1 : -1;
-        return 0;
-      });
-  }, [clients, searchTerm, statusFilter, priorityFilter, sortField, sortDirection]);
+          if (aVal < bVal) return sortDirection === 'asc' ? -1 : 1;
+          if (aVal > bVal) return sortDirection === 'asc' ? 1 : -1;
+          return 0;
+        });
+    }, [clients, searchTerm, statusFilter, priorityFilter, sortField, sortDirection]);
+
 
   const handleSort = useCallback((field) => {
     if (sortField === field) {
@@ -258,10 +166,6 @@ function ClientList() {
     }));
   }, []);
 
-  const generateClientId = useCallback(() => {
-    const maxId = Math.max(...clients.map(c => parseInt(c.id.replace('CLT-', ''))), 0);
-    return `CLT-${String(maxId + 1).padStart(3, '0')}`;
-  }, [clients]);
 
   const handleAddClient = useCallback(() => {
     if (!formData.name.trim() || !formData.email.trim()) {
@@ -275,7 +179,6 @@ function ClientList() {
     }
 
     const newClient = {
-      id: generateClientId(),
       name: formData.name.trim(),
       email: formData.email.trim(),
       phone: formData.phone.trim(),
@@ -297,30 +200,31 @@ function ClientList() {
       tags: []
     };
 
-    setClients(prev => [...prev, newClient]);
-    setIsAddDialogOpen(false);
-    resetForm();
+    addSeller(newClient);    
+    // if(!addSellerisPending){
+    //   setIsAddDialogOpen(false);
+    //   resetForm();
+    // }
     toast.success("Client added successfully");
-  }, [formData, clients, generateClientId, resetForm]);
+  }, [formData, clients, resetForm]);
 
   const handleEditClient = useCallback(() => {
+    console.log("called upate function")
     if (!editingClient || !formData.name.trim() || !formData.email.trim()) {
       toast.error("Please fill in required fields (Name and Email)");
       return;
     }
 
     if (clients.some(client =>
-      client.id !== editingClient.id &&
+      client._id !== editingClient._id &&
       client.email.toLowerCase() === formData.email.toLowerCase()
     )) {
       toast.error("A client with this email already exists");
       return;
     }
 
-    const updatedClients = clients.map(client =>
-      client.id === editingClient.id
-        ? {
-            ...client,
+    const updatedClients = {
+            id:editingClient._id,
             name: formData.name.trim(),
             email: formData.email.trim(),
             phone: formData.phone.trim(),
@@ -336,23 +240,19 @@ function ClientList() {
             creditLimit: formData.creditLimit ? parseInt(formData.creditLimit) : undefined,
             gstNumber: formData.gstNumber.trim() || undefined
           }
-        : client
-    );
-
-    setClients(updatedClients);
-    setIsEditDialogOpen(false);
-    setEditingClient(null);
-    resetForm();
+    console.log(editingClient._id);
+    updateSeller(updatedClients)
     toast.success("Client updated successfully");
   }, [editingClient, formData, clients, resetForm]);
 
   const handleDeleteClient = useCallback((clientId) => {
-    setClients(prev => prev.filter(client => client.id !== clientId));
+    deleteSellerList({id:clientId});
     toast.success("Client deleted successfully");
   }, []);
 
   const openEditDialog = useCallback((client) => {
     setEditingClient(client);
+    console.log(client);
     setFormData({
       name: client.name,
       email: client.email,
@@ -582,14 +482,14 @@ function ClientList() {
                   </TableHeader>
                   <TableBody>
                     {filteredAndSortedClients.map((client) => (
-                      <TableRow key={client.id}>
+                      <TableRow key={client._id}>
                         <TableCell>
                           <div>
                             <div className="flex items-center gap-2">
                               <p className="font-medium">{client.name}</p>
                               {client.status === "VIP" && <Star className="h-4 w-4 text-yellow-500 fill-current" />}
                             </div>
-                            <p className="text-sm text-muted-foreground">{client.id}</p>
+                            <p className="text-sm text-muted-foreground">{client._id}</p>
                             {client.companySize && (
                               <p className="text-xs text-muted-foreground">{client.companySize}</p>
                             )}
@@ -658,7 +558,7 @@ function ClientList() {
                                         <div>
                                           <Label>Client Information</Label>
                                           <div className="space-y-2 mt-2">
-                                            <p><span className="text-sm text-muted-foreground">ID:</span> {selectedClient.id}</p>
+                                            <p><span className="text-sm text-muted-foreground">ID:</span> {selectedClient._id}</p>
                                             <div className="flex items-center gap-2">
                                               <span className="text-sm text-muted-foreground">Status:</span>
                                               <Badge variant={getStatusVariant(selectedClient.status)}>
@@ -810,8 +710,8 @@ function ClientList() {
                                 <AlertDialogFooter>
                                   <AlertDialogCancel>Cancel</AlertDialogCancel>
                                   <AlertDialogAction
-                                    onClick={() => handleDeleteClient(client.id)}
-                                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                    onClick={() => handleDeleteClient(client._id)}
+                                    className="bg-danger text-destructive-foreground hover:bg-danger/90"
                                   >
                                     Delete Client
                                   </AlertDialogAction>
@@ -888,7 +788,7 @@ function ClientList() {
               <CardContent>
                 <div className="space-y-3">
                   {topClients.map((client, index) => (
-                    <div key={client.id} className="flex items-center justify-between">
+                    <div key={client._id} className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <span className="text-sm text-muted-foreground">#{index + 1}</span>
                         <span className="font-medium">{client.name}</span>
@@ -913,7 +813,7 @@ function ClientList() {
               <CardContent>
                 <div className="space-y-3">
                   {recentClients.map(client => (
-                    <div key={client.id} className="flex justify-between text-sm">
+                    <div key={client._id} className="flex justify-between text-sm">
                       <span className="font-medium">{client.name}</span>
                       <span className="text-muted-foreground">{client.joinDate}</span>
                     </div>
@@ -978,6 +878,8 @@ function ClientList() {
             <DialogTitle>Add New Business Client</DialogTitle>
             <DialogDescription>Create a comprehensive client profile for business relationship management</DialogDescription>
           </DialogHeader>
+          
+          
           <div className="grid gap-6 py-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
@@ -1150,11 +1052,23 @@ function ClientList() {
             </div>
           </div>
           <DialogFooter>
+            {
+            addSellerisError && 
+            <div className='bg-red-200 border border-2 border-red-800 rounded-lg p-2'>
+                {addSellerError.data.error.errors}
+            </div>
+          }
             <Button variant="outline" onClick={closeAddDialog}>
               Cancel
             </Button>
             <Button onClick={handleAddClient}>
-              Create Client Profile
+              {
+                addSellerisPending ? (
+                  'creating...'
+                ) : (
+                  'Create Client Profile'
+                )
+              }
             </Button>
           </DialogFooter>
         </DialogContent>
