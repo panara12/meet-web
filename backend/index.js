@@ -47,21 +47,32 @@ app.use(express.json());
 // If you're sending form-data (urlencoded)
 app.use(express.urlencoded({ extended: true }));
 
-
-
-mongoose.connect(process.env.MONGODB_URL+'user_master'+'?authSource=admin')
-.then(async ()=>{
-    console.log('db connected');
-    //get all  the tenents list on server starts
+mongoose.connect(process.env.MONGODB_URL+'user_master', {
+  authSource: "admin",
+  serverSelectionTimeoutMS: 5000
+}).then(() => {
+    console.log("MongoDB connected")
     const tenent_list = await getTenentList();
     tenentCache.tenent = tenent_list;
     console.log(tenentCache);
-    manualLog('db is connected broooo');
-})
-.catch(()=>{
-    console.log('db not connected');
-    manualLog('db is connected broooo');
-})
+    manualLog('db is connected broooo');          
+              })
+.catch(err => console.error("Connection error:", err));
+
+
+// mongoose.connect(process.env.MONGODB_URL+'user_master'+'?authSource=admin')
+// .then(async ()=>{
+//     console.log('db connected');
+//     //get all  the tenents list on server starts
+//     const tenent_list = await getTenentList();
+//     tenentCache.tenent = tenent_list;
+//     console.log(tenentCache);
+//     manualLog('db is connected broooo');
+// })
+// .catch(()=>{
+//     console.log('db not connected');
+//     manualLog('db is connected broooo');
+// })
 
 manualLog('session is ready to go');
 
