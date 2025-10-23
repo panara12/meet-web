@@ -19,7 +19,7 @@ const tenent_checker = async(req,res,next)=>{
         console.log("tenent domain ===",domain)
         //filter one records which req from frontend
         
-        active_tenent = tenent_list.find(single_tenent_data=>single_tenent_data.D_domain === domain)
+        let active_tenent = tenent_list.find(single_tenent_data=>single_tenent_data.D_domain === domain)
         
         // console.log('the filtered record',active_tenent);
 
