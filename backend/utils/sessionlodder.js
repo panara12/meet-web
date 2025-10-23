@@ -1,15 +1,15 @@
 const session = require("express-session");
 const MongoStore = require("connect-mongo");
 
-const mongoUrl = process.env.MONGODB_URL + "user_master"
-
+const mongoUrl = process.env.MONGODB_URL + "user_master";
 const isProduction = true;
 
 module.exports = session({
-  secret: process.env.SESSION_SECRET || "fallbackSecretKey", // ✅ Fallback for safety
+  secret: process.env.SESSION_SECRET || "fallbackSecretKey",
   resave: false,
   saveUninitialized: false,
   name: "user_session",
+  proxy: true, // important when behind Coolify or any proxy
 
   store: MongoStore.create({
     mongoUrl,
@@ -19,7 +19,7 @@ module.exports = session({
   cookie: {
     maxAge: 1000 * 60 * 60, // 1 hour
     httpOnly: true,
-    secure: isProduction, // ✅ only secure in production
-    sameSite: isProduction ? "none" : "lax", // ✅ avoid cookie issues in dev
+    secure: isProduction, // only true in production
+    sameSite: isProduction ? "none" : "lax", // must be 'none' for HTTPS+cross-domain
   },
 });
