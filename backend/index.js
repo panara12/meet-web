@@ -96,6 +96,12 @@ app.get("/error", () => {
   throw new Error("Test error for logging!");
 });
 
+app.get("/session-test", (req, res) => {
+  req.session.views = (req.session.views || 0) + 1;
+  res.send({ views: req.session.views });
+});
+
+
 // ====== Error Handler ======
 app.use(errorHandler);
 
