@@ -23,7 +23,7 @@ const email = require("./routes/email");
 const payment = require("./routes/payment");
 
 const app = express();
-
+app.set('trust proxy', 1);
 // ====== CORS ======
 const allowedOrigins = ["https://oms.voidvortextech.com"];
 
