@@ -1,8 +1,9 @@
 const session = require("express-session");
 const MongoStore = require("connect-mongo");
 
-const mongoUrl = process.env.MONGODB_URL + "user_master";
-const isProduction = true;
+const mongoUrl = process.env.MONGODB_URL + "user_master"
+
+const isProduction = false;
 
 module.exports = session({
   secret: process.env.SESSION_SECRET || "fallbackSecretKey",
@@ -19,7 +20,7 @@ module.exports = session({
   cookie: {
     maxAge: 1000 * 60 * 60, // 1 hour
     httpOnly: true,
-    secure: isProduction, // only true in production
-    sameSite: isProduction ? "none" : "lax", // must be 'none' for HTTPS+cross-domain
+    secure: false, // ✅ only secure in production
+    // sameSite: isProduction ? "none" : "lax", // ✅ avoid cookie issues in dev
   },
 });

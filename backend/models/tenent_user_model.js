@@ -22,7 +22,7 @@ const user_tenent_Schema = mongoose.Schema({
     },
     user_role:{
         type:String,
-        enum:["distributer","salesman","packaging","billing","seller"],
+        enum:["admin","salesman","packaging","billing","seller"],
         required: true,
         trim: true,
     },

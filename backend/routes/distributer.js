@@ -36,8 +36,21 @@ router.post('/adddistributer',async (req,res)=>{
     await new_user.save();
 
     //main tenent master
-    await Tenent_user_master.create({user_email:distributer_email,tenant_user_id:new_user._id,user_username:distributer_username,user_password:hashedPassword,user_role:"distributer",user_tenant:user_tenant});
+    await Tenent_user_master.create({user_email:distributer_email,tenant_user_id:new_user._id,user_username:distributer_username,user_password:hashedPassword,user_role:"admin",user_tenant:user_tenant});
     manualLog(`new distributer added :: ${new_user._id}`)
+
+    const User = req.db.model("User");
+    await User.create({
+        employeeId:"dist-001",
+        firstName:distributer_name,
+        email:distributer_email,
+        phone:distributer_mobile,
+        address:distributer_city,
+        role:"admin",
+        department:"admin",
+        username:distributer_username,
+        password:hashedPassword
+    });
 
     res.status(200).json({
         message:"user registerd",

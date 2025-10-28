@@ -1,4 +1,9 @@
 import { createContext, useContext, useState } from "react"
+import { useGetAllUser } from "../../hooks/user/useGetAllUser"
+import { useEffect } from "react"
+import { useDeleteUser } from "../../hooks/user/useDeleteUser"
+import { useUpdateUser } from "../../hooks/user/useUpdateUser"
+import { useAddUser } from "../../hooks/user/useAddUser"
 
 const StaffContext = createContext(undefined)
 
@@ -162,29 +167,39 @@ const initialStaff = [
 // ---- Provider ----
 export function StaffProvider({ children }) {
   const [staff, setStaff] = useState(initialStaff)
+  const {data:getAllUser,isPending:isgetAllUserPending,isError:isgetAllUserError,Error:getAllUserError} = useGetAllUser()
+  useEffect(()=>{
+    if(getAllUser?.data){
+      console.log(getAllUser.data.user)
+      setStaff(getAllUser.data.user)
+    }
+  },[getAllUser])
+
+    const {mutate:addUser,isPending:isAddUserPending, isError:isAddUserError, error:addUserError} = useAddUser()
+    const {mutate:updateUser,isPending:isUpdateUserPending, isError:isUpdateUserError, error:updateUserError} = useUpdateUser()
+    const {mutate:deleteUser,isPending:isDeleteUserPending, isError:isDeleteUserError, error:deleteUserError} = useDeleteUser()
 
   const addStaff = (newStaff) => {
-    setStaff((prev) => [...prev, newStaff])
+    addUser(newStaff)
+    console.log(newStaff)
   }
 
   const updateStaff = (id, updatedStaff) => {
-    setStaff((prev) =>
-      prev.map((s) => (s.id === id ? { ...s, ...updatedStaff } : s))
-    )
+    updateUser({id,updates:updatedStaff})
   }
 
   const deleteStaff = (id) => {
-    setStaff((prev) => prev.filter((s) => s.id !== id))
+    deleteUser({id})
   }
 
-  const getStaffById = (id) => staff.find((s) => s.id === id)
+  const getStaffById = (id) => staff.find((s) => s._id === id)
 
   const getStaffByRole = (role) => staff.filter((s) => s.role === role)
 
   const getRoleCount = (role) => staff.filter((s) => s.role === role).length
 
   const requestLocationUpdate = async (staffId) => {
-    const member = staff.find((s) => s.id === staffId)
+    const member = staff.find((s) => s._id === staffId)
     if (!member) return false
 
     if (!member.locationTracking.isTrackingEnabled) {
@@ -246,12 +261,12 @@ export function StaffProvider({ children }) {
   }
 
   const getLocationHistory = (staffId) => {
-    const member = staff.find((s) => s.id === staffId)
+    const member = staff.find((s) => s._id === staffId)
     return member?.locationTracking.locationHistory || []
   }
 
   const clearLocationHistory = (staffId) => {
-    const member = staff.find((s) => s.id === staffId)
+    const member = staff.find((s) => s._id === staffId)
     if (!member) return
 
     updateStaff(staffId, {
@@ -263,7 +278,7 @@ export function StaffProvider({ children }) {
   }
 
   const toggleLocationTracking = (staffId) => {
-    const member = staff.find((s) => s.id === staffId)
+    const member = staff.find((s) => s._id === staffId)
     if (!member) return
 
     updateStaff(staffId, {

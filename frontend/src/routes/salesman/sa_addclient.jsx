@@ -5,21 +5,20 @@ import SuccessMessage from "../../component/ui/successMessage";
 
 export default function AddClient() {
   const [formData, setFormData] = useState({
-    company_name: "",
-    primary_contact_person: "",
-    primary_email: "",
-    phone_number: "",
+    name: "",
+    contactPerson: "",
+    email: "",
+    phone: "",
     website: "",
-    business_address: "",
-    city: "",
-    client_status: "",
-    business_priority: "",
-    payment_terms: "",
+    address: "",
+    status: "",
+    priority: "",
+    paymentTerms: "",
     industry: "",
-    company_size: "",
-    credit_limit: "",
-    gst_number: "",
-    business_note: "",
+    companySize: "",
+    creditLimit: "",
+    gstNumber: "",
+    notes: "",
   });
   const [successMessage, setSuccessMessage] = useState("");
   const {mutate:addSeller,isPending, isError, error} = useAddSeller({
@@ -37,21 +36,20 @@ export default function AddClient() {
 
     {isPending && 
       setFormData({
-          company_name: "",
-          primary_contact_person: "",
-          primary_email: "",
-          phone_number: "",
+          name: "",
+          contactPerson: "",
+          email: "",
+          phone: "",
           website: "",
-          business_address: "",
-          city: "",
-          client_status: "",
-          business_priority: "",
-          payment_terms: "",
+          address: "",
+          status: "",
+          priority: "",
+          paymentTerms: "",
           industry: "",
-          company_size: "",
-          credit_limit: "",
-          gst_number: "",
-          business_note: "",
+          companySize: "",
+          creditLimit: "",
+          gstNumber: "",
+          notes: "",
         });
     }
   };
@@ -84,8 +82,8 @@ export default function AddClient() {
               <input
                 type="text"
                 required
-                value={formData.company_name}
-                onChange={(e) => handleChange("company_name", e.target.value)}
+                value={formData.name}
+                onChange={(e) => handleChange("name", e.target.value)}
                 placeholder="Enter company name"
                 className="w-full border rounded-lg px-3 py-2 mt-1 text-sm"
               />
@@ -98,8 +96,8 @@ export default function AddClient() {
               <input
                 type="text"
                 required
-                value={formData.gst_number}
-                onChange={(e) => handleChange("gst_number", e.target.value)}
+                value={formData.gstNumber}
+                onChange={(e) => handleChange("gstNumber", e.target.value)}
                 placeholder="Enter GST number"
                 className="w-full border rounded-lg px-3 py-2 mt-1 text-sm"
               />
@@ -113,8 +111,8 @@ export default function AddClient() {
                 type="tel"
                 required
                 pattern="\d{10}"
-                value={formData.phone_number}
-                onChange={(e) => handleChange("phone_number", e.target.value)}
+                value={formData.phone}
+                onChange={(e) => handleChange("phone", e.target.value)}
                 placeholder="1234567890"
                 className="w-full border rounded-lg px-3 py-2 mt-1 text-sm"
               />
@@ -126,8 +124,8 @@ export default function AddClient() {
               </label>
               <input
                 type="email"
-                value={formData.primary_email}
-                onChange={(e) => handleChange("primary_email", e.target.value)}
+                value={formData.email}
+                onChange={(e) => handleChange("email", e.target.value)}
                 placeholder="contact@example.com"
                 className="w-full border rounded-lg px-3 py-2 mt-1 text-sm"
               />
@@ -152,9 +150,9 @@ export default function AddClient() {
               </label>
               <input
                 type="text"
-                value={formData.primary_contact_person}
+                value={formData.contactPerson}
                 onChange={(e) =>
-                  handleChange("primary_contact_person", e.target.value)
+                  handleChange("contactPerson", e.target.value)
                 }
                 placeholder="Contact person"
                 className="w-full border rounded-lg px-3 py-2 mt-1 text-sm"
@@ -176,9 +174,9 @@ export default function AddClient() {
               </label>
               <textarea
                 rows={2}
-                value={formData.business_address}
+                value={formData.address}
                 onChange={(e) =>
-                  handleChange("business_address", e.target.value)
+                  handleChange("address", e.target.value)
                 }
                 placeholder="Enter business address"
                 className="w-full border rounded-lg px-3 py-2 mt-1 text-sm resize-none"
@@ -187,31 +185,18 @@ export default function AddClient() {
 
             <div>
               <label className="block text-sm font-medium text-gray-700">
-                City
-              </label>
-              <input
-                type="text"
-                value={formData.city}
-                onChange={(e) => handleChange("city", e.target.value)}
-                placeholder="Enter city"
-                className="w-full border rounded-lg px-3 py-2 mt-1 text-sm"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700">
                 Client Status
               </label>
               <select
-                value={formData.client_status}
-                onChange={(e) => handleChange("client_status", e.target.value)}
+                value={formData.status}
+                onChange={(e) => handleChange("status", e.target.value)}
                 className="w-full border rounded-lg px-3 py-2 mt-1 text-sm"
               >
                 <option value="">Select status</option>
-                <option value="active">Active</option>
-                <option value="vip client">VIP Client</option>
-                <option value="inactive">Inactive</option>
-                <option value="pending">Pending</option>
+                <option value="Active">Active</option>
+                <option value="VIP">VIP Client</option>
+                <option value="Inactive">Inactive</option>
+                <option value="Pending">Pending</option>
               </select>
             </div>
 
@@ -220,16 +205,16 @@ export default function AddClient() {
                 Business Priority
               </label>
               <select
-                value={formData.business_priority}
+                value={formData.priority}
                 onChange={(e) =>
-                  handleChange("business_priority", e.target.value)
+                  handleChange("priority", e.target.value)
                 }
                 className="w-full border rounded-lg px-3 py-2 mt-1 text-sm"
               >
                 <option value="">Select priority</option>
-                <option value="high priority">High</option>
-                <option value="medium priority">Medium</option>
-                <option value="low priority">Low</option>
+                <option value="High">High</option>
+                <option value="Medium">Medium</option>
+                <option value="Low">Low</option>
               </select>
             </div>
 
@@ -252,8 +237,8 @@ export default function AddClient() {
               </label>
               <input
                 type="text"
-                value={formData.company_size}
-                onChange={(e) => handleChange("company_size", e.target.value)}
+                value={formData.companySize}
+                onChange={(e) => handleChange("companySize", e.target.value)}
                 placeholder="e.g. 10-50 employees"
                 className="w-full border rounded-lg px-3 py-2 mt-1 text-sm"
               />
@@ -265,8 +250,8 @@ export default function AddClient() {
               </label>
               <input
                 type="number"
-                value={formData.credit_limit}
-                onChange={(e) => handleChange("credit_limit", e.target.value)}
+                value={formData.creditLimit}
+                onChange={(e) => handleChange("creditLimit", e.target.value)}
                 placeholder="10000"
                 className="w-full border rounded-lg px-3 py-2 mt-1 text-sm"
               />
@@ -277,8 +262,8 @@ export default function AddClient() {
                 Payment Terms
               </label>
               <select
-                value={formData.payment_terms}
-                onChange={(e) => handleChange("payment_terms", e.target.value)}
+                value={formData.paymentTerms}
+                onChange={(e) => handleChange("paymentTerms", e.target.value)}
                 className="w-full border rounded-lg px-3 py-2 mt-1 text-sm"
               >
                 <option value="">Select terms</option>
@@ -298,8 +283,8 @@ export default function AddClient() {
           <h2 className="text-lg font-semibold text-[#1E3986]">Notes</h2>
           <textarea
             rows={3}
-            value={formData.business_note}
-            onChange={(e) => handleChange("business_note", e.target.value)}
+            value={formData.notes}
+            onChange={(e) => handleChange("notes", e.target.value)}
             placeholder="Any additional notes..."
             className="w-full border rounded-lg px-3 py-2 text-sm resize-none"
           />

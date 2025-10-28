@@ -13,7 +13,11 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar"
 import { Search, Plus, Eye, Edit, Trash2, Mail, Phone, MapPin, Calendar, DollarSign, Shield, Clock, Users, TrendingUp, UserCheck, Briefcase, Activity, Filter, Upload, FileText, CreditCard, Car } from "lucide-react"
 import { toast } from "sonner"
+
 import { StaffProvider,useStaff } from "./StaffContext"
+
+//ENV CONFIG
+const digital_ocean_url = import.meta.env.VITE_DIGITAL_OCEAN_URL;
 
 const defaultFormData = {
   firstName: "",
@@ -25,31 +29,41 @@ const defaultFormData = {
   department: "Operations",
   status: "Active",
   salary: "",
-  emergencyContact: "",
+  emergencyContact: {
+    name:"",
+    phone:"",
+    relationship:""
+  },
   notes: "",
   workHours: "Full-time",
   // Government Documents
   aadhaarNumber: "",
   panNumber: "",
   drivingLicenseNumber: "",
+  // Document Files
+  aadhar: null,
+  pan: null,
+  driving: null,
   // Bank Account Details
   bankAccountNumber: "",
   bankName: "",
   ifscCode: "",
   bankBranch: "",
-  accountHolderName: ""
+  accountHolderName: "",
+  username: "",
+  password: ""
 }
 
-const roles = ["Admin", "Packager", "Biller", "Sales-man"]
+const roles = ["admin", "packaging", "billing", "salesman"]
 
 // Role limits configuration
 const roleLimits = {
-  "Admin": 1,
-  "Packager": 2, 
-  "Biller": 1,
-  "Sales-man": 4
+  "admin": 1,
+  "packaging": 2,
+  "billing": 1,
+  "salesman": 4
 }
-const departments = ["Management", "Sales", "Finance", "Operations", "HR", "IT"]
+const departments = ["admin", "salesman", "packaging", "billing", "seller"]
 const statuses = ["Active", "Inactive", "On Leave", "Terminated"]
 const workHourTypes = ["Full-time", "Part-time", "Contract", "Freelance"]
 
@@ -99,6 +113,7 @@ function StaffAccount() {
         return 0
       })
   }, [staff, searchTerm, roleFilter, departmentFilter, statusFilter, sortField, sortDirection])
+  console.log("Filtered and Sorted Staff:", filteredAndSortedStaff)
 
   const handleSort = useCallback((field) => {
     if (sortField === field) {
@@ -125,7 +140,7 @@ function StaffAccount() {
   }, [])
 
   const generateEmployeeId = useCallback(() => {
-    const maxId = Math.max(...staff.map(s => parseInt(s.id.replace('EMP-', ''))), 0)
+    const maxId = Math.max(...staff.map(s => parseInt(s._id.replace('EMP-', ''))), 0)
     return `EMP-${String(maxId + 1).padStart(3, '0')}`
   }, [staff])
 
@@ -172,7 +187,11 @@ function StaffAccount() {
       status: formData.status,
       salary: formData.salary ? parseInt(formData.salary) : 0,
       employeeId: generateEmpId(formData.role),
-      emergencyContact: formData.emergencyContact.trim() || undefined,
+      emergencyContact: {
+        name: formData.emergencyContact.name.trim() || undefined,
+        phone: formData.emergencyContact.phone.trim() || undefined,
+        relationship: formData.emergencyContact.relationship.trim() || undefined
+      },
       notes: formData.notes.trim() || undefined,
       workHours: formData.workHours,
       hireDate: new Date().toISOString().split('T')[0],
@@ -190,12 +209,17 @@ function StaffAccount() {
       aadhaarNumber: formData.aadhaarNumber.trim() || undefined,
       panNumber: formData.panNumber.trim() || undefined,
       drivingLicenseNumber: formData.drivingLicenseNumber.trim() || undefined,
+      aadhar: formData.aadhar || null,
+      pan: formData.pan || null,
+      driving: formData.driving || null,
       // Bank Account Details
       bankAccountNumber: formData.bankAccountNumber.trim() || undefined,
       bankName: formData.bankName.trim() || undefined,
       ifscCode: formData.ifscCode.trim() || undefined,
       bankBranch: formData.bankBranch.trim() || undefined,
-      accountHolderName: formData.accountHolderName.trim() || undefined
+      accountHolderName: formData.accountHolderName.trim() || undefined,
+      username: formData.username.trim() || undefined,
+      password: formData.password.trim() || undefined
     }
 
     addStaff(newStaff)
@@ -211,7 +235,7 @@ function StaffAccount() {
     }
 
     if (staff.some(member => 
-      member.id !== editingStaff.id && 
+      member._id !== editingStaff._id && 
       member.email.toLowerCase() === formData.email.toLowerCase()
     )) {
       toast.error("A staff member with this email already exists")
@@ -223,7 +247,7 @@ function StaffAccount() {
       const currentRoleCount = staff.filter(member => 
         member.role === formData.role && 
         member.status === "Active" && 
-        member.id !== editingStaff.id
+        member._id !== editingStaff._id
       ).length
       const roleLimit = roleLimits[formData.role]
       
@@ -245,22 +269,32 @@ function StaffAccount() {
       department: formData.department,
       status: formData.status,
       salary: formData.salary ? parseInt(formData.salary) : editingStaff.salary,
-      emergencyContact: formData.emergencyContact.trim() || undefined,
+      emergencyContact: {
+        name: formData.emergencyContact.name.trim() || undefined,
+        phone: formData.emergencyContact.phone.trim() || undefined,
+        relationship: formData.emergencyContact.relationship.trim() || undefined
+      },
       notes: formData.notes.trim() || undefined,
       workHours: formData.workHours,
       // Government Documents
       aadhaarNumber: formData.aadhaarNumber.trim() || undefined,
       panNumber: formData.panNumber.trim() || undefined,
       drivingLicenseNumber: formData.drivingLicenseNumber.trim() || undefined,
+      // Document Files
+      aadhar: formData.aadhar || null,
+      pan: formData.pan || null,
+      driving: formData.driving || null,
       // Bank Account Details
       bankAccountNumber: formData.bankAccountNumber.trim() || undefined,
       bankName: formData.bankName.trim() || undefined,
       ifscCode: formData.ifscCode.trim() || undefined,
       bankBranch: formData.bankBranch.trim() || undefined,
-      accountHolderName: formData.accountHolderName.trim() || undefined
+      accountHolderName: formData.accountHolderName.trim() || undefined,
+      username: formData.username.trim() || undefined,
+      password: formData.password.trim() || undefined
     }
     
-    updateStaff(editingStaff.id, updatedData)
+    updateStaff(editingStaff._id, updatedData)
     setIsEditDialogOpen(false)
     setEditingStaff(null)
     resetForm()
@@ -273,6 +307,9 @@ function StaffAccount() {
   }, [deleteStaff])
 
   const openEditDialog = useCallback((member) => {
+    console.log("Editing staff member:", member);
+    console.log("Documents check:", member.documents);
+    console.log("Length:", member.documents?.length);
     setEditingStaff(member)
     setFormData({
       firstName: member.firstName,
@@ -284,19 +321,29 @@ function StaffAccount() {
       department: member.department,
       status: member.status,
       salary: member.salary.toString(),
-      emergencyContact: member.emergencyContact || "",
+      emergencyContact: {
+        name: member.emergencyContact?.name || "",
+        phone: member.emergencyContact?.phone || "",
+        relationship: member.emergencyContact?.relationship || ""
+      },
       notes: member.notes || "",
       workHours: member.workHours,
       // Government Documents
       aadhaarNumber: member.aadhaarNumber || "",
       panNumber: member.panNumber || "",
       drivingLicenseNumber: member.drivingLicenseNumber || "",
+      // Document Files
+      aadhar: member.documents[0]?.url || null,
+      pan: member.documents[1]?.url || null,
+      driving: member.documents[2]?.url || null,
       // Bank Account Details
       bankAccountNumber: member.bankAccountNumber || "",
       bankName: member.bankName || "",
       ifscCode: member.ifscCode || "",
       bankBranch: member.bankBranch || "",
-      accountHolderName: member.accountHolderName || ""
+      accountHolderName: member.accountHolderName || "",
+      username: member.username || "",
+      password: member.password || ""
     })
     setIsEditDialogOpen(true)
   }, [])
@@ -325,12 +372,6 @@ function StaffAccount() {
     return { current, limit, available: limit - current }
   }, [getRoleCount])
 
-  const handleFileUpload = useCallback((documentType, file) => {
-    setDocumentFiles(prev => ({
-      ...prev,
-      [documentType]: file
-    }))
-  }, [])
 
   const getStatusVariant = useCallback((status) => {
     switch (status) {
@@ -355,7 +396,7 @@ function StaffAccount() {
   // Calculated stats
   const totalStaff = staff.length
   const activeStaff = staff.filter(s => s.status === "Active").length
-  const totalSalaryExpense = staff.filter(s => s.status === "Active").reduce((sum, member) => sum + member.salary, 0)
+  const totalSalaryExpense = staff.filter(s => s.status === "Active").reduce((sum, member) => sum + (member.salary || 0), 0)
 
   const departmentBreakdown = departments.map(dept => ({
     department: dept,
@@ -450,7 +491,7 @@ function StaffAccount() {
         <CardContent>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
             {Object.entries(roleLimits).map(([role, limit]) => {
-              const current = getRoleCount(role)
+              const current = getRoleCount(role.toLowerCase())
               const percentage = (current / limit) * 100
               const isAtLimit = current >= limit
               
@@ -589,292 +630,304 @@ function StaffAccount() {
                   </TableHeader>
                   <TableBody>
                     {filteredAndSortedStaff.map((member) => (
-                      <TableRow key={member.id}>
-                        <TableCell>
-                          <div className="flex items-center gap-3">
-                            <Avatar className="h-8 w-8">
-                              <AvatarImage src={member.avatar} />
-                              <AvatarFallback>{member.firstName[0]}{member.lastName[0]}</AvatarFallback>
-                            </Avatar>
-                            <div>
-                              <p className="font-medium">{member.firstName} {member.lastName}</p>
-                              <p className="text-sm text-muted-foreground">{member.employeeId}</p>
-                              <p className="text-xs text-muted-foreground">{member.workHours}</p>
-                            </div>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="space-y-1">
-                            <div className="flex items-center gap-2">
-                              <Mail className="h-3 w-3 text-muted-foreground" />
-                              <span className="text-sm">{member.email}</span>
-                            </div>
-                            {member.phone && (
-                              <div className="flex items-center gap-2">
-                                <Phone className="h-3 w-3 text-muted-foreground" />
-                                <span className="text-sm">{member.phone}</span>
+                      console.log("Rendering member:", member),
+                        <TableRow key={member._id}>
+                          <TableCell>
+                            <div className="flex items-center gap-3">
+                              <Avatar className="h-8 w-8">
+                                <AvatarImage src={member.avatar} />
+                                <AvatarFallback>{member.firstName[0]}</AvatarFallback>
+                              </Avatar>
+                              <div>
+                                <p className="font-medium">{member.firstName} {member.lastName}</p>
+                                <p className="text-sm text-muted-foreground">{member.employeeId}</p>
+                                <p className="text-xs text-muted-foreground">{member.workHours}</p>
                               </div>
-                            )}
-                            {member.emergencyContact && (
-                              <p className="text-xs text-muted-foreground">Emergency: {member.emergencyContact}</p>
-                            )}
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="space-y-1">
-                            <Badge variant={getRoleVariant(member.role)}>
-                              {member.role}
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="space-y-1">
+                              <div className="flex items-center gap-2">
+                                <Mail className="h-3 w-3 text-muted-foreground" />
+                                <span className="text-sm">{member.email}</span>
+                              </div>
+                              {member.phone && (
+                                <div className="flex items-center gap-2">
+                                  <Phone className="h-3 w-3 text-muted-foreground" />
+                                  <span className="text-sm">{member.phone}</span>
+                                </div>
+                              )}
+                              {member.emergencyContact && (
+                                <>
+                                <p className="text-xs text-muted-foreground">Person Name: {member.emergencyContact.name || "demo"}</p>
+                                <p className="text-xs text-muted-foreground">Phone: {member.emergencyContact.phone || "demo"}</p>
+                                <p className="text-xs text-muted-foreground">Relationship: {member.emergencyContact.relationship || "demo"}</p>
+                              </>
+                              )}
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="space-y-1">
+                              <Badge variant={getRoleVariant(member.role)}>
+                                {member.role}
+                              </Badge>
+                              <p className="text-sm text-muted-foreground">{member.department}</p>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant={getStatusVariant(member.status)}>
+                              {member.status}
                             </Badge>
-                            <p className="text-sm text-muted-foreground">{member.department}</p>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant={getStatusVariant(member.status)}>
-                            {member.status}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>${member.salary.toLocaleString()}</TableCell>
-                        <TableCell>{member.hireDate}</TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-2">
-                            <Dialog>
-                              <DialogTrigger asChild>
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => setSelectedStaff(member)}
-                                >
-                                  <Eye className="h-4 w-4" />
-                                </Button>
-                              </DialogTrigger>
-                              <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto mx-4">
-                                <DialogHeader>
-                                  <DialogTitle className="flex items-center gap-2">
-                                    <Avatar className="h-8 w-8">
-                                      <AvatarImage src={selectedStaff?.avatar} />
-                                      <AvatarFallback>{selectedStaff?.firstName[0]}{selectedStaff?.lastName[0]}</AvatarFallback>
-                                    </Avatar>
-                                    {selectedStaff?.firstName} {selectedStaff?.lastName}
-                                  </DialogTitle>
-                                  <DialogDescription>Complete employee profile and employment details</DialogDescription>
-                                </DialogHeader>
-                                {selectedStaff && (
-                                  <div className="grid gap-6 py-4">
-                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                      <div className="space-y-4">
-                                        <div>
-                                          <Label>Employee Information</Label>
-                                          <div className="space-y-2 mt-2">
-                                            <p><span className="text-sm text-muted-foreground">Employee ID:</span> {selectedStaff.employeeId}</p>
-                                            <p><span className="text-sm text-muted-foreground">Full Name:</span> {selectedStaff.firstName} {selectedStaff.lastName}</p>
-                                            <div className="flex items-center gap-2">
-                                              <span className="text-sm text-muted-foreground">Status:</span>
-                                              <Badge variant={getStatusVariant(selectedStaff.status)}>
-                                                {selectedStaff.status}
-                                              </Badge>
-                                            </div>
-                                          </div>
-                                        </div>
-
-                                        <div>
-                                          <Label>Contact Details</Label>
-                                          <div className="space-y-2 mt-2">
-                                            <div className="flex items-center gap-2">
-                                              <Mail className="h-4 w-4 text-muted-foreground" />
-                                              <span className="text-sm">{selectedStaff.email}</span>
-                                            </div>
-                                            {selectedStaff.phone && (
-                                              <div className="flex items-center gap-2">
-                                                <Phone className="h-4 w-4 text-muted-foreground" />
-                                                <span className="text-sm">{selectedStaff.phone}</span>
-                                              </div>
-                                            )}
-                                            {selectedStaff.address && (
-                                              <div className="flex items-center gap-2">
-                                                <MapPin className="h-4 w-4 text-muted-foreground" />
-                                                <span className="text-sm">{selectedStaff.address}</span>
-                                              </div>
-                                            )}
-                                            {selectedStaff.emergencyContact && (
-                                              <div>
-                                                <p className="text-sm text-muted-foreground">Emergency Contact:</p>
-                                                <p className="text-sm">{selectedStaff.emergencyContact}</p>
-                                              </div>
-                                            )}
-                                          </div>
-                                        </div>
-                                      </div>
-
-                                      <div className="space-y-4">
-                                        <div>
-                                          <Label>Role & Department</Label>
-                                          <div className="space-y-2 mt-2">
-                                            <div className="flex items-center gap-2">
-                                              <span className="text-sm text-muted-foreground">Role:</span>
-                                              <Badge variant={getRoleVariant(selectedStaff.role)}>
-                                                {selectedStaff.role}
-                                              </Badge>
-                                            </div>
-                                            <p><span className="text-sm text-muted-foreground">Department:</span> {selectedStaff.department}</p>
-                                            <p><span className="text-sm text-muted-foreground">Work Hours:</span> {selectedStaff.workHours}</p>
-                                          </div>
-                                        </div>
-
-                                        <div>
-                                          <Label>System Access</Label>
-                                          <div className="space-y-2 mt-2">
-                                            {selectedStaff.lastLogin && (
-                                              <p><span className="text-sm text-muted-foreground">Last Login:</span> {selectedStaff.lastLogin}</p>
-                                            )}
-                                            <p><span className="text-sm text-muted-foreground">Access Level:</span> {selectedStaff.role}</p>
-                                          </div>
-                                        </div>
-                                      </div>
-
-                                      <div className="space-y-4">
-                                        <div>
-                                          <Label>Employment Details</Label>
-                                          <div className="space-y-3 mt-2">
-                                            <div>
-                                              <p className="text-sm text-muted-foreground">Annual Salary</p>
-                                              <p className="text-2xl font-bold">${selectedStaff.salary.toLocaleString()}</p>
-                                            </div>
-                                            <div>
-                                              <p className="text-sm text-muted-foreground">Hire Date</p>
-                                              <p className="font-medium">{selectedStaff.hireDate}</p>
-                                            </div>
-                                            <div>
-                                              <p className="text-sm text-muted-foreground">Tenure</p>
-                                              <p className="font-medium">
-                                                {Math.floor((new Date().getTime() - new Date(selectedStaff.hireDate).getTime()) / (1000 * 60 * 60 * 24 * 30))} months
-                                              </p>
-                                            </div>
-                                          </div>
-                                        </div>
-                                      </div>
-                                    </div>
-
-                                    {/* Government Documents Section */}
-                                    {(selectedStaff.aadhaarNumber || selectedStaff.panNumber || selectedStaff.drivingLicenseNumber) && (
-                                      <div>
-                                        <Label>Government Documents</Label>
-                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-2">
-                                          {selectedStaff.aadhaarNumber && (
-                                            <div className="p-3 border rounded-lg">
-                                              <div className="flex items-center gap-2 mb-2">
-                                                <FileText className="h-4 w-4 text-blue-500" />
-                                                <span className="text-sm font-medium">Aadhaar Card</span>
-                                              </div>
-                                              <p className="text-sm text-muted-foreground">{selectedStaff.aadhaarNumber}</p>
-                                            </div>
-                                          )}
-                                          {selectedStaff.panNumber && (
-                                            <div className="p-3 border rounded-lg">
-                                              <div className="flex items-center gap-2 mb-2">
-                                                <CreditCard className="h-4 w-4 text-green-500" />
-                                                <span className="text-sm font-medium">PAN Card</span>
-                                              </div>
-                                              <p className="text-sm text-muted-foreground">{selectedStaff.panNumber}</p>
-                                            </div>
-                                          )}
-                                          {selectedStaff.drivingLicenseNumber && (
-                                            <div className="p-3 border rounded-lg">
-                                              <div className="flex items-center gap-2 mb-2">
-                                                <Car className="h-4 w-4 text-orange-500" />
-                                                <span className="text-sm font-medium">Driving License</span>
-                                              </div>
-                                              <p className="text-sm text-muted-foreground">{selectedStaff.drivingLicenseNumber}</p>
-                                            </div>
-                                          )}
-                                        </div>
-                                      </div>
-                                    )}
-
-                                    {/* Bank Account Details Section */}
-                                    {(selectedStaff.bankAccountNumber || selectedStaff.bankName) && (
-                                      <div>
-                                        <Label>Bank Account Details</Label>
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
-                                          <div className="space-y-2">
-                                            {selectedStaff.accountHolderName && (
-                                              <p><span className="text-sm text-muted-foreground">Account Holder:</span> {selectedStaff.accountHolderName}</p>
-                                            )}
-                                            {selectedStaff.bankAccountNumber && (
-                                              <p><span className="text-sm text-muted-foreground">Account Number:</span> {selectedStaff.bankAccountNumber}</p>
-                                            )}
-                                            {selectedStaff.bankName && (
-                                              <p><span className="text-sm text-muted-foreground">Bank Name:</span> {selectedStaff.bankName}</p>
-                                            )}
-                                          </div>
-                                          <div className="space-y-2">
-                                            {selectedStaff.ifscCode && (
-                                              <p><span className="text-sm text-muted-foreground">IFSC Code:</span> {selectedStaff.ifscCode}</p>
-                                            )}
-                                            {selectedStaff.bankBranch && (
-                                              <p><span className="text-sm text-muted-foreground">Branch:</span> {selectedStaff.bankBranch}</p>
-                                            )}
-                                          </div>
-                                        </div>
-                                      </div>
-                                    )}
-
-                                    {selectedStaff.permissions && selectedStaff.permissions.length > 0 && (
-                                      <div>
-                                        <Label>System Permissions</Label>
-                                        <div className="flex flex-wrap gap-2 mt-2">
-                                          {selectedStaff.permissions.map((permission, index) => (
-                                            <Badge key={index} variant="outline">{permission.replace('_', ' ')}</Badge>
-                                          ))}
-                                        </div>
-                                      </div>
-                                    )}
-
-                                    {selectedStaff.notes && (
-                                      <div>
-                                        <Label>Employee Notes</Label>
-                                        <p className="text-sm text-muted-foreground mt-1 leading-relaxed">{selectedStaff.notes}</p>
-                                      </div>
-                                    )}
-                                  </div>
-                                )}
-                              </DialogContent>
-                            </Dialog>
-                            
-                            <Button 
-                              variant="ghost" 
-                              size="sm"
-                              onClick={() => openEditDialog(member)}
-                            >
-                              <Edit className="h-4 w-4" />
-                            </Button>
-                            
-                            <AlertDialog>
-                              <AlertDialogTrigger asChild>
-                                <Button variant="ghost" size="sm">
-                                  <Trash2 className="h-4 w-4" />
-                                </Button>
-                              </AlertDialogTrigger>
-                              <AlertDialogContent>
-                                <AlertDialogHeader>
-                                  <AlertDialogTitle>Remove Staff Member</AlertDialogTitle>
-                                  <AlertDialogDescription>
-                                    Are you sure you want to remove {member.firstName} {member.lastName} from the system? This will permanently delete their employee record and access permissions. This action cannot be undone.
-                                  </AlertDialogDescription>
-                                </AlertDialogHeader>
-                                <AlertDialogFooter>
-                                  <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                  <AlertDialogAction 
-                                    onClick={() => handleDeleteStaff(member.id)}
-                                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                          </TableCell>
+                          <TableCell>{member.salary ? `${member.salary?.toLocaleString()}` : 'N/A'}</TableCell>
+                          <TableCell>{member.hireDate}</TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-2">
+                              <Dialog>
+                                <DialogTrigger asChild>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => {
+                                      setSelectedStaff(member);
+                                    }}
                                   >
-                                    Remove Employee
-                                  </AlertDialogAction>
-                                </AlertDialogFooter>
-                              </AlertDialogContent>
-                            </AlertDialog>
-                          </div>
-                        </TableCell>
-                      </TableRow>
+                                    <Eye className="h-4 w-4" />
+                                  </Button>
+                                </DialogTrigger>
+                                <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto mx-4">
+                                  <DialogHeader>
+                                    <DialogTitle className="flex items-center gap-2">
+                                      <Avatar className="h-8 w-8">
+                                        <AvatarImage src={selectedStaff?.avatar} />
+                                        <AvatarFallback>{selectedStaff?.firstName[0]}{selectedStaff?.lastName[0]}</AvatarFallback>
+                                      </Avatar>
+                                      {selectedStaff?.firstName} {selectedStaff?.lastName}
+                                    </DialogTitle>
+                                    <DialogDescription>Complete employee profile and employment details</DialogDescription>
+                                  </DialogHeader>
+                                  {selectedStaff && (
+                                    <div className="grid gap-6 py-4">
+                                      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                        <div className="space-y-4">
+                                          <div>
+                                            <Label>Employee Information</Label>
+                                            <div className="space-y-2 mt-2">
+                                              <p><span className="text-sm text-muted-foreground">Employee ID:</span> {selectedStaff.employeeId}</p>
+                                              <p><span className="text-sm text-muted-foreground">Full Name:</span> {selectedStaff.firstName} {selectedStaff.lastName}</p>
+                                              <div className="flex items-center gap-2">
+                                                <span className="text-sm text-muted-foreground">Status:</span>
+                                                <Badge variant={getStatusVariant(selectedStaff.status)}>
+                                                  {selectedStaff.status}
+                                                </Badge>
+                                              </div>
+                                            </div>
+                                          </div>
+
+                                          <div>
+                                            <Label>Contact Details</Label>
+                                            <div className="space-y-2 mt-2">
+                                              <div className="flex items-center gap-2">
+                                                <Mail className="h-4 w-4 text-muted-foreground" />
+                                                <span className="text-sm">{selectedStaff.email}</span>
+                                              </div>
+                                              {selectedStaff.phone && (
+                                                <div className="flex items-center gap-2">
+                                                  <Phone className="h-4 w-4 text-muted-foreground" />
+                                                  <span className="text-sm">{selectedStaff.phone}</span>
+                                                </div>
+                                              )}
+                                              {selectedStaff.address && (
+                                                <div className="flex items-center gap-2">
+                                                  <MapPin className="h-4 w-4 text-muted-foreground" />
+                                                  <span className="text-sm">{selectedStaff.address}</span>
+                                                </div>
+                                              )}
+                                              {selectedStaff.emergencyContact && (
+                                                <div>
+                                                  <Label>Emergency Contact:</Label>
+                                                  <p className="text-sm">Person name: {selectedStaff.emergencyContact.name}</p>
+                                                  <p className="text-sm">Phone: {selectedStaff.emergencyContact.phone}</p>
+                                                  <p className="text-sm">Relationship: {selectedStaff.emergencyContact.relationship}</p>
+                                                </div>
+                                              )}
+                                            </div>
+                                          </div>
+                                        </div>
+
+                                        <div className="space-y-4">
+                                          <div>
+                                            <Label>Role & Department</Label>
+                                            <div className="space-y-2 mt-2">
+                                              <div className="flex items-center gap-2">
+                                                <span className="text-sm text-muted-foreground">Role:</span>
+                                                <Badge variant={getRoleVariant(selectedStaff.role)}>
+                                                  {selectedStaff.role}
+                                                </Badge>
+                                              </div>
+                                              <p><span className="text-sm text-muted-foreground">Department:</span> {selectedStaff.department}</p>
+                                              <p><span className="text-sm text-muted-foreground">Work Hours:</span> {selectedStaff.workHours}</p>
+                                            </div>
+                                          </div>
+
+                                          <div>
+                                            <Label>System Access</Label>
+                                            <div className="space-y-2 mt-2">
+                                              {selectedStaff.lastLogin && (
+                                                <p><span className="text-sm text-muted-foreground">Last Login:</span> {selectedStaff.lastLogin}</p>
+                                              )}
+                                              <p><span className="text-sm text-muted-foreground">Access Level:</span> {selectedStaff.role}</p>
+                                            </div>
+                                          </div>
+                                        </div>
+
+                                        <div className="space-y-4">
+                                          <div>
+                                            <Label>Employment Details</Label>
+                                            <div className="space-y-3 mt-2">
+                                              <div>
+                                                <p className="text-sm text-muted-foreground">Annual Salary</p>
+                                                <p className="text-2xl font-bold">${selectedStaff.salary.toLocaleString()}</p>
+                                              </div>
+                                              <div>
+                                                <p className="text-sm text-muted-foreground">Hire Date</p>
+                                                <p className="font-medium">{selectedStaff.hireDate}</p>
+                                              </div>
+                                              <div>
+                                                <p className="text-sm text-muted-foreground">Tenure</p>
+                                                <p className="font-medium">
+                                                  {Math.floor((new Date().getTime() - new Date(selectedStaff.hireDate).getTime()) / (1000 * 60 * 60 * 24 * 30))} months
+                                                </p>
+                                              </div>
+                                            </div>
+                                          </div>
+                                        </div>
+                                      </div>
+
+                                      {/* Government Documents Section */}
+                                      {(selectedStaff.aadhaarNumber || selectedStaff.panNumber || selectedStaff.drivingLicenseNumber) && (
+                                        <div>
+                                          <Label>Government Documents</Label>
+                                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-2">
+                                            {selectedStaff.aadhaarNumber && (
+                                              <div className="p-3 border rounded-lg">
+                                                <div className="flex items-center gap-2 mb-2">
+                                                  {
+                                                    selectedStaff.documents[0]?.url && <img src={digital_ocean_url + selectedStaff.documents[0].url} className="w-32 h-24 object-fit" alt="Aadhaar Card" />
+                                                  }
+                                                </div>
+                                                <span className="text-sm font-medium">Aadhaar Card</span>
+                                                <p className="text-sm text-muted-foreground">{selectedStaff.aadhaarNumber}</p>
+                                              </div>
+                                            )}
+                                            {selectedStaff.panNumber && (
+                                              <div className="p-3 border rounded-lg">
+                                                <div className="flex items-center gap-2 mb-2">
+                                                  {selectedStaff.documents[1]?.url && <img src={digital_ocean_url + selectedStaff.documents[1].url} className="w-32 h-24 object-fit" alt="PAN Card" />}
+                                                </div>
+                                                  <span className="text-sm font-medium">PAN Card</span>
+                                                <p className="text-sm text-muted-foreground">{selectedStaff.panNumber}</p>
+                                              </div>
+                                            )}
+                                            {console.log('stadf',selectedStaff)}
+                                            {selectedStaff.drivingLicenseNumber && (
+                                              <div className="p-3 border rounded-lg">
+                                                <div className="flex items-center gap-2 mb-2">
+                                                  {selectedStaff.documents[2]?.url && <img src={digital_ocean_url + selectedStaff.documents[2].url} className="bg-red-400 w-32 h-24 object-fit" alt="Driving License" />}
+                                                </div>
+                                                  <span className="text-sm font-medium">Driving License</span>
+                                                <p className="text-sm text-muted-foreground">{selectedStaff.drivingLicenseNumber}</p>
+                                              </div>
+                                            )}
+                                          </div>
+                                        </div>
+                                      )}
+
+                                      {/* Bank Account Details Section */}
+                                      {(selectedStaff.bankAccountNumber || selectedStaff.bankName) && (
+                                        <div>
+                                          <Label>Bank Account Details</Label>
+                                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
+                                            <div className="space-y-2">
+                                              {selectedStaff.accountHolderName && (
+                                                <p><span className="text-sm text-muted-foreground">Account Holder:</span> {selectedStaff.accountHolderName}</p>
+                                              )}
+                                              {selectedStaff.bankAccountNumber && (
+                                                <p><span className="text-sm text-muted-foreground">Account Number:</span> {selectedStaff.bankAccountNumber}</p>
+                                              )}
+                                              {selectedStaff.bankName && (
+                                                <p><span className="text-sm text-muted-foreground">Bank Name:</span> {selectedStaff.bankName}</p>
+                                              )}
+                                            </div>
+                                            <div className="space-y-2">
+                                              {selectedStaff.ifscCode && (
+                                                <p><span className="text-sm text-muted-foreground">IFSC Code:</span> {selectedStaff.ifscCode}</p>
+                                              )}
+                                              {selectedStaff.bankBranch && (
+                                                <p><span className="text-sm text-muted-foreground">Branch:</span> {selectedStaff.bankBranch}</p>
+                                              )}
+                                            </div>
+                                          </div>
+                                        </div>
+                                      )}
+
+                                      {selectedStaff.permissions && selectedStaff.permissions.length > 0 && (
+                                        <div>
+                                          <Label>System Permissions</Label>
+                                          <div className="flex flex-wrap gap-2 mt-2">
+                                            {selectedStaff.permissions.map((permission, index) => (
+                                              <Badge key={index} variant="outline">{permission.replace('_', ' ')}</Badge>
+                                            ))}
+                                          </div>
+                                        </div>
+                                      )}
+
+                                      {selectedStaff.notes && (
+                                        <div>
+                                          <Label>Employee Notes</Label>
+                                          <p className="text-sm text-muted-foreground mt-1 leading-relaxed">{selectedStaff.notes}</p>
+                                        </div>
+                                      )}
+                                    </div>
+                                  )}
+                                </DialogContent>
+                              </Dialog>
+                              
+                              <Button 
+                                variant="ghost" 
+                                size="sm"
+                                onClick={() => openEditDialog(member)}
+                              >
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                              
+                              <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                  <Button variant="ghost" size="sm">
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                  <AlertDialogHeader>
+                                    <AlertDialogTitle>Remove Staff Member</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                      Are you sure you want to remove {member.firstName} {member.lastName} from the system? This will permanently delete their employee record and access permissions. This action cannot be undone.
+                                    </AlertDialogDescription>
+                                  </AlertDialogHeader>
+                                  <AlertDialogFooter>
+                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                    <AlertDialogAction 
+                                      onClick={() => handleDeleteStaff(member._id)}
+                                      className="bg-danger text-destructive-foreground hover:bg-destructive/90"
+                                    >
+                                      Remove Employee
+                                    </AlertDialogAction>
+                                  </AlertDialogFooter>
+                                </AlertDialogContent>
+                              </AlertDialog>
+                            </div>
+                          </TableCell>
+                        </TableRow>
                     ))}
                   </TableBody>
                   </Table>
@@ -897,7 +950,7 @@ function StaffAccount() {
                 <CardContent>
                   <div className="space-y-2">
                     {staff.filter(s => s.department === dept.department).map(member => (
-                      <div key={member.id} className="flex items-center justify-between text-sm">
+                      <div key={member._id} className="flex items-center justify-between text-sm">
                         <span className="font-medium">{member.firstName} {member.lastName}</span>
                         <Badge variant={getRoleVariant(member.role)} className="text-xs">
                           {member.role}
@@ -921,7 +974,7 @@ function StaffAccount() {
               <CardContent>
                 <div className="space-y-3">
                   {recentHires.map(member => (
-                    <div key={member.id} className="flex justify-between text-sm">
+                    <div key={member._id} className="flex justify-between text-sm">
                       <span className="font-medium">{member.firstName} {member.lastName}</span>
                       <span className="text-muted-foreground">{member.hireDate}</span>
                     </div>
@@ -1176,12 +1229,30 @@ function StaffAccount() {
             </div>
 
             <div>
-              <Label htmlFor="add-emergencyContact">Emergency Contact</Label>
+              <Label htmlFor="add-emergencyContact">Person Name</Label>
               <Input 
                 id="add-emergencyContact" 
-                value={formData.emergencyContact}
-                onChange={(e) => updateFormData('emergencyContact', e.target.value)}
-                placeholder="Contact name and phone number" 
+                value={formData.emergencyContact.name}
+                onChange={(e) => updateFormData('emergencyContact', { ...formData.emergencyContact, name: e.target.value })}
+                placeholder="Contact name" 
+              />
+            </div>
+            <div>
+              <Label htmlFor="add-emergencyContactPhone">Person Phone</Label>
+              <Input 
+                id="add-emergencyContactPhone" 
+                value={formData.emergencyContact.phone}
+                onChange={(e) => updateFormData('emergencyContact', { ...formData.emergencyContact, phone: e.target.value })}
+                placeholder="Contact phone number" 
+              />
+            </div>
+            <div>
+              <Label htmlFor="add-emergencyContactRelationship">Person Relationship</Label>
+              <Input 
+                id="add-emergencyContactRelationship" 
+                value={formData.emergencyContact.relationship}
+                onChange={(e) => updateFormData('emergencyContact', { ...formData.emergencyContact, relationship: e.target.value })}
+                placeholder="Contact relationship" 
               />
             </div>
 
@@ -1226,9 +1297,11 @@ function StaffAccount() {
                   <div className="mt-1">
                     <Input 
                       id="add-aadhaarPhoto" 
+                      name="aadhar"
                       type="file"
                       accept="image/*"
-                      onChange={(e) => handleFileUpload('aadhaar', e.target.files?.[0] || null)}
+                      value={formData.aadharFile}
+                      onChange={(e) => {updateFormData('aadhar', e.target.files?.[0] || null)}}
                       className="cursor-pointer"
                     />
                     <p className="text-xs text-muted-foreground mt-1">Upload Aadhaar card image</p>
@@ -1240,8 +1313,9 @@ function StaffAccount() {
                     <Input 
                       id="add-panPhoto" 
                       type="file"
+                      name="pan"
                       accept="image/*"
-                      onChange={(e) => handleFileUpload('pan', e.target.files?.[0] || null)}
+                      onChange={(e) => updateFormData('pan', e.target.files?.[0] || null)}
                       className="cursor-pointer"
                     />
                     <p className="text-xs text-muted-foreground mt-1">Upload PAN card image</p>
@@ -1253,8 +1327,9 @@ function StaffAccount() {
                     <Input 
                       id="add-drivingLicensePhoto" 
                       type="file"
+                      name="driving"
                       accept="image/*"
-                      onChange={(e) => handleFileUpload('drivingLicense', e.target.files?.[0] || null)}
+                      onChange={(e) => updateFormData('driving', e.target.files?.[0] || null)}
                       className="cursor-pointer"
                     />
                     <p className="text-xs text-muted-foreground mt-1">Upload license image</p>
@@ -1329,6 +1404,28 @@ function StaffAccount() {
                 rows={4}
               />
             </div>
+
+            <div>
+              <Label htmlFor="add-username">Username</Label>
+              <Input 
+                id="add-username" 
+                value={formData.username}
+                onChange={(e) => updateFormData('username', e.target.value)}
+                placeholder="Enter username" 
+              />
+              <p className="text-xs text-muted-foreground mt-1">This will be the user's login ID</p>
+            </div>
+            <div>
+              <Label htmlFor="add-password">Password</Label>
+              <Input 
+                id="add-password" 
+                type="password"
+                value={formData.password}
+                onChange={(e) => updateFormData('password', e.target.value)}
+                placeholder="Enter password" 
+              />
+            </div>
+              
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={closeAddDialog}>
@@ -1439,6 +1536,7 @@ function StaffAccount() {
               </div>
               <div>
                 <Label htmlFor="edit-department">Department</Label>
+                {console.log(formData) }
                 <Select value={formData.department} onValueChange={(value) => updateFormData('department', value)}>
                   <SelectTrigger id="edit-department">
                     <SelectValue />
@@ -1492,12 +1590,27 @@ function StaffAccount() {
             </div>
 
             <div>
-              <Label htmlFor="edit-emergencyContact">Emergency Contact</Label>
+              <Label>Emergency Contact</Label>
+              <Label htmlFor="edit-emergencyContact">Person Name</Label>
               <Input 
                 id="edit-emergencyContact" 
-                value={formData.emergencyContact}
-                onChange={(e) => updateFormData('emergencyContact', e.target.value)}
-                placeholder="Contact name and phone number" 
+                value={formData.emergencyContact.name1= null ? formData.emergencyContact.name : ''}
+                onChange={(e) => updateFormData('emergencyContact', { ...formData.emergencyContact, name: e.target.value })}
+                placeholder="Contact name" 
+              />
+              <Label htmlFor="edit-emergencyContact">Person Phone</Label>
+              <Input 
+                id="edit-emergencyContact" 
+                value={formData.emergencyContact?.phone || ''}
+                onChange={(e) => updateFormData('emergencyContact', { ...formData.emergencyContact, phone: e.target.value })}
+                placeholder="Contact phone number" 
+              />
+              <Label htmlFor="edit-emergencyContact">relationship</Label>
+              <Input 
+                id="edit-emergencyContact" 
+                value={formData.emergencyContact?.relationship || ''}
+                onChange={(e) => updateFormData('emergencyContact', { ...formData.emergencyContact, relationship: e.target.value })}
+                placeholder="Contact relationship" 
               />
             </div>
 
@@ -1543,10 +1656,15 @@ function StaffAccount() {
                     <Input 
                       id="edit-aadhaarPhoto" 
                       type="file"
+                      name="aadhar"
                       accept="image/*"
-                      onChange={(e) => handleFileUpload('aadhaar', e.target.files?.[0] || null)}
+                      onChange={(e) => formData.aadhar(e.target.files?.[0] || null)}
                       className="cursor-pointer"
                     />
+                    {
+                      formData.aadhar && <img src={digital_ocean_url + formData.aadhar} alt="Aadhaar Card" />
+                    }
+                    
                     <p className="text-xs text-muted-foreground mt-1">Upload Aadhaar card image</p>
                   </div>
                 </div>
@@ -1556,10 +1674,12 @@ function StaffAccount() {
                     <Input 
                       id="edit-panPhoto" 
                       type="file"
+                      name="pan"
                       accept="image/*"
-                      onChange={(e) => handleFileUpload('pan', e.target.files?.[0] || null)}
+                      onChange={(e) => formData.pan(e.target.files?.[0] || null)}
                       className="cursor-pointer"
                     />
+                    { formData.pan && <img src={digital_ocean_url + formData.pan} alt="PAN Card" /> }
                     <p className="text-xs text-muted-foreground mt-1">Upload PAN card image</p>
                   </div>
                 </div>
@@ -1569,10 +1689,12 @@ function StaffAccount() {
                     <Input 
                       id="edit-drivingLicensePhoto" 
                       type="file"
+                      name="driving"
                       accept="image/*"
-                      onChange={(e) => handleFileUpload('drivingLicense', e.target.files?.[0] || null)}
+                      onChange={(e) => formData.driving(e.target.files?.[0] || null)}
                       className="cursor-pointer"
                     />
+                    { formData.driving && <img src={digital_ocean_url + formData.driving} alt="Driving License" /> }
                     <p className="text-xs text-muted-foreground mt-1">Upload license image</p>
                   </div>
                 </div>

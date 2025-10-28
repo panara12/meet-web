@@ -104,7 +104,7 @@ function SalesPanel() {
   };
 
   const getAvatarInitials = (firstName, lastName) => {
-    return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
+    return `${firstName[0]}${lastName[0]}`.toUpperCase();
   };
 
   const getLocationFromAddress = (address) => {
@@ -346,7 +346,7 @@ function SalesPanel() {
                 <div className="flex items-center gap-3">
                   <Avatar className="h-12 w-12">
                     <AvatarFallback className="bg-primary/10 text-primary font-medium">
-                      {getAvatarInitials(member.firstName, member.lastName)}
+                      {getAvatarInitials(member.firstName || 'A', member.lastName || 'B')}
                     </AvatarFallback>
                   </Avatar>
                   <div>

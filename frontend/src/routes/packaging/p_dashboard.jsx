@@ -43,10 +43,10 @@ function Dashboard() {
                         {/* singleSeller details */}
                         <div className="flex-1 min-w-0">
                             <h3 className="text-sm sm:text-base font-semibold text-gray-900 truncate">
-                            {singleSeller.seller_name}
+                            {singleSeller.name}
                             </h3>
                             <p className="text-xs sm:text-sm text-gray-600 truncate mt-1">
-                            {singleSeller.seller_address}
+                            {singleSeller.address}
                             </p>
                         </div>
                         </div>

@@ -1,5 +1,5 @@
 const permissions = {
-    "distributer" : [
+    "admin" : [
         "edit_distributer",
         "get_by_id_distributer",
         "add_seller",

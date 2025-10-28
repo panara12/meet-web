@@ -4,17 +4,13 @@ const mongoose = require('mongoose');
 const imageSchema = new mongoose.Schema({
   doc_name: {
     type: String,
-    enum: ['aadhar', 'pan', 'license', 'passport'],
+    enum: ['aadhar', 'pan', 'driving'],
     default: 'aadhar',
-    required: [true, 'Please enter the document name']
+    required: [false, 'Please enter the document name']
   },
   url: {
     type: String,
-    required: [true, 'Please enter image URL']
-  },
-  public_id: {
-    type: String,
-    required: [true, 'Please enter the public ID']
+    required: [false, 'Please enter image URL']
   },
   uploadedDate: {
     type: Date,
@@ -38,13 +34,12 @@ const userSchema = new mongoose.Schema({
   },
   lastName: {
     type: String,
-    required: [true, 'Last name is required'],
+    required: [false, 'Last name is required'],
     trim: true
   },
   email: {
     type: String,
     required: [true, 'Email is required'],
-    unique: true,
     lowercase: true,
     match: [/^\S+@\S+\.\S+$/, 'Please use a valid email address']
   },
@@ -66,7 +61,7 @@ const userSchema = new mongoose.Schema({
   // Work Information
   role: {
     type: String,
-    enum: ['salesman', 'packaging', 'billing', 'admin', 'manager'],
+    enum: ['salesman', 'packaging', 'billing', 'admin', 'seller'],
     required: [true, 'Role is required'],
     trim: true
   },
@@ -77,13 +72,15 @@ const userSchema = new mongoose.Schema({
   },
   hireDate: {
     type: Date,
+    default: Date.now
   },
   salary: {
     type: Number,
-    required: [true, 'Salary is required'],
+    required: [false, 'Salary is required'],
     validate: {
       validator: function (v) {
-        return v > 0;
+        if (v == null) return true;
+        return v >= 0;
       },
       message: 'Salary must be greater than 0'
     }
@@ -103,7 +100,7 @@ const userSchema = new mongoose.Schema({
   username: {
     type: String,
     required: [true, 'Username is required'],
-    unique: true,
+    default:"user",
     trim: true
   },
   password: {
@@ -120,10 +117,42 @@ const userSchema = new mongoose.Schema({
   },
   
   // Document/Image Information
-  documents: {
+  documents: [imageSchema],
+  aadhaarNumber: {
     type: String,
+    required: [false, 'Aadhaar number is required'],
   },
-  
+  panNumber: {
+    type: String,
+    required: [false, 'PAN number is required'],
+  },
+  drivingLicenseNumber: {
+    type: String,
+    required: [false, 'Driving license number is required'],
+  },
+
+  //bank Details
+  accountHolderName: {
+    type: String,
+    required: [false, 'Account holder name is required'],
+  },
+  bankAccountNumber: {
+    type: String,
+    required: [false, 'Bank account number is required'],
+  },
+  bankName: {
+    type: String,
+    required: [false, 'Bank name is required'],
+  },
+  ifscCode: {
+    type: String,
+    required: [false, 'IFSC code is required'],
+  },
+  bankBranch: {
+    type: String,
+    required: [false, 'Bank branch is required'],
+  },
+
   // Emergency Contact
   emergencyContact: {
     name: String,

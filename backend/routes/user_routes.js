@@ -5,19 +5,43 @@ const tenent_checker = require('../middleware/tenent_middleware');
 const manualLog = require('../utils/manuallogger');
 const Tenent_user_master = require('../models/tenent_user_model');
 const user_session_checker = require('../middleware/user_session');
-const { doc_cloudinary_upload } = require('../utils/uploadWithCloudinary');
-const { upload, multerErrorHandler } = require('../middleware/multer');
-const cloudinary_delete = require('../utils/deleteWithCloudinary');
+const { uploadFileToDO } = require("../utils/digitalocean");
+const {upload ,multerErrorHandler} = require('../middleware/multer');
 const path = require('path');
-
 router.use(tenent_checker);
 
 // ADD NEW USER
-router.post('/adduser', user_session_checker('add_user'), upload.array('images', 2), multerErrorHandler, async (req, res) => {
+router.post('/adduser', user_session_checker('add_user'), upload.fields([
+    { name: 'aadhar', maxCount: 1 },
+    { name: 'pan', maxCount: 1 },
+    { name: 'driving', maxCount: 1 },
+  ]), async (req, res) => {
   manualLog('entered in add new user route');
   try {
-    const { firstName, lastName, email, phone, address, role, department, hireDate, salary, username, password, workHours, permissions, emergencyContact, notes } = req.body;
+    const { firstName, lastName, email, phone, address, role, department, hireDate, salary, username, password, workHours, permissions, emergencyContact, notes, aadhaarNumber, panNumber, drivingLicenseNumber, accountHolderName, bankAccountNumber, bankName, ifscCode, bankBranch } = req.body;
     const tenent_username = req.tenent.D_dbname;
+    const imageDocs = []
+    const folderPath = `${tenent_username}/${firstName}-${lastName}`;
+    console.log('file data',req.files);
+    console.log('req body data',req.body);
+
+    //file upload to the digital ocean 
+    if (req.files && Object.keys(req.files).length > 0) {
+      // Files are present, proceed with upload
+      const res_DO = await Promise.all(Object.entries(req.files).map(async ([key, fileArr]) => {
+          const file = fileArr[0];
+          const response = await uploadFileToDO(file.path, folderPath,file.mimetype);
+          console.log("route response file upload", response);
+          return { name: key, url: response };
+        }));
+
+        console.log("digital ocean response", res_DO);
+        imageDocs = res_DO.map(file => ({
+          url: file.url,
+          doc_name: file.name // Default name, can be modified as needed
+        }));
+        console.log("imageDocs", imageDocs);
+    }
 
     // Validation
     if (!firstName || !lastName || !email || !password || !phone || !username || !role || !department) {
@@ -28,13 +52,6 @@ router.post('/adduser', user_session_checker('add_user'), upload.array('images',
     const saltRounds = 10;
     const hashedPassword = await bcrypt.hash(password, saltRounds);
 
-    // Upload images to Cloudinary
-    // const uploadPromises = req.files.map(file => {
-    //   const customFileName = `${Date.now()}-${path.parse(file.originalname).name}`;
-    //   const local_path = path.join(file.destination, file.filename);
-    //   return doc_cloudinary_upload(local_path, tenent_username, customFileName);
-    // });
-    // const imageUrls = await Promise.all(uploadPromises);
 
     const User = req.db.model('User');
 
@@ -55,12 +72,20 @@ router.post('/adduser', user_session_checker('add_user'), upload.array('images',
       salary: salary || 0,
       username,
       password: hashedPassword,
-      documents: "dmeo",
+      documents: imageDocs,
       workHours: workHours || 'Full-time',
       status: 'Active',
       permissions: permissions || ['sales_access'],
-      emergencyContact: emergencyContact ? JSON.parse(emergencyContact) : {},
-      notes
+      emergencyContact: emergencyContact,
+      notes,
+      aadhaarNumber,
+      panNumber,
+      drivingLicenseNumber,
+      accountHolderName,
+      bankAccountNumber,
+      bankName,
+      ifscCode,
+      bankBranch
     });
 
     await new_user.save();
@@ -94,7 +119,7 @@ router.post('/adduser', user_session_checker('add_user'), upload.array('images',
 });
 
 // UPDATE USER
-router.post('/updateuser/:id', user_session_checker('edit_user'), upload.array('images', 2), multerErrorHandler, async (req, res) => {
+router.post('/updateuser/:id', user_session_checker('edit_user'), async (req, res) => {
   manualLog('entered in update user route');
   try {
     const { id } = req.params;
@@ -112,31 +137,33 @@ router.post('/updateuser/:id', user_session_checker('edit_user'), upload.array('
       const updatedPublicIds = Array.isArray(req_user_data.documents)
         ? req_user_data.documents
         : req_user_data.documents ? [req_user_data.documents] : [];
-
-      // Find and delete removed documents
-      const removedDocs = user_data.documents.filter(
-        doc => !updatedPublicIds.includes(doc.public_id)
-      );
-      const removedPublicIds = removedDocs.map(doc => doc.public_id);
-
-      if (removedPublicIds.length > 0) {
-        await cloudinary_delete(removedPublicIds);
-      }
+      
+      const folderPath = `${tenent_username}/products`;
+      console.log('file data',req.files);
 
       // Retain existing documents
-      const retainedDocuments = user_data.documents.filter(
-        doc => updatedPublicIds.includes(doc.public_id)
-      );
+        const retainedDocuments = user_data.documents.filter(
+          doc => updatedPublicIds.includes(doc.url)
+        );
 
-      // Upload new files
-      const uploadPromises = req.files.map(file => {
-        const local_path = path.join(file.destination, file.filename);
-        const customFileName = `${Date.now()}-${path.parse(file.originalname).name}`;
-        return doc_cloudinary_upload(local_path, req.tenent.D_dbname, customFileName);
-      });
+      //file upload to the digital ocean 
+      const res_DO = 
+        await Promise.all(Object.entries(req.files).map(async ([key, fileArr]) => {
+          const file = fileArr[0];
+          const response = await uploadFileToDO(file.path, folderPath,file.mimetype);
+          console.log("route response file upload", response);
+          return { name: key, url: response };
+        }));
 
-      const newDocuments = await Promise.all(uploadPromises);
-      req_user_data.documents = [...retainedDocuments, ...newDocuments];
+      console.log("digital ocean response", res_DO);
+      const imageDocs = res_DO.map(file => ({
+        url: file.url,
+        doc_name: file.name // Default name, can be modified as needed
+      }));
+      console.log("imageDocs", imageDocs);
+      
+      req_user_data.documents = [...retainedDocuments, ...imageDocs];
+
     }
 
     // Parse JSON fields if provided as strings

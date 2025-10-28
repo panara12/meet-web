@@ -42,10 +42,10 @@ const distributerSchema = mongoose.Schema({
     },
     user_role:{
         type:String,
-        enum:['distributer'],
+        enum:['admin'],
         required: true,
         trim: true,
-        default:"distributer"
+        default:"admin"
     }
 },{  timestamps: true  });
 

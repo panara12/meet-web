@@ -5,11 +5,7 @@ const imageSchema = new mongoose.Schema({
   url: {
     type: String,
     required: [true, 'Please enter image URL'],
-  },
-  public_id: {
-    type: String,
-    required: [true, 'Please enter the public ID'],
-  },
+  }
 });
 
 // SKU schema for variants (color, size, price, stock)

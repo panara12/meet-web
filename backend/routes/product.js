@@ -1,10 +1,9 @@
 const express = require('express');
 const manualLog = require('../utils/manuallogger');
 const path = require('path');
-const { cloudinary_upload } = require('../utils/uploadWithCloudinary');
-const { upload, multerErrorHandler } = require('../middleware/multer');
-const cloudinary_delete = require('../utils/deleteWithCloudinary');
 const user_session_checker = require('../middleware/user_session');
+const { uploadFileToDO } = require("../utils/digitalocean");
+const {upload,multerErrorHandler} = require('../middleware/multer');
 
 const router = express.Router();
 
@@ -12,8 +11,7 @@ const router = express.Router();
 router.post(
   '/addproduct',
   user_session_checker('add_product'),
-  upload.array('images', 6),
-  multerErrorHandler,
+  upload.array('images', 5),
   async (req, res) => {
     manualLog('entered add products route');
     try {
@@ -37,6 +35,20 @@ router.post(
       } = req.body;
 
       const tenent_username = req.tenent.D_dbname;
+      const folderPath = `${tenent_username}/products`;
+      console.log('file data',req.files);
+
+      //file upload to the digital ocean 
+      const res_DO = 
+        await Promise.all(req.files.map(async (file) => {
+          const response = await uploadFileToDO(file.path, folderPath,file.mimetype);
+          console.log("route response file upload", response);
+          return response;
+        }));
+
+
+      console.log("digital ocean response", res_DO);
+      const imageDocs = res_DO.map(url => ({ url }));
 
       // Handle tags array
       const tagsArray = Array.isArray(tags)
@@ -49,14 +61,7 @@ router.post(
       const dimensionsObj =
         typeof dimensions === 'string' ? JSON.parse(dimensions) : dimensions || {};
 
-      // Upload images to Cloudinary
-      const uploadPromises = req.files.map((file) => {
-        const customFileName = `${Date.now()}-${path.parse(file.originalname).name}`;
-        const local_path = path.join(file.destination, file.filename);
-        return cloudinary_upload(local_path, tenent_username, customFileName);
-      });
-      const imageUrls = await Promise.all(uploadPromises);
-
+      
       // Use SKUs directly from request body (no generation)
       const skusArray = Array.isArray(skus) ? skus : [];
 
@@ -76,10 +81,12 @@ router.post(
         tags: tagsArray,
         supplier,
         barcode,
-        images: imageUrls,
+        images: imageDocs,
         dimensions: dimensionsObj,
         skus: skusArray,
       });
+
+      
 
       await new_product.save();
 
@@ -103,8 +110,7 @@ router.post(
 router.post(
   '/updateproduct/:id',
   user_session_checker('edit_product'),
-  upload.array('images', 6),
-  multerErrorHandler,
+  upload.array('images', 5),
   async (req, res) => {
     manualLog('entered in update products');
     try {
@@ -152,29 +158,37 @@ router.post(
         : [];
 
       // Find removed image public_ids
-      const removedImgs = product_data.images.filter(
-        (img) => !updatedPublicIds.includes(img.public_id)
-      );
-      const removedPublicIds = removedImgs.map((img) => img.public_id);
+      // const removedImgs = product_data.images.filter(
+      //   (img) => !updatedPublicIds.includes(img.url)
+      // );
+      // const removedPublicIds = removedImgs.map((img) => img.url);
 
-      // Delete them from Cloudinary in parallel
-      await cloudinary_delete(removedPublicIds);
+      // // Delete them from Cloudinary in parallel
+      // await cloudinary_delete(removedPublicIds);
+
+      
+      const folderPath = `${tenent_username}/products`;
+      console.log('file data',req.files);
 
       // Retain images still present
       const retainedImages = product_data.images.filter((img) =>
-        updatedPublicIds.includes(img.public_id)
+        updatedPublicIds.includes(img.url)
       );
 
-      // Upload new files in parallel
-      const uploadPromises = req.files.map((file) => {
-        const local_path = path.join(file.destination, file.filename);
-        const customFileName = `${Date.now()}-${path.parse(file.originalname).name}`;
-        return cloudinary_upload(local_path, tenent_username, customFileName);
-      });
-      const newImages = await Promise.all(uploadPromises);
+      //file upload to the digital ocean 
+      const res_DO = 
+        await Promise.all(req.files.map(async (file) => {
+          const response = await uploadFileToDO(file.path, folderPath,file.mimetype);
+          console.log("route response file upload", response);
+          return response;
+        }));
 
-      // Merge retained + new
-      req_product_data.images = [...retainedImages, ...newImages];
+
+      console.log("digital ocean response", res_DO);
+      const imageDocs = res_DO.map(url => ({ url }));
+      req_product_data.images = [...retainedImages, ...imageDocs];
+
+      
 
       // Handle SKU updates (take directly from body)
       if (req_product_data.skus && Array.isArray(req_product_data.skus)) {
