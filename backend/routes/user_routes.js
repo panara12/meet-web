@@ -20,7 +20,7 @@ router.post('/adduser', user_session_checker('add_user'), upload.fields([
   try {
     const { firstName, lastName, email, phone, address, role, department, hireDate, salary, username, password, workHours, permissions, emergencyContact, notes, aadhaarNumber, panNumber, drivingLicenseNumber, accountHolderName, bankAccountNumber, bankName, ifscCode, bankBranch } = req.body;
     const tenent_username = req.tenent.D_dbname;
-    const imageDocs = []
+    let imageDocs = []
     const folderPath = `${tenent_username}/${firstName}-${lastName}`;
     console.log('file data',req.files);
     console.log('req body data',req.body);
