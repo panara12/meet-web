@@ -1,73 +1,112 @@
-const mongoose = require('mongoose');
-const express = require('express');
+const mongoose = require("mongoose");
+const express = require("express");
 const env = require("dotenv").config();
-const distributer = require('./routes/distributer');
-const app = express();
-const cors = require('cors');
-const tenent_middleware = require('./middleware/tenent_middleware');
-const getTenentList = require('./utils/tenentgeter');
-const seller = require('./routes/seller');
-const product = require('./routes/product')
-const auth = require('./routes/auth');
-const salesman = require('./routes/salesman');
-const tenent = require('./routes/tenent');
-const tenentCache = require('./cache/tenent_list');
-const errorHandler = require('./utils/errorHandler'); // adjust path accordingly
-const manualLog = require('./utils/manuallogger'); 
-const company = require('./routes/company')
-const sessionLoader = require('./utils/sessionlodder');
-const Location = require('./routes/location');
-const email = require('./routes/email');
+const cors = require("cors");
 
-app.use(cors())
-// Body parser for JSON
+const distributer = require("./routes/distributer");
+const tenent_middleware = require("./middleware/tenent_middleware");
+const getTenentList = require("./utils/tenentgeter");
+const seller = require("./routes/seller");
+const product = require("./routes/product");
+const auth = require("./routes/auth");
+const user_routes = require("./routes/user_routes");
+const salesman_notes = require("./routes/salesman_notes_routes");
+const order = require("./routes/order");
+const tenent = require("./routes/tenent");
+const tenentCache = require("./cache/tenent_list");
+const errorHandler = require("./utils/errorHandler");
+const manualLog = require("./utils/manuallogger");
+const company = require("./routes/company");
+const sessionLoader = require("./utils/sessionlodder");
+const Location = require("./routes/location");
+const email = require("./routes/email");
+const payment = require("./routes/payment");
+
+const app = express();
+app.set('trust proxy', 1);
+// ====== CORS ======
+const allowedOrigins = ["https://oms.voidvortextech.com"];
+
+app.use(
+  cors({
+    origin: function (origin, callback) {
+      if (!origin) return callback(null, true); // allow Postman or server-side requests
+      if (allowedOrigins.includes(origin)) return callback(null, true);
+      return callback(new Error("CORS not allowed"));
+    },
+    credentials: true,
+  })
+);
+
+// ====== Middleware ======
 app.use(express.json());
-// If you're sending form-data (urlencoded)
 app.use(express.urlencoded({ extended: true }));
 
+// ====== MongoDB Connection ======
+async function connectDB() {
+  try {
+    // Ensure MONGODB_URL ends with a slash, or add one
+    let mongoUrl = process.env.MONGODB_URL;
+    if (!mongoUrl.endsWith("/")) mongoUrl += "/";
 
+    const fullUri = `${mongoUrl}user_master?authSource=admin`;
 
-mongoose.connect(process.env.MONGODB_URL)
-.then(async ()=>{
-    console.log('db connected');
-    //get all  the tenents list on server starts
+    await mongoose.connect(fullUri, {
+      serverSelectionTimeoutMS: 5000,
+    });
+
+    console.log("✅ MongoDB connected successfully");
+
     const tenent_list = await getTenentList();
     tenentCache.tenent = tenent_list;
-    manualLog('db is connected broooo');
-})
-.catch(()=>{
-    console.log('db not connected');
-    manualLog('db is connected broooo');
-})
+    console.log("Loaded tenants:", tenentCache.tenent.length);
 
-manualLog('session is ready to go');
+    manualLog("✅ Database connected successfully");
+  } catch (err) {
+    console.error("❌ MongoDB connection error:", err.message);
+    manualLog("❌ MongoDB connection failed: " + err.message);
+    process.exit(1); // stop app if DB fails
+  }
+}
 
-app.use(sessionLoader); 
+// Connect to MongoDB
+connectDB();
 
-app.use('/tenent',tenent);
-app.use("/company",tenent_middleware,company);
-app.use('/auth',tenent_middleware,auth);
-app.use('/distributer',tenent_middleware,distributer);
-app.use('/seller',tenent_middleware,seller)
-app.use('/salesman',tenent_middleware,salesman)
-app.use('/product',tenent_middleware,product);
-app.use('/location',tenent_middleware,Location);
-app.use('/email', email);
+manualLog("session is ready to go");
 
-app.get('/error', (req, res, next) => {
-  // This will throw an error and be caught by your error handler
-  throw new Error('Test error for logging!');
+// ====== Routes ======
+app.use(sessionLoader);
+
+app.use("/tenent", tenent);
+app.use("/company", tenent_middleware, company);
+app.use("/auth", auth);
+app.use("/distributer", tenent_middleware, distributer);
+app.use("/seller", tenent_middleware, seller);
+app.use("/order", tenent_middleware, order);
+app.use("/user", tenent_middleware, user_routes);
+app.use("/product", tenent_middleware, product);
+app.use("/location", tenent_middleware, Location);
+app.use("/payment", tenent_middleware, payment);
+app.use("/saleman-notes", tenent_middleware, salesman_notes);
+app.use("/email", email);
+
+// ====== Test Route ======
+app.get("/", (req, res) => res.send("Server running ✅"));
+app.get("/error", () => {
+  throw new Error("Test error for logging!");
 });
 
-// Your routes go above this
-app.use(errorHandler); 
+app.get("/session-test", (req, res) => {
+  req.session.views = (req.session.views || 0) + 1;
+  res.send({ views: req.session.views });
+});
 
 
+// ====== Error Handler ======
+app.use(errorHandler);
 
-app.get('/',(req,res)=>{
-    res.send('running')
-})
-
-app.listen(process.env.PORT,()=>{
-    console.log('server is running');
-})
+// ====== Start Server ======
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`🚀 Server is running on port ${PORT}`);
+});
