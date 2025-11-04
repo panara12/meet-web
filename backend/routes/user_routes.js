@@ -225,6 +225,7 @@ router.get('/getalluser', user_session_checker('get_all_user'), async (req, res)
   }
 });
 
+
 // GET USER BY ID
 router.get('/getuser/:id', user_session_checker('get_by_id_user'), async (req, res) => {
   manualLog('entered in get user by id route');

@@ -11,11 +11,16 @@ const productServices = {
         return res.data;
     },
     updateProduct : async (payload)=> {
-        const res = await apiHelper.post('/product/updateproduct/'+payload.id,payload.product)
+        console.log("Payload in service:", payload);
+        const res = await apiHelper.post('/product/updateproduct/'+payload.id,payload.formDataToSend,{
+        headers: { "Content-Type": "multipart/form-data" }
+    })
         return res.data;
     },
     addProduct:async (payload)=>{
-        const res = await apiHelper.post('/product/addproduct',payload)
+        const res = await apiHelper.post('/product/addproduct',payload,{
+        headers: { "Content-Type": "multipart/form-data" }
+    })
         return res.data;
     },
     deleteProduct: async (payload)=>{

@@ -11,9 +11,12 @@ const router = express.Router();
 router.post(
   '/addproduct',
   user_session_checker('add_product'),
-  upload.array('images', 5),
+  upload.array('images[]', 5), // up to 5 product images
+  multerErrorHandler,
   async (req, res) => {
     manualLog('entered add products route');
+    console.log('file data', req.files);
+    console.log('req body data', req.body);
     try {
       const {
         name,
@@ -22,6 +25,7 @@ router.post(
         subcategory,
         brand,
         companyId,
+        color,
         price,
         costPrice,
         stockQuantity,
@@ -31,77 +35,84 @@ router.post(
         supplier,
         barcode,
         dimensions,
-        skus, // full SKUs come from req.body
+        skus,
       } = req.body;
 
       const tenent_username = req.tenent.D_dbname;
       const folderPath = `${tenent_username}/products`;
-      console.log('file data',req.files);
 
-      //file upload to the digital ocean 
-      const res_DO = 
-        await Promise.all(req.files.map(async (file) => {
-          const response = await uploadFileToDO(file.path, folderPath,file.mimetype);
-          console.log("route response file upload", response);
-          return response;
+      
+
+      // ✅ File upload to DigitalOcean (same logic as user upload)
+      let imageDocs = [];
+      if (req.files && req.files.length > 0) {
+        const res_DO = await Promise.all(
+          req.files.map(async (file, index) => {
+            const response = await uploadFileToDO(file.path, folderPath, file.mimetype);
+            console.log("route response file upload", response);
+            return { url: response, name: `image_${index + 1}` };
+          })
+        );
+
+        console.log("digital ocean response", res_DO);
+        imageDocs = res_DO.map((file) => ({
+          url: file.url,
+          doc_name: file.name, // keeping same structure as user upload
         }));
+        console.log("imageDocs", imageDocs);
+      }
 
-
-      console.log("digital ocean response", res_DO);
-      const imageDocs = res_DO.map(url => ({ url }));
-
-      // Handle tags array
+      // ✅ Handle tags
       const tagsArray = Array.isArray(tags)
         ? tags
         : tags
-        ? tags.split(',').map((t) => t.trim()).filter((t) => t)
+        ? tags.split(',').map((t) => t.trim()).filter(Boolean)
         : [];
 
-      // Handle dimensions object
+      // ✅ Handle dimensions
       const dimensionsObj =
         typeof dimensions === 'string' ? JSON.parse(dimensions) : dimensions || {};
 
-      
-      // Use SKUs directly from request body (no generation)
+      // ✅ Handle SKUs
       const skusArray = Array.isArray(skus) ? skus : [];
 
       const Product = req.db.model('Product');
       const new_product = new Product({
         name,
-        description,
-        category,
-        subcategory,
+        description: description || null,
+        category: category || null,
+        subcategory: subcategory || null,
         brand,
         companyId,
-        price: price ? parseFloat(price) : undefined,
-        costPrice: costPrice ? parseFloat(costPrice) : undefined,
-        stockQuantity: stockQuantity ? parseInt(stockQuantity) : 0,
-        lowStockThreshold: lowStockThreshold ? parseInt(lowStockThreshold) : 0,
+        color,
+        price,
+        lowStockThreshold: lowStockThreshold ? parseInt(lowStockThreshold) : null,
         status: status || 'active',
-        tags: tagsArray,
+        tags: tagsArray.join(','), // stored as comma string
         supplier,
-        barcode,
+        barcode: barcode || null,
         images: imageDocs,
         dimensions: dimensionsObj,
         skus: skusArray,
       });
-
-      
 
       await new_product.save();
 
       manualLog(
         `new product added :: ${new_product._id} by user: ${req.session.user.username}`
       );
-      res
-        .status(200)
-        .json({ message: 'new product added successfully', product: new_product });
+
+      res.status(200).json({
+        message: 'New product added successfully',
+        product: new_product,
+      });
     } catch (error) {
-      console.log('there is error in add new products');
-      manualLog(`there is error in add new products :: ${JSON.stringify(error)}`);
-      res
-        .status(500)
-        .json({ message: 'there is error in add new products', error: error });
+      console.log('Error in add new product:', error);
+      manualLog(`Error in add new product :: ${JSON.stringify(error)}`);
+      res.status(500).json({
+        message: 'There was an error adding the product',
+        error: error.message,
+      });
     }
   }
 );
@@ -111,20 +122,33 @@ router.post(
   '/updateproduct/:id',
   user_session_checker('edit_product'),
   upload.array('images', 5),
+  multerErrorHandler,
   async (req, res) => {
     manualLog('entered in update products');
+    // manualLog(req.body)
     try {
+      console.log(req.body)
       const { id } = req.params;
+      let imageDocs = [] 
       const req_product_data = req.body;
 
       // Handle tags array
-      if (typeof req_product_data.tags === 'string') {
-        req_product_data.tags = req_product_data.tags
-          .split(',')
-          .map((t) => t.trim())
-          .filter((t) => t);
-      } else if (!Array.isArray(req_product_data.tags)) {
-        req_product_data.tags = [];
+      // if (typeof req_product_data.tags === 'string') {
+      //   req_product_data.tags = req_product_data.tags
+      //     .split(',')
+      //     .map((t) => t.trim())
+      //     .filter((t) => t);
+      // } else if (!Array.isArray(req_product_data.tags)) {
+      //   req_product_data.tags = [];
+      // }
+
+      if (typeof req_product_data.skus === 'string') {
+        try {
+          req_product_data.skus = JSON.parse(req_product_data.skus);
+        } catch (e) {
+          console.error("Error parsing SKUs JSON:", e);
+          req_product_data.skus = [];
+        }
       }
 
       // Handle dimensions object
@@ -133,12 +157,6 @@ router.post(
       }
 
       // Convert numeric fields
-      if (req_product_data.price)
-        req_product_data.price = parseFloat(req_product_data.price);
-      if (req_product_data.costPrice)
-        req_product_data.costPrice = parseFloat(req_product_data.costPrice);
-      if (req_product_data.stockQuantity)
-        req_product_data.stockQuantity = parseInt(req_product_data.stockQuantity);
       if (req_product_data.lowStockThreshold)
         req_product_data.lowStockThreshold = parseInt(
           req_product_data.lowStockThreshold
@@ -166,29 +184,45 @@ router.post(
       // // Delete them from Cloudinary in parallel
       // await cloudinary_delete(removedPublicIds);
 
-      
-      const folderPath = `${tenent_username}/products`;
-      console.log('file data',req.files);
+      if(req.files && Object.keys(req.files).length > 0){
+        const folderPath = `${tenent_username}/products`;
+        console.log('file data',req.files);
 
-      // Retain images still present
-      const retainedImages = product_data.images.filter((img) =>
-        updatedPublicIds.includes(img.url)
-      );
+        // Frontend should send them as `existingImages` (array of URLs or JSON string)
+        let existingImages = [];
 
-      //file upload to the digital ocean 
-      const res_DO = 
-        await Promise.all(req.files.map(async (file) => {
-          const response = await uploadFileToDO(file.path, folderPath,file.mimetype);
-          console.log("route response file upload", response);
-          return response;
-        }));
+        if (req.body.existingImages) {
+          if (typeof req.body.existingImages === "string") {
+            try {
+              existingImages = JSON.parse(req.body.existingImages);
+            } catch {
+              // fallback if backend gets single string instead of JSON
+              existingImages = [req.body.existingImages];
+            }
+          } else if (Array.isArray(req.body.existingImages)) {
+            existingImages = req.body.existingImages;
+          }
+        }
+
+        // Convert existing image URLs into correct format
+        const retainedImages = existingImages.map((url) =>
+          typeof url === "string" ? { url } : url
+        );
 
 
-      console.log("digital ocean response", res_DO);
-      const imageDocs = res_DO.map(url => ({ url }));
-      req_product_data.images = [...retainedImages, ...imageDocs];
+        //file upload to the digital ocean 
+          const res_DO = 
+          await Promise.all(req.files.map(async (file) => {
+            const response = await uploadFileToDO(file.path, folderPath,file.mimetype);
+            console.log("route response file upload", response);
+            return response;
+          }));
 
-      
+          console.log("digital ocean response", res_DO);
+          imageDocs = res_DO.map(url => ({ url }));
+          req_product_data.images = [...retainedImages, ...imageDocs];
+      }
+          
 
       // Handle SKU updates (take directly from body)
       if (req_product_data.skus && Array.isArray(req_product_data.skus)) {
@@ -209,7 +243,7 @@ router.post(
       });
     } catch (error) {
       console.log('Error in update products', error);
-      manualLog(`Error in update products :: ${JSON.stringify(error)}`);
+      manualLog(`Error in update products :: `,error);
       res.status(500).json({ message: 'There was an error updating the product' });
     }
   }

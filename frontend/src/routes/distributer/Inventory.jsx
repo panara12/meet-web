@@ -38,6 +38,9 @@ import { useInventory, categories } from "./InventoryContext"
 import { useCompany } from "./CompanyContext"
 import { toast } from "./ui/sonner"
 
+//ENV CONFIG
+const digital_ocean_url = import.meta.env.VITE_DIGITAL_OCEAN_URL;
+
 function Inventory() {
   const { 
     products, 
@@ -49,6 +52,7 @@ function Inventory() {
     getLowStockProducts,
     getOutOfStockProducts
   } = useInventory()
+  console.log("products", products)
   const { companies, incrementProductsCount, decrementProductsCount } = useCompany()
   
   const [searchTerm, setSearchTerm] = useState("")
@@ -80,7 +84,7 @@ function Inventory() {
   colors: [],       // still useful for generating SKUs
   lowStockThreshold: "",
   status: "active",
-  tags: [],
+  tags: '',
   supplier: "",
   barcode: "",      // optional: global barcode (SKUs have their own barcode too)
   images: [],
@@ -171,9 +175,9 @@ function Inventory() {
       subcategory: "",
       brand: "",
       companyId: "",
-      sizes:[],
-      colors:[],
-      price: "",
+      price:'',
+      color:'',
+      size:'',
       costPrice: "",
       stockQuantity: "",
       lowStockThreshold: "",
@@ -189,7 +193,8 @@ function Inventory() {
         weight: "",
         unit: "cm",
         weightUnit: "kg"
-      }
+      },
+      skus:[]
     })
   }
 
@@ -207,6 +212,38 @@ function Inventory() {
         return
       }
 
+      const formDataToSend = new FormData();
+      formDataToSend.append("name", formData.name);
+      formDataToSend.append("description", formData.description);
+      formDataToSend.append("category", formData.category);
+      formDataToSend.append("subcategory", formData.subcategory);
+      formDataToSend.append("brand", formData.brand || company.name);
+      formDataToSend.append("companyId", formData.companyId);
+      formDataToSend.append("companyName", company.name);
+      formDataToSend.append("color", formData.color || "");
+      formDataToSend.append("price", formData.price?.toString() || "0");
+      formDataToSend.append("costPrice", formData.costPrice?.toString() || "0");
+      formDataToSend.append("stockQuantity", formData.stockQuantity?.toString() || "0");
+      formDataToSend.append("lowStockThreshold", formData.lowStockThreshold?.toString() || "10");
+      formDataToSend.append("status", formData.status || "active");
+      formDataToSend.append("tags", formData.tags || "");
+      formDataToSend.append("supplier", formData.supplier || "");
+      formDataToSend.append("barcode", formData.barcode || "");
+
+      // ✅ Dimensions and SKUs should be JSON-stringified
+      formDataToSend.append("dimensions", JSON.stringify(formData.dimensions));
+      formDataToSend.append("skus", JSON.stringify(formData.skus || []));
+
+      // ✅ Append each image file — key must be `images`
+      formData.images.forEach((file) => {
+        if (file instanceof File) {
+          formDataToSend.append("images", file);
+        } else if (file.url) {
+          // keep existing images if they’re already uploaded
+          formDataToSend.append("existingImages", file.url);
+        }
+      });
+
       const productData = {
         sku: `${company.name.substring(0, 3).toUpperCase()}-${Date.now()}`,
         name: formData.name,
@@ -214,11 +251,11 @@ function Inventory() {
         category: formData.category,
         subcategory: formData.subcategory,
         brand: formData.brand || company.name,
-        sizes:formData.sizes||[],
-        colors:formData.colors||[],
+        size:formData.size||'',
+        color:formData.color||'',
         companyId: formData.companyId,
         companyName: company.name,
-        price: parseFloat(formData.price) || 0,
+        price: formData.price || '0',
         costPrice: parseFloat(formData.costPrice) || 0,
         currency: "INR",
         stockQuantity: parseInt(formData.stockQuantity) || 0,
@@ -233,10 +270,13 @@ function Inventory() {
           unit: formData.dimensions.unit,
           weightUnit: formData.dimensions.weightUnit
         },
-        tags: formData.tags.split(',').map(tag => tag.trim()).filter(tag => tag),
+        skus:formData.skus,
+        tags: formData.tags,
         supplier: formData.supplier,
         barcode: formData.barcode
       }
+
+      console.log('adding product', productData)
 
       addProduct(productData)
       incrementProductsCount(formData.companyId)
@@ -263,35 +303,40 @@ function Inventory() {
         toast.error("Invalid company selected")
         return
       }
+      const formDataToSend = new FormData();
+      formDataToSend.append("name", formData.name);
+      formDataToSend.append("description", formData.description);
+      formDataToSend.append("category", formData.category);
+      formDataToSend.append("subcategory", formData.subcategory);
+      formDataToSend.append("brand", formData.brand || company.name);
+      formDataToSend.append("companyId", formData.companyId);
+      formDataToSend.append("companyName", company.name);
+      formDataToSend.append("color", formData.color || "");
+      formDataToSend.append("price", formData.price?.toString() || "0");
+      formDataToSend.append("costPrice", formData.costPrice?.toString() || "0");
+      formDataToSend.append("stockQuantity", formData.stockQuantity?.toString() || "0");
+      formDataToSend.append("lowStockThreshold", formData.lowStockThreshold?.toString() || "10");
+      formDataToSend.append("status", formData.status || "active");
+      formDataToSend.append("tags", formData.tags || "");
+      formDataToSend.append("supplier", formData.supplier || "");
+      formDataToSend.append("barcode", formData.barcode || "");
 
-      const updates = {
-        name: formData.name,
-        description: formData.description,
-        category: formData.category,
-        subcategory: formData.subcategory,
-        brand: formData.brand || company.name,
-        companyId: formData.companyId,
-        companyName: company.name,
-        price: parseFloat(formData.price) || 0,
-        costPrice: parseFloat(formData.costPrice) || 0,
-        stockQuantity: parseInt(formData.stockQuantity) || 0,
-        lowStockThreshold: parseInt(formData.lowStockThreshold) || 10,
-        status: formData.status,
-        images: formData.images,
-        dimensions: {
-          length: parseFloat(formData.dimensions.length) || 0,
-          width: parseFloat(formData.dimensions.width) || 0,
-          height: parseFloat(formData.dimensions.height) || 0,
-          weight: parseFloat(formData.dimensions.weight) || 0,
-          unit: formData.dimensions.unit,
-          weightUnit: formData.dimensions.weightUnit
-        },
-        tags: formData.tags.split(',').map(tag => tag.trim()).filter(tag => tag),
-        supplier: formData.supplier,
-        barcode: formData.barcode
-      }
+      // ✅ Dimensions and SKUs should be JSON-stringified
+      formDataToSend.append("dimensions", JSON.stringify(formData.dimensions));
+      formDataToSend.append("skus", JSON.stringify(formData.skus || []));
 
-      updateProduct(selectedproduct._id, updates)
+      // ✅ Append each image file — key must be `images`
+      formData.images.forEach((file) => {
+        if (file instanceof File) {
+          formDataToSend.append("images", file);
+        } else if (file.url) {
+          // keep existing images if they’re already uploaded
+          formDataToSend.append("existingImages", file.url);
+        }
+      });
+
+      console.log("Updating product:", formDataToSend)
+      updateProduct({id: selectedProduct._id, formDataToSend})
       toast.success(`Product "${formData.name}" updated successfully`)
       setShowEditDialog(false)
       setSelectedProduct(null)
@@ -329,12 +374,13 @@ function Inventory() {
       subcategory: product.subcategory || "",
       brand: product.brand,
       companyId: product.companyId,
-      price: product.price.toString(),
-      costPrice: product.costPrice.toString(),
-      stockQuantity: product.stockQuantity.toString(),
-      lowStockThreshold: product.lowStockThreshold.toString(),
+      color:product.color||'',
+      price: product.price,
+      costPrice: product.costPrice,
+      stockQuantity: product.stockQuantity,
+      lowStockThreshold: product.lowStockThreshold,
       status: product.status,
-      tags: product.tags.join(', '),
+      tags: product.tags,
       supplier: product.supplier || "",
       barcode: product.barcode || "",
       images: [...product.images],
@@ -345,7 +391,8 @@ function Inventory() {
         weight: product.dimensions.weight.toString(),
         unit: product.dimensions.unit,
         weightUnit: product.dimensions.weightUnit
-      }
+      },
+      skus:product.skus
     })
     setShowEditDialog(true)
   }
@@ -381,6 +428,7 @@ function Inventory() {
     }
   }
 
+
   const handleFiles = (files) => {
     files.forEach(file => {
       if (file.type.startsWith('image/')) {
@@ -388,20 +436,16 @@ function Inventory() {
           toast.error(`Image ${file.name} is too large. Maximum size is 5MB.`)
           return
         }
-        
-        const reader = new FileReader()
-        reader.onload = (e) => {
-          const imageUrl = e.target?.result
-          setFormData(prev => ({
-            ...prev,
-            images: [...prev.images, imageUrl]
-          }))
-        }
-        reader.readAsDataURL(file)
+        console.log('file data', file)
+        setFormData(prev => ({
+          ...prev,
+          images: [...prev.images, file]
+        }));
       } else {
         toast.error(`File ${file.name} is not a valid image format.`)
       }
     })
+        console.log('form img data',formData.images)
   }
 
   const handleDrag = (e) => {
@@ -839,6 +883,33 @@ function Inventory() {
                   </div>
                 </div>
 
+                <div>
+                  <Label htmlFor="dimensionsSection">Product Price and Color</Label>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="price">Price</Label>
+                      <Input
+                        id="price"
+                        type="number"
+                        step="0.01"
+                        value={formData.price}
+                        onChange={(e) => setFormData({...formData, price: e.target.value})}
+                        placeholder="0"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="salePrice">Color</Label>
+                      <Input
+                        id="salePrice"
+                        type="text"
+                        value={formData.color}
+                        onChange={(e) => setFormData({...formData, color: e.target.value})}
+                        placeholder="Color"
+                      />
+                    </div>
+                  </div>
+                </div>
+
                 <div className="space-y-4">
                   <Label>Dimensions</Label>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -977,6 +1048,7 @@ function Inventory() {
                           <div key={index} className="relative group aspect-square">
                             <img
                               src={image}
+                              name="images"
                               alt={`Product photo ${index + 1}`}
                               className="w-full h-full object-cover rounded-lg border bg-muted"
                             />
@@ -1441,8 +1513,19 @@ function Inventory() {
                 <div>
                   <Label>Tags</Label>
                   <div className="flex gap-1 mt-1">
-                    {selectedProduct.tags.map(tag => (
+                    {selectedProduct.tags.split(',').map(tag => (
                       <Badge key={tag} variant="outline">{tag}</Badge>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {console.log(selectedProduct.images)}
+              {selectedProduct.images.length > 0 && (
+                <div>
+                  <Label>Images</Label>
+                  <div className="flex gap-1 mt-1">
+                    {selectedProduct.images.map(image => (
+                      <img key={image} src={digital_ocean_url+image.url} alt={selectedProduct.name} className="h-16 w-16 object-cover" />
                     ))}
                   </div>
                 </div>
@@ -1474,10 +1557,11 @@ function Inventory() {
           </DialogHeader>
 
           <Tabs defaultValue="basic" className="w-full">
-            <TabsList className="grid w-full grid-cols-3">
+            <TabsList className="grid w-full grid-cols-4">
               <TabsTrigger value="basic">Basic Info</TabsTrigger>
-              <TabsTrigger value="pricing">Pricing & Stock</TabsTrigger>
+              <TabsTrigger value="variants">Variants/SKUs</TabsTrigger>
               <TabsTrigger value="details">Details</TabsTrigger>
+              <TabsTrigger value="images">Images</TabsTrigger>
             </TabsList>
 
             <TabsContent value="basic" className="space-y-4">
@@ -1521,6 +1605,26 @@ function Inventory() {
                 </div>
 
                 <div className="space-y-2">
+                    <Label htmlFor="editSubcategory">Subcategory</Label>
+                    <Input
+                      id="editSubcategory"
+                      value={formData.subcategory}
+                      onChange={(e) => setFormData({...formData, subcategory: e.target.value})}
+                      placeholder="e.g., Smartphones, T-Shirts"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="editBrand">Brand</Label>
+                    <Input
+                      id="editBrand"
+                      value={formData.brand}
+                      onChange={(e) => setFormData({...formData, brand: e.target.value})}
+                      placeholder="Product brand"
+                    />
+                  </div>
+
+                <div className="space-y-2">
                   <Label htmlFor="editStatus">Status</Label>
                   <Select value={formData.status} onValueChange={(value) => setFormData({...formData, status: value})}>
                     <SelectTrigger>
@@ -1534,6 +1638,27 @@ function Inventory() {
                   </Select>
                 </div>
 
+                <div className="space-y-2">
+                    <Label htmlFor="supplier">Supplier</Label>
+                    <Input
+                      id="supplier"
+                      value={formData.supplier}
+                      onChange={(e) => setFormData({...formData, supplier: e.target.value})}
+                      placeholder="Supplier name"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="lowStockThreshold">Low Stock Alert Threshold</Label>
+                    <Input
+                      id="lowStockThreshold"
+                      type="number"
+                      value={formData.lowStockThreshold}
+                      onChange={(e) => setFormData({...formData, lowStockThreshold: e.target.value})}
+                      placeholder="10"
+                    />
+                  </div>
+
                 <div className="md:col-span-2 space-y-2">
                   <Label htmlFor="editDescription">Description</Label>
                   <Textarea
@@ -1545,7 +1670,375 @@ function Inventory() {
                   />
                 </div>
               </div>
+            </TabsContent>
 
+            <TabsContent value="variants" className="space-y-4">
+
+                {/* SKU Management */}
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-lg font-medium">Enter Common Colors</Label>
+                    <div className="space-y-2">
+                      <Label>Color</Label>
+                      <Input
+                        value={commonColors}
+                        onChange={(e) => {
+                          setCommonColors(e.target.value)
+                        }}
+                        placeholder="Red, Blue, etc."
+                      />
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <Label className="text-lg font-medium">Product SKUs & Pricing</Label>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        const validSizes = formData.sizes?.filter(s => s.trim()) || [''];
+                        const validColors = formData.colors?.filter(c => c.trim()) || [''];
+                        const newSkus = [];
+                        
+                        if (validColors.length > 0 && validColors[0] !== '' && validSizes.length > 0 && validSizes[0] !== '') {
+                          validColors.forEach(color => {
+                            validSizes.forEach(size => {
+                              newSkus.push({
+                                sku: `${formData.name?.substring(0,3).toUpperCase() || 'PRD'}-${color.substring(0,2).toUpperCase()}-${size.substring(0,2).toUpperCase()}-${Date.now().toString().slice(-4)}`,
+                                color: color,
+                                size: size,
+                                price: '',
+                                costPrice: '',
+                                stockQuantity: '',
+                                barcode: ''
+                              });
+                            });
+                          });
+                        } else if (validColors.length > 0 && validColors[0] !== '') {
+                          validColors.forEach(color => {
+                            newSkus.push({
+                              sku: `${formData.name?.substring(0,3).toUpperCase() || 'PRD'}-${color.substring(0,2).toUpperCase()}-${Date.now().toString().slice(-4)}`,
+                              color: color,
+                              size: '',
+                              price: '',
+                              costPrice: '',
+                              stockQuantity: '',
+                              barcode: ''
+                            });
+                          });
+                        } else if (validSizes.length > 0 && validSizes[0] !== '') {
+                          validSizes.forEach(size => {
+                            newSkus.push({
+                              sku: `${formData.name?.substring(0,3).toUpperCase() || 'PRD'}-${size.substring(0,2).toUpperCase()}-${Date.now().toString().slice(-4)}`,
+                              color: '',
+                              size: size,
+                              price: '',
+                              costPrice: '',
+                              stockQuantity: '',
+                              barcode: ''
+                            });
+                          });
+                        } else {
+                          newSkus.push({
+                            sku: `${formData.name?.substring(0,3).toUpperCase() || 'PRD'}-${Date.now().toString().slice(-4)}`,
+                            color: '',
+                            size: '',
+                            price: '',
+                            costPrice: '',
+                            stockQuantity: '',
+                            barcode: ''
+                          });
+                        }
+                        
+                        setFormData({...formData, skus: newSkus});
+                      }}
+                    >
+                      Generate SKUs
+                    </Button>
+                  </div>
+
+                  {/* Manual SKU Addition */}
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      const newSku = {
+                        sku: `${formData.name?.substring(0,3).toUpperCase() || 'PRD'}-${Date.now().toString().slice(-4)}`,
+                        color: '',
+                        size: '',
+                        price: '',
+                        costPrice: '',
+                        stockQuantity: '',
+                        barcode: ''
+                      };
+                      setFormData({
+                        ...formData, 
+                        skus: [...(formData.skus || []), newSku]
+                      });
+                    }}
+                    className="w-full"
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add Manual SKU
+                  </Button>
+
+                  {/* SKU List */}
+                  {console.log("sku data onyl edit".formData)}
+                  {formData.skus && formData.skus.length > 0 && (
+                    <div className="space-y-4">
+                      {formData.skus.map((sku, index) => (
+                        <div key={index} className="p-4 border rounded-lg space-y-3">
+                          <div className="flex items-center justify-between">
+                            <Label className="font-medium">SKU #{index + 1}</Label>
+                            <Button
+                              type="button"
+                              variant="destructive"
+                              size="sm"
+                              onClick={() => {
+                                const newSkus = formData.skus.filter((_, i) => i !== index);
+                                setFormData({...formData, skus: newSkus});
+                              }}
+                            >
+                              <XIcon className="h-4 w-4" />
+                            </Button>
+                          </div>
+                          
+                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                            <div className="space-y-2">
+                              <Label>SKU Code *</Label>
+                              <Input
+                                value={sku.sku}
+                                onChange={(e) => {
+                                  const newSkus = [...formData.skus];
+                                  newSkus[index].sku = e.target.value;
+                                  setFormData({...formData, skus: newSkus});
+                                }}
+                                placeholder="SKU-001"
+                              />
+                            </div>
+                            
+                            <div className="space-y-2">
+                              <Label>Color <button className="border border-gray-300 rounded-md px-2 py-1" onClick={() => {setIsCommonColorSelected((prev) => !prev); setCommonColors(sku.color)}}>common</button></Label>
+                              <Input
+                                value={sku.color}
+                                disabled={isCommonColorSelected}
+                                onChange={(e) => {
+                                  const newSkus = [...formData.skus];
+                                  newSkus[index].color = e.target.value;
+                                  setFormData({...formData, skus: newSkus});
+                                }}
+                                placeholder="Red, Blue, etc."
+                              />
+                            </div>
+                            
+                            <div className="space-y-2">
+                              <Label>Size</Label>
+                              <Input
+                                value={sku.size}
+                                onChange={(e) => {
+                                  const newSkus = [...formData.skus];
+                                  newSkus[index].size = e.target.value;
+                                  setFormData({...formData, skus: newSkus});
+                                }}
+                                placeholder="S, M, L, etc."
+                              />
+                            </div>
+                            
+                            <div className="space-y-2">
+                              <Label>Price *</Label>
+                              <Input
+                                type="number"
+                                step="0.01"
+                                value={sku.price}
+                                onChange={(e) => {
+                                  const newSkus = [...formData.skus];
+                                  newSkus[index].price = e.target.value;
+                                  setFormData({...formData, skus: newSkus});
+                                }}
+                                placeholder="0.00"
+                              />
+                            </div>
+                            
+                            <div className="space-y-2">
+                              <Label>Cost Price</Label>
+                              <Input
+                                type="number"
+                                step="0.01"
+                                value={sku.costPrice}
+                                onChange={(e) => {
+                                  const newSkus = [...formData.skus];
+                                  newSkus[index].costPrice = e.target.value;
+                                  setFormData({...formData, skus: newSkus});
+                                }}
+                                placeholder="0.00"
+                              />
+                            </div>
+                            
+                            <div className="space-y-2">
+                              <Label>Stock Quantity</Label>
+                              <Input
+                                type="number"
+                                value={sku.stockQuantity}
+                                onChange={(e) => {
+                                  const newSkus = [...formData.skus];
+                                  newSkus[index].stockQuantity = e.target.value;
+                                  setFormData({...formData, skus: newSkus});
+                                }}
+                                placeholder="0"
+                              />
+                            </div>
+                            
+                            <div className="space-y-2 md:col-span-2 lg:col-span-3">
+                              <Label>Barcode</Label>
+                              <Input
+                                value={sku.barcode}
+                                onChange={(e) => {
+                                  const newSkus = [...formData.skus];
+                                  newSkus[index].barcode = e.target.value;
+                                  setFormData({...formData, skus: newSkus});
+                                }}
+                                placeholder="Barcode for this specific SKU"
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </TabsContent>
+
+            <TabsContent value="details" className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="tags">Tags (comma-separated)</Label>
+                    <Input
+                      id="tags"
+                      value={formData.tags}
+                      onChange={(e) => setFormData({...formData, tags: e.target.value})}
+                      placeholder="premium, bestseller, new"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="barcode">General Barcode</Label>
+                    <Input
+                      id="barcode"
+                      value={formData.barcode}
+                      onChange={(e) => setFormData({...formData, barcode: e.target.value})}
+                      placeholder="General product barcode"
+                    />
+                    <p className="text-xs text-muted-foreground">Individual SKUs can have their own barcodes</p>
+                  </div>
+                </div>
+
+                <div>
+                  <Label htmlFor="dimensionsSection">Product Price and Color</Label>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="price">Price</Label>
+                      <Input
+                        id="price"
+                        type="number"
+                        step="0.01"
+                        value={formData.price}
+                        onChange={(e) => setFormData({...formData, price: e.target.value})}
+                        placeholder="0"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="salePrice">Color</Label>
+                      <Input
+                        id="salePrice"
+                        type="text"
+                        value={formData.color}
+                        onChange={(e) => setFormData({...formData, color: e.target.value})}
+                        placeholder="Color"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <Label>Dimensions</Label>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="length">Length</Label>
+                      <Input
+                        id="length"
+                        type="number"
+                        step="0.01"
+                        value={formData.dimensions.length}
+                        onChange={(e) => setFormData({...formData, dimensions: {...formData.dimensions, length: e.target.value}})}
+                        placeholder="0"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="width">Width</Label>
+                      <Input
+                        id="width"
+                        type="number"
+                        step="0.01"
+                        value={formData.dimensions.width}
+                        onChange={(e) => setFormData({...formData, dimensions: {...formData.dimensions, width: e.target.value}})}
+                        placeholder="0"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="height">Height</Label>
+                      <Input
+                        id="height"
+                        type="number"
+                        step="0.01"
+                        value={formData.dimensions.height}
+                        onChange={(e) => setFormData({...formData, dimensions: {...formData.dimensions, height: e.target.value}})}
+                        placeholder="0"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="unit">Unit</Label>
+                      <Select value={formData.dimensions.unit} onValueChange={(value) => setFormData({...formData, dimensions: {...formData.dimensions, unit: value}})}>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="cm">cm</SelectItem>
+                          <SelectItem value="inch">inch</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="weight">Weight</Label>
+                      <Input
+                        id="weight"
+                        type="number"
+                        step="0.01"
+                        value={formData.dimensions.weight}
+                        onChange={(e) => setFormData({...formData, dimensions: {...formData.dimensions, weight: e.target.value}})}
+                        placeholder="0"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="weightUnit">Weight Unit</Label>
+                      <Select value={formData.dimensions.weightUnit} onValueChange={(value) => setFormData({...formData, dimensions: {...formData.dimensions, weightUnit: value}})}>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="kg">kg</SelectItem>
+                          <SelectItem value="lb">lb</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                </div>
+            </TabsContent>
+
+            <TabsContent value="images" className="space-y-4">
               {/* Photo Upload Section for Edit */}
               <div className="space-y-4">
                 <div className="space-y-2">
@@ -1604,7 +2097,8 @@ function Inventory() {
                       {formData.images.map((image, index) => (
                         <div key={index} className="relative group aspect-square">
                           <img
-                            src={image}
+                            src={digital_ocean_url+image.url}
+                            name="images"
                             alt={`Product photo ${index + 1}`}
                             className="w-full h-full object-cover rounded-lg border bg-muted"
                           />
@@ -1634,90 +2128,6 @@ function Inventory() {
                     </p>
                   </div>
                 )}
-              </div>
-            </TabsContent>
-
-            <TabsContent value="pricing" className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="editPrice">Selling Price</Label>
-                  <Input
-                    id="editPrice"
-                    type="number"
-                    step="0.01"
-                    value={formData.price}
-                    onChange={(e) => setFormData({...formData, price: e.target.value})}
-                    placeholder="0.00"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="editCostPrice">Cost Price</Label>
-                  <Input
-                    id="editCostPrice"
-                    type="number"
-                    step="0.01"
-                    value={formData.costPrice}
-                    onChange={(e) => setFormData({...formData, costPrice: e.target.value})}
-                    placeholder="0.00"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="editStockQuantity">Stock Quantity</Label>
-                  <Input
-                    id="editStockQuantity"
-                    type="number"
-                    value={formData.stockQuantity}
-                    onChange={(e) => setFormData({...formData, stockQuantity: e.target.value})}
-                    placeholder="0"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="editLowStockThreshold">Low Stock Alert Threshold</Label>
-                  <Input
-                    id="editLowStockThreshold"
-                    type="number"
-                    value={formData.lowStockThreshold}
-                    onChange={(e) => setFormData({...formData, lowStockThreshold: e.target.value})}
-                    placeholder="10"
-                  />
-                </div>
-              </div>
-            </TabsContent>
-
-            <TabsContent value="details" className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="editTags">Tags (comma-separated)</Label>
-                  <Input
-                    id="editTags"
-                    value={formData.tags}
-                    onChange={(e) => setFormData({...formData, tags: e.target.value})}
-                    placeholder="premium, bestseller, new"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="editSupplier">Supplier</Label>
-                  <Input
-                    id="editSupplier"
-                    value={formData.supplier}
-                    onChange={(e) => setFormData({...formData, supplier: e.target.value})}
-                    placeholder="Supplier name"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="editBarcode">Barcode/SKU</Label>
-                  <Input
-                    id="editBarcode"
-                    value={formData.barcode}
-                    onChange={(e) => setFormData({...formData, barcode: e.target.value})}
-                    placeholder="Barcode or internal SKU"
-                  />
-                </div>
               </div>
             </TabsContent>
           </Tabs>

@@ -403,9 +403,9 @@ function StaffAccount() {
     count: staff.filter(s => s.department === dept).length
   }))
 
-  const recentHires = staff
-    .sort((a, b) => new Date(b.hireDate).getTime() - new Date(a.hireDate).getTime())
-    .slice(0, 5)
+  const recentHires = Array.from(staff)
+  .sort((a, b) => new Date(b.hireDate) - new Date(a.hireDate))
+  .slice(0, 5);
 
   return (
     <div className="space-y-6">
@@ -833,7 +833,7 @@ function StaffAccount() {
                                             {selectedStaff.drivingLicenseNumber && (
                                               <div className="p-3 border rounded-lg">
                                                 <div className="flex items-center gap-2 mb-2">
-                                                  {selectedStaff.documents[2]?.url && <img src={digital_ocean_url + selectedStaff.documents[2].url} className="bg-red-400 w-32 h-24 object-fit" alt="Driving License" />}
+                                                  {selectedStaff.documents[2]?.url && <img src={digital_ocean_url + selectedStaff.documents[2].url} className="w-32 h-24 object-fit" alt="Driving License" />}
                                                 </div>
                                                   <span className="text-sm font-medium">Driving License</span>
                                                 <p className="text-sm text-muted-foreground">{selectedStaff.drivingLicenseNumber}</p>
@@ -1176,7 +1176,7 @@ function StaffAccount() {
               </div>
               <div>
                 <Label htmlFor="add-department">Department</Label>
-                <Select value={formData.department} onValueChange={(value) => updateFormData('department', value)}>
+                <Select value={formData.role} onValueChange={(value) => updateFormData('department', value)}>
                   <SelectTrigger id="add-department">
                     <SelectValue />
                   </SelectTrigger>
@@ -1537,7 +1537,7 @@ function StaffAccount() {
               <div>
                 <Label htmlFor="edit-department">Department</Label>
                 {console.log(formData) }
-                <Select value={formData.department} onValueChange={(value) => updateFormData('department', value)}>
+                <Select value={formData.department} disabled={true} onValueChange={(value) => updateFormData('department', value)}>
                   <SelectTrigger id="edit-department">
                     <SelectValue />
                   </SelectTrigger>

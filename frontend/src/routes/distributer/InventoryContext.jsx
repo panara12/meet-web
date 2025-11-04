@@ -30,7 +30,16 @@ export function InventoryProvider({ children }) {
   isPending: productListPending, 
   isError: isProductListError, 
   error: productListError 
-} = useGetAllProduct();
+} = useGetAllProduct({});
+
+useEffect(() => {
+  if (getProductList?.product) {
+    console.log("Fetched Product List:", getProductList);
+    setProducts(getProductList.product);
+  }
+}, [getProductList]);
+console.log("Fetched Products:", getProductList);
+
 
 const { 
   data: getAllProductCountByCompany, 
@@ -39,11 +48,7 @@ const {
   error: productCountError 
 } = useGetAllProductCountByCompany();
 
-useEffect(() => {
-  if (getProductList?.data) {
-    setProducts(getProductList.data.product);
-  }
-}, [getProductList]);
+
 
 const { 
   mutate: addProductFn, 
@@ -67,13 +72,13 @@ const {
 } = useDeleteProduct({});
 
 
-  const addProduct = (productData) => {
-    addProductFn(productData)
-    setProducts((prev) => [...prev, newProduct]);
+  const addProduct = (formDataToSend) => {
+    addProductFn(formDataToSend)
   };
 
-  const updateProduct = (id, updates) => {
-    updateProductFn({id,updates})
+  const updateProduct = ({id, formDataToSend}) => {
+    console.log("Calling updateProductFn with:", {id, formDataToSend});
+    updateProductFn({id, formDataToSend})
     return true;
   };
 

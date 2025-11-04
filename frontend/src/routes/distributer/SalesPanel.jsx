@@ -296,7 +296,7 @@ function SalesPanel() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">Admin</p>
-                <p className="text-xl font-semibold">{staff.filter(s => s.role === "Admin").length}</p>
+                <p className="text-xl font-semibold">{staff.filter(s => s.role === "admin").length}</p>
               </div>
               <Shield className="h-8 w-8 text-red-500" />
             </div>
@@ -307,7 +307,7 @@ function SalesPanel() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">Sales-man</p>
-                <p className="text-xl font-semibold">{staff.filter(s => s.role === "Sales-man").length}</p>
+                <p className="text-xl font-semibold">{staff.filter(s => s.role === "salesman").length}</p>
               </div>
               <User className="h-8 w-8 text-blue-500" />
             </div>
@@ -318,7 +318,7 @@ function SalesPanel() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">Biller</p>
-                <p className="text-xl font-semibold">{staff.filter(s => s.role === "Biller").length}</p>
+                <p className="text-xl font-semibold">{staff.filter(s => s.role === "billing").length}</p>
               </div>
               <Building className="h-8 w-8 text-green-500" />
             </div>
@@ -329,7 +329,7 @@ function SalesPanel() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">Packager</p>
-                <p className="text-xl font-semibold">{staff.filter(s => s.role === "Packager").length}</p>
+                <p className="text-xl font-semibold">{staff.filter(s => s.role === "packaging").length}</p>
               </div>
               <Calendar className="h-8 w-8 text-orange-500" />
             </div>
@@ -340,6 +340,7 @@ function SalesPanel() {
       {/* Staff Cards Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredStaff.map((member) => (
+          console.log("meember sdsds",member),
           <Card key={member.id} className="hover:shadow-lg transition-shadow duration-200">
             <CardHeader className="pb-4">
               <div className="flex items-start justify-between">
@@ -732,8 +733,8 @@ function SalesPanel() {
                   )}
                   
                   <div className="space-y-2 max-h-64 overflow-y-auto">
-                    {selectedStaff.locationTracking.locationHistory.length > 0 ? (
-                      selectedStaff.locationTracking.locationHistory.map((location, index) => (
+                    {selectedStaff.locationTracking?.locationHistory && selectedStaff.locationTracking?.locationHistory.length > 0 ? (
+                      selectedStaff.locationTracking?.locationHistory.map((location, index) => (
                         <div key={location.id} className="p-3 border rounded-lg bg-white/50">
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2">
@@ -833,7 +834,7 @@ function SalesPanel() {
                         <p className="text-sm text-muted-foreground">Requests This Month</p>
                       </div>
                       <div className="p-4 border rounded-lg text-center">
-                        <p className="text-2xl font-bold text-blue-600">{selectedStaff.locationTracking.locationHistory.length}</p>
+                        <p className="text-2xl font-bold text-blue-600">{selectedStaff.locationTracking.locationHistory?selectedStaff.locationTracking.locationHistory.length : 2}</p>
                         <p className="text-sm text-muted-foreground">Locations Stored</p>
                       </div>
                     </div>

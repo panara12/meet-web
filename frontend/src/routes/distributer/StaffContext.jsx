@@ -4,6 +4,8 @@ import { useEffect } from "react"
 import { useDeleteUser } from "../../hooks/user/useDeleteUser"
 import { useUpdateUser } from "../../hooks/user/useUpdateUser"
 import { useAddUser } from "../../hooks/user/useAddUser"
+import { useSelector,useDispatch } from "react-redux"
+import { setUserAllList } from "../../store/slice/appSlice";
 
 const StaffContext = createContext(undefined)
 
@@ -167,13 +169,17 @@ const initialStaff = [
 // ---- Provider ----
 export function StaffProvider({ children }) {
   const [staff, setStaff] = useState(initialStaff)
+  const dispatch = useDispatch();
+  const userAllList = useSelector((state) => state.app.userAllList);
   const {data:getAllUser,isPending:isgetAllUserPending,isError:isgetAllUserError,Error:getAllUserError} = useGetAllUser()
   useEffect(()=>{
     if(getAllUser?.data){
       console.log(getAllUser.data.user)
+      dispatch(setUserAllList(getAllUser.data.user));
       setStaff(getAllUser.data.user)
     }
   },[getAllUser])
+  console.log('redux user data',userAllList)
 
     const {mutate:addUser,isPending:isAddUserPending, isError:isAddUserError, error:addUserError} = useAddUser()
     const {mutate:updateUser,isPending:isUpdateUserPending, isError:isUpdateUserError, error:updateUserError} = useUpdateUser()
