@@ -21,11 +21,13 @@ const sessionLoader = require("./utils/sessionlodder");
 const Location = require("./routes/location");
 const email = require("./routes/email");
 const payment = require("./routes/payment");
+const sendScheduleEmails  = require("./routes/vvtmails");
+const limiter = require("./middleware/ratelimit");
 
 const app = express();
 app.set('trust proxy', 1);
 // ====== CORS ======
-const allowedOrigins = ["https://oms.voidvortextech.com"];
+const allowedOrigins = ["https://oms.voidvortextech.com","https://voidvortextech.com"];
 
 app.use(
   cors({
@@ -88,6 +90,7 @@ app.use("/product", tenent_middleware, product);
 app.use("/location", tenent_middleware, Location);
 app.use("/payment", tenent_middleware, payment);
 app.use("/saleman-notes", tenent_middleware, salesman_notes);
+app.use('/api',limiter, sendScheduleEmails);
 app.use("/email", email);
 
 // ====== Test Route ======
