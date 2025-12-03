@@ -1,9 +1,11 @@
 // Import email service
 const nodemailer = require('nodemailer');
 const router = require('express').Router();
+const manualLog = require("../utils/manuallogger");
 
 // Schedule call endpoint - Everything in one function
 router.post('/schedule-call', async (req, res) => {
+  manualLog('Received schedule-call request', req.body);
   try {
     const mailInfo = req.body;
     console.log('Received:', mailInfo);
@@ -16,7 +18,7 @@ router.post('/schedule-call', async (req, res) => {
         message: 'Missing required fields' 
       });
     }
-
+    manualLog('All required fields present');
     // Create transporter
     const transporter = nodemailer.createTransport({
       host: process.env.VVT_SMTP_HOST,
@@ -27,6 +29,7 @@ router.post('/schedule-call', async (req, res) => {
         pass: process.env.VVT_EMAIL_PASSWORD,
       },
     });
+    manualLog('Email transporter created');
 
     // Format the date nicely
     const date = new Date(mailInfo.selectedDate);
@@ -36,6 +39,7 @@ router.post('/schedule-call', async (req, res) => {
       month: 'long',
       day: 'numeric'
     });
+    manualLog('Formatted date:', formattedDate);
 
     // Company Email HTML
     const companyEmailHTML = `
@@ -290,7 +294,7 @@ router.post('/schedule-call', async (req, res) => {
       html: companyEmailHTML,
       text: `New call scheduled with ${mailInfo.userName} on ${formattedDate} at ${mailInfo.selectedTime}. Contact: ${mailInfo.userEmail}, ${mailInfo.userPhone}`,
     };
-
+    manualLog('Company mail options prepared');
     // User email options
     const userMailOptions = {
       from: `"Void Vortex Tech" <${process.env.VVT_EMAIL_USER}>`,
@@ -302,12 +306,15 @@ router.post('/schedule-call', async (req, res) => {
 
     // Send both emails
     console.log('Sending emails...');
+    manualLog('senfing mails now');
     
     const companyEmailResult = await transporter.sendMail(companyMailOptions);
     console.log('Company email sent:', companyEmailResult.messageId);
+    manualLog('Company email sent:', companyEmailResult.messageId);
     
     const userEmailResult = await transporter.sendMail(userMailOptions);
     console.log('User email sent:', userEmailResult.messageId);
+    manualLog('User email sent:', userEmailResult.messageId);
 
     // Send success response
     res.json({ 
@@ -318,6 +325,7 @@ router.post('/schedule-call', async (req, res) => {
     });
 
   } catch (error) {
+    manualLog('Error occurred:', error);
     console.error('Error:', error);
     res.status(500).json({ 
       success: false, 
