@@ -90,7 +90,7 @@ app.use("/product", tenent_middleware, product);
 app.use("/location", tenent_middleware, Location);
 app.use("/payment", tenent_middleware, payment);
 app.use("/saleman-notes", tenent_middleware, salesman_notes);
-app.use('/api',limiter, sendScheduleEmails);
+app.use('/api', sendScheduleEmails);
 app.use("/email", email);
 
 // ====== Test Route ======
