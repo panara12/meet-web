@@ -27,7 +27,7 @@ const limiter = require("./middleware/ratelimit");
 const app = express();
 app.set('trust proxy', 1);
 // ====== CORS ======
-const allowedOrigins = ["https://oms.voidvortextech.com","https://voidvortextech.com"];
+const allowedOrigins = ["https://oms.voidvortextech.com","https://voidvortextech.com","https://www.voidvortextech.com"];
 
 app.use(
   cors({
