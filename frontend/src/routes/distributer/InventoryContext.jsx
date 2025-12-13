@@ -3,28 +3,21 @@ import { useDeleteProduct } from "../../hooks/product/useDeleteProduct";
 import { useUpdateProduct } from "../../hooks/product/useUpdateProduct";
 import { useAddProduct } from "../../hooks/product/useAddProduct";
 import { useGetAllProduct, useGetAllProductCountByCompany } from "../../hooks/product/useGetAllProduct";
+import { useAddCategory } from "../../hooks/category/useAddCategory";
+import { useGetAllCategory } from "../../hooks/category/useGetAllCategory";
+import { useDeleteCategory } from "../../hooks/category/useDeleteCategory";
+import { useUpdateCategory } from "../../hooks/category/useUpdateCategory";
 
 const InventoryContext = createContext(undefined);
 
-// Sample categories
-const categories = [
-  "Electronics",
-  "Clothing",
-  "Home & Garden",
-  "Books",
-  "Sports & Outdoors",
-  "Health & Beauty",
-  "Automotive",
-  "Toys & Games",
-  "Food & Beverages",
-  "Office Supplies",
-];
-
 // Initial mock data
+let categories = [];
 const initialProducts = [];
 
 export function InventoryProvider({ children }) {
+  const [category,setCategories] = useState();
   const [products, setProducts] = useState(initialProducts);
+  const {data:categoriesAll,isPending:iscategoriesAllPending,isError:isErrorAllCategories,error:errorAllCategories} = useGetAllCategory()
   const { 
   data: getProductList, 
   isPending: productListPending, 
@@ -34,11 +27,15 @@ export function InventoryProvider({ children }) {
 
 useEffect(() => {
   if (getProductList?.product) {
-    console.log("Fetched Product List:", getProductList);
+    // console.log("Fetched Product List:", getProductList);
     setProducts(getProductList.product);
+    setCategories(categoriesAll)
+    categories = categoriesAll.category
   }
 }, [getProductList]);
-console.log("Fetched Products:", getProductList);
+// console.log("Fetched Products:", getProductList);
+//     console.log("Fetched category List:", categoriesAll);
+
 
 
 const { 
@@ -49,6 +46,27 @@ const {
 } = useGetAllProductCountByCompany();
 
 
+
+const { 
+  mutate: addCtegory, 
+  isPending: isaddCtegoryPending, 
+  isError: isaddCtegoryError, 
+  error: addCtegoryError 
+} = useAddCategory({});
+
+const { 
+  mutate: updateCategoryFn, 
+  isPending: isupdateCategoryPending, 
+  isError: isupdateCategoryError, 
+  error: updateCategoryError 
+} = useUpdateCategory({});
+
+const { 
+  mutate: deleteCategoryFn, 
+  isPending: isDeleteCategoryFnPending, 
+  isError: isDeleteCategoryFnError, 
+  error: deleteCategoryFnError 
+} = useDeleteCategory({});
 
 const { 
   mutate: addProductFn, 
@@ -71,13 +89,27 @@ const {
   error: deleteProductFnError 
 } = useDeleteProduct({});
 
+  const addCategory = (formDataToSend) => {
+    addCtegory(formDataToSend)
+  };
+
+  const updateCategory = ({id, formDataToSend}) => {
+    // console.log("Calling updateCategoryFn with:", {id, formDataToSend});
+    updateCategoryFn({id, formDataToSend})
+    return true;
+  };
+
+  const deleteCategory = (id) => {
+    deleteCategoryFn({id})
+    return true;
+  };
 
   const addProduct = (formDataToSend) => {
     addProductFn(formDataToSend)
   };
 
   const updateProduct = ({id, formDataToSend}) => {
-    console.log("Calling updateProductFn with:", {id, formDataToSend});
+    // console.log("Calling updateProductFn with:", {id, formDataToSend});
     updateProductFn({id, formDataToSend})
     return true;
   };
@@ -123,7 +155,7 @@ const {
       outOfStockProducts: 0,
       totalValue: 0,
       activeProducts: 0,
-      categories: {},
+      categories: categories,
     };
 
     products.forEach((product) => {
@@ -142,9 +174,6 @@ const {
         stats.activeProducts++;
       }
 
-      // Categories
-      stats.categories[product.category] =
-        (stats.categories[product.category] || 0) + 1;
     });
 
     return stats;
@@ -183,6 +212,9 @@ const {
     <InventoryContext.Provider
       value={{
         products,
+        addCategory,
+        updateCategory,
+        deleteCategory,
         addProduct,
         updateProduct,
         deleteProduct,

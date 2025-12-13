@@ -22,7 +22,6 @@ router.post(
         name,
         description,
         category,
-        subcategory,
         brand,
         companyId,
         color,
@@ -63,11 +62,11 @@ router.post(
       }
 
       // ✅ Handle tags
-      const tagsArray = Array.isArray(tags)
-        ? tags
-        : tags
-        ? tags.split(',').map((t) => t.trim()).filter(Boolean)
-        : [];
+      // const tagsArray = Array.isArray(tags)
+      //   ? tags
+      //   : tags
+      //   ? tags.split(',').map((t) => t.trim()).filter(Boolean)
+      //   : [];
 
       // ✅ Handle dimensions
       const dimensionsObj =
@@ -81,14 +80,13 @@ router.post(
         name,
         description: description || null,
         category: category || null,
-        subcategory: subcategory || null,
         brand,
         companyId,
         color,
         price,
         lowStockThreshold: lowStockThreshold ? parseInt(lowStockThreshold) : null,
         status: status || 'active',
-        tags: tagsArray.join(','), // stored as comma string
+        tags: tags, // stored as comma string
         supplier,
         barcode: barcode || null,
         images: imageDocs,
@@ -475,5 +473,6 @@ router.put(
     }
   }
 );
+
 
 module.exports = router;

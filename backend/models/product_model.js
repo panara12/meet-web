@@ -38,13 +38,8 @@ const productSchema = new mongoose.Schema(
 
     // Category – can be null (was required before)
     category: {
-      type: String,
-      default: null,
-    },
-
-    // Subcategory – new optional field
-    subcategory: {
-      type: String,
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'ProductCategory',
       default: null,
     },
 
@@ -142,4 +137,6 @@ const productSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-module.exports = productSchema;
+
+
+module.exports = { productSchema };

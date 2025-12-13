@@ -44,6 +44,9 @@ const digital_ocean_url = import.meta.env.VITE_DIGITAL_OCEAN_URL;
 function Inventory() {
   const { 
     products, 
+    addCategory,
+    udpateCategory,
+    deleteCategory,
     addProduct, 
     updateProduct, 
     deleteProduct, 
@@ -52,7 +55,7 @@ function Inventory() {
     getLowStockProducts,
     getOutOfStockProducts
   } = useInventory()
-  console.log("products", products)
+  // console.log("products", products)
   const { companies, incrementProductsCount, decrementProductsCount } = useCompany()
   
   const [searchTerm, setSearchTerm] = useState("")
@@ -71,13 +74,20 @@ function Inventory() {
   const [showProductDialog, setShowProductDialog] = useState(false)
   const [selectedProduct, setSelectedProduct] = useState(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [previewUrls,setPreviewUrls] = useState([])
+
+  const [showAddCategoryDialog, setShowAddCategoryDialog] = useState(false)
+  const [showEditCategoryDialog, setShowEditCategoryDialog] = useState(false)
+  const [showDeleteCategoryDialog, setShowDeleteCategoryDialog] = useState(false)
+  const [showCategoryDialog, setShowCategoryDialog] = useState(false)
+  const [selectedDiaCategory, setSelectedDiaCategory] = useState(null)
+  const [isSubmittingCategory, setIsSubmittingCategory] = useState(false)
 
   // Form states
   const [formData, setFormData] = useState({
     name: "",
   description: "",
   category: "",
-  subcategory: "",
   brand: "",
   companyId: "",
   sizes: [],        // still useful for generating SKUs
@@ -111,12 +121,33 @@ function Inventory() {
     }
   ]
   })
+
+  const [categoryFormData, setCategoryFormData] = useState({
+    name:"",
+    lgst:"",
+    sgst:"",
+    cgst:"",
+    other:""
+  })
   
   const [dragActive, setDragActive] = useState(false)
 
   const stats = getInventoryStats()
   const lowStockProducts = getLowStockProducts()
   const outOfStockProducts = getOutOfStockProducts()
+
+  //preview url for the inputed imgs
+  const handleImageChange = (e) => {
+  const files = e.target.files;
+
+  if (!files) return;
+
+  const urls = Array.from(files).map((file) =>
+    URL.createObjectURL(file)
+  );
+
+  setPreviewUrls(urls);
+};
 
   // Filter and sort products
   const filteredAndSortedProducts = useMemo(() => {
@@ -167,12 +198,21 @@ function Inventory() {
     return filtered
   }, [products, searchTerm, selectedCategory, selectedCompany, selectedStatus, sortField, sortOrder])
 
+  const resetCategoryForm = ()=>{
+    setCategoryFormData({
+      name:"",
+      lgst:"",
+      sgst:"",
+      cgst:"",
+      other:""
+    })
+  }
+
   const resetForm = () => {
     setFormData({
       name: "",
       description: "",
       category: "",
-      subcategory: "",
       brand: "",
       companyId: "",
       price:'',
@@ -198,6 +238,33 @@ function Inventory() {
     })
   }
 
+  const handleAddCategory = async () =>{
+    if(!categoryFormData.name.trim()) {
+      toast.error("Please fill in required fields")
+      return
+    }
+    setIsSubmitting(true)
+     try {
+
+      const categoryFormDataToSend = new FormData();
+      categoryFormDataToSend.append("name", categoryFormData.name);
+      categoryFormDataToSend.append("lgst", categoryFormData.lgst);
+      categoryFormDataToSend.append("sgst", categoryFormData.sgst);
+      categoryFormDataToSend.append("cgst", categoryFormData.cgst);
+      categoryFormDataToSend.append("other", categoryFormData.other);
+
+      // console.log('adding category', categoryFormDataToSend)
+
+      addCategory(categoryFormDataToSend)
+      resetCategoryForm()
+      setShowAddCategoryDialog(false)
+    } catch (error) {
+      toast.error("Failed to add category")
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
   const handleAddProduct = async () => {
     if (!formData.name.trim() || !formData.category || !formData.companyId) {
       toast.error("Please fill in required fields")
@@ -216,7 +283,6 @@ function Inventory() {
       formDataToSend.append("name", formData.name);
       formDataToSend.append("description", formData.description);
       formDataToSend.append("category", formData.category);
-      formDataToSend.append("subcategory", formData.subcategory);
       formDataToSend.append("brand", formData.brand || company.name);
       formDataToSend.append("companyId", formData.companyId);
       formDataToSend.append("companyName", company.name);
@@ -249,7 +315,6 @@ function Inventory() {
         name: formData.name,
         description: formData.description,
         category: formData.category,
-        subcategory: formData.subcategory,
         brand: formData.brand || company.name,
         size:formData.size||'',
         color:formData.color||'',
@@ -276,7 +341,7 @@ function Inventory() {
         barcode: formData.barcode
       }
 
-      console.log('adding product', productData)
+      // console.log('adding product', productData)
 
       addProduct(productData)
       incrementProductsCount(formData.companyId)
@@ -285,6 +350,35 @@ function Inventory() {
       setShowAddDialog(false)
     } catch (error) {
       toast.error("Failed to add product")
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  const handleEditCategory = async () =>{
+    if(!categoryFormData.name.trim()) {
+      toast.error("Please enter a category name")
+      return
+    }
+
+    setIsSubmitting(true)
+    try {
+      const categoryData = {
+        name: categoryFormData.name,
+        lgst: categoryFormData.lgst,
+        sgst: categoryFormData.sgst,
+        cgst: categoryFormData.cgst,
+        other: categoryFormData.other
+      }
+
+      // console.log("Updating category:", categoryData)
+      updateCategory({id: selectedCategory._id, categoryData})
+      toast.success(`Category "${categoryFormData.name}" updated successfully`)
+      setShowEditCategoryDialog(false)
+      setSelectedCategory(null)
+      resetCategoryForm()
+    } catch (error) {
+      toast.error("Failed to update category")
     } finally {
       setIsSubmitting(false)
     }
@@ -307,7 +401,6 @@ function Inventory() {
       formDataToSend.append("name", formData.name);
       formDataToSend.append("description", formData.description);
       formDataToSend.append("category", formData.category);
-      formDataToSend.append("subcategory", formData.subcategory);
       formDataToSend.append("brand", formData.brand || company.name);
       formDataToSend.append("companyId", formData.companyId);
       formDataToSend.append("companyName", company.name);
@@ -335,7 +428,7 @@ function Inventory() {
         }
       });
 
-      console.log("Updating product:", formDataToSend)
+      // console.log("Updating product:", formDataToSend)
       updateProduct({id: selectedProduct._id, formDataToSend})
       toast.success(`Product "${formData.name}" updated successfully`)
       setShowEditDialog(false)
@@ -343,6 +436,22 @@ function Inventory() {
       resetForm()
     } catch (error) {
       toast.error("Failed to update product")
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  const handleDeleteCategory = async ()=>{
+    if (!selectedCategory) return
+
+    setIsSubmitting(true)
+    try {
+      deleteCategory(selectedCategory._id)
+      toast.success(`Category "${selectedCategory.name}" deleted successfully`)
+      setShowDeleteCategoryDialog(false)
+      setSelectedCategory(null)
+    } catch (error) {
+      toast.error("Failed to delete category")
     } finally {
       setIsSubmitting(false)
     }
@@ -365,13 +474,24 @@ function Inventory() {
     }
   }
 
+  const openCategoryEditDialog = (category)=>{
+    setSelectedCategory(category)
+    setCategoryFormData({
+      name:category.name,
+      lgst:category.lgst,
+      sgst:category.sgst,
+      cgst:category.cgst,
+      other:category.other
+    })
+    setShowEditCategoryDialog(true)
+  }
+
   const openEditDialog = (product) => {
     setSelectedProduct(product)
     setFormData({
       name: product.name,
       description: product.description,
       category: product.category,
-      subcategory: product.subcategory || "",
       brand: product.brand,
       companyId: product.companyId,
       color:product.color||'',
@@ -402,6 +522,15 @@ function Inventory() {
     setShowDeleteDialog(true)
   }
 
+  const openCategoryDeleteDialog = (category) => {
+    setSelectedCategory(category)
+    setShowDeleteCategoryDialog(true)
+  }
+  const openCategoryDialog = (category) => {
+    setSelectedCategory(category)
+    setShowCategoryDialog(true)
+  }
+
   const openProductDialog = (product) => {
     setSelectedProduct(product)
     setShowProductDialog(true)
@@ -423,6 +552,15 @@ function Inventory() {
   // Photo upload handlers
   const handleFileSelect = (event) => {
     const files = event.target.files
+
+    if (!files) return;
+
+    const urls = Array.from(files).map((file) =>
+      URL.createObjectURL(file)
+    );
+
+    setPreviewUrls(urls);
+    
     if (files) {
       handleFiles(Array.from(files))
     }
@@ -436,7 +574,7 @@ function Inventory() {
           toast.error(`Image ${file.name} is too large. Maximum size is 5MB.`)
           return
         }
-        console.log('file data', file)
+        // console.log('file data', file)
         setFormData(prev => ({
           ...prev,
           images: [...prev.images, file]
@@ -445,7 +583,7 @@ function Inventory() {
         toast.error(`File ${file.name} is not a valid image format.`)
       }
     })
-        console.log('form img data',formData.images)
+        // console.log('form img data',formData.images)
   }
 
   const handleDrag = (e) => {
@@ -491,6 +629,88 @@ function Inventory() {
             Manage your product catalog with Amazon-style inventory tracking
           </p>
         </div>
+
+        <Dialog open={showAddCategoryDialog} onOpenChange={setShowAddCategoryDialog}>
+          <DialogTrigger asChild>
+            <Button onClick={resetCategoryForm}>
+              <Plus className="h-4 w-4 mr-2" />
+              Add Category
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Add New Category</DialogTitle>
+              <DialogDescription>
+                Create a new category in your inventory
+              </DialogDescription>
+            </DialogHeader>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="name">Category Name *</Label>
+                    <Input
+                      id="name"
+                      value={categoryFormData.name}
+                      onChange={(e) => setCategoryFormData({...categoryFormData, name: e.target.value})}
+                      placeholder="Enter category name"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="localGST">Category Local GST</Label>
+                    <Input
+                      id="localGST"
+                      value={categoryFormData.lgst}
+                      onChange={(e) => setCategoryFormData({...categoryFormData, lgst: e.target.value})}
+                      placeholder="Enter category local GST"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="stateGST">Category State GST</Label>
+                    <Input
+                      id="stateGST"
+                      value={categoryFormData.sgst}
+                      onChange={(e) => setCategoryFormData({...categoryFormData, sgst: e.target.value})}
+                      placeholder="Enter category state GST"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="centerGST">Category Central GST</Label>
+                    <Input
+                      id="centerGST"
+                      value={categoryFormData.cgst}
+                      onChange={(e) => setCategoryFormData({...categoryFormData, cgst: e.target.value})}
+                      placeholder="Enter category central GST"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="otherDetails">Other details</Label>
+                    <Input
+                      id="otherDetails"
+                      value={categoryFormData.other}
+                      onChange={(e) => setCategoryFormData({...categoryFormData, other: e.target.value})}
+                      placeholder="Enter other details"
+                    />
+                  </div>
+          </div>
+          <div className="flex gap-2 pt-4">
+              <Button onClick={handleAddCategory} disabled={isSubmitting} className="flex-1">
+                {isSubmitting ? (
+                  <>
+                    <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                    Adding...
+                  </>
+                ) : (
+                  <>
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add Category
+                  </>
+                )}
+              </Button>
+              <Button variant="outline" onClick={() => setShowAddCategoryDialog(false)} disabled={isSubmitting}>
+                Cancel
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
 
         <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
           <DialogTrigger asChild>
@@ -549,21 +769,12 @@ function Inventory() {
                       </SelectTrigger>
                       <SelectContent>
                         {categories.map(category => (
-                          <SelectItem key={category} value={category}>{category}</SelectItem>
+                          <SelectItem key={category._id} value={category.name}>{category.name}</SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
                   </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="subcategory">Subcategory</Label>
-                    <Input
-                      id="subcategory"
-                      value={formData.subcategory}
-                      onChange={(e) => setFormData({...formData, subcategory: e.target.value})}
-                      placeholder="e.g., Smartphones, T-Shirts"
-                    />
-                  </div>
 
                   <div className="space-y-2">
                     <Label htmlFor="brand">Brand</Label>
@@ -1044,10 +1255,11 @@ function Inventory() {
                     <div className="space-y-3">
                       <Label className="text-responsive-sm">Uploaded Photos ({formData.images.length}/5)</Label>
                       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+                        {console.log(formData.images)}
                         {formData.images.map((image, index) => (
                           <div key={index} className="relative group aspect-square">
                             <img
-                              src={image}
+                              src={previewUrls[index]}
                               name="images"
                               alt={`Product photo ${index + 1}`}
                               className="w-full h-full object-cover rounded-lg border bg-muted"
@@ -1174,7 +1386,7 @@ function Inventory() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{Object.keys(stats.categories).length}</div>
+            <div className="text-2xl font-bold">{categories.length || 0}</div>
             <p className="text-xs text-muted-foreground">
               Product categories
             </p>
@@ -1202,7 +1414,7 @@ function Inventory() {
             <SelectContent>
               <SelectItem value="all">All Categories</SelectItem>
               {categories.map(category => (
-                <SelectItem key={category} value={category}>{category}</SelectItem>
+                <SelectItem key={category._id} value={category.name}>{category.name}</SelectItem>
               ))}
             </SelectContent>
           </Select>
@@ -1598,21 +1810,12 @@ function Inventory() {
                     </SelectTrigger>
                     <SelectContent>
                       {categories.map(category => (
-                        <SelectItem key={category} value={category}>{category}</SelectItem>
+                        <SelectItem key={category._id} value={category.name}>{category.name}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                 </div>
 
-                <div className="space-y-2">
-                    <Label htmlFor="editSubcategory">Subcategory</Label>
-                    <Input
-                      id="editSubcategory"
-                      value={formData.subcategory}
-                      onChange={(e) => setFormData({...formData, subcategory: e.target.value})}
-                      placeholder="e.g., Smartphones, T-Shirts"
-                    />
-                  </div>
 
                   <div className="space-y-2">
                     <Label htmlFor="editBrand">Brand</Label>
@@ -2094,34 +2297,40 @@ function Inventory() {
                   <div className="space-y-3">
                     <Label className="text-responsive-sm">Uploaded Photos ({formData.images.length}/5)</Label>
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
-                      {formData.images.map((image, index) => (
-                        <div key={index} className="relative group aspect-square">
-                          <img
-                            src={digital_ocean_url+image.url}
-                            name="images"
-                            alt={`Product photo ${index + 1}`}
-                            className="w-full h-full object-cover rounded-lg border bg-muted"
-                          />
-                          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-all rounded-lg flex items-center justify-center">
-                            <Button
-                              type="button"
-                              variant="destructive"
-                              size="sm"
-                              className="h-8 w-8 p-0"
-                              onClick={() => removeImage(index)}
-                            >
-                              <XIcon className="h-4 w-4" />
-                            </Button>
-                          </div>
-                          {index === 0 && (
-                            <div className="absolute -top-2 -left-2">
-                              <Badge variant="secondary" className="text-xs px-2 py-1">
-                                Main
-                              </Badge>
+                      {
+                        formData.images.map((image, index) => (
+                          <div key={index} className="relative group aspect-square">
+
+                            <img
+                              src={
+                                image instanceof File
+                                  ? URL.createObjectURL(image)              // new upload preview
+                                  : digital_ocean_url + image.url           // old image
+                              }
+                              alt={`Product ${index}`}
+                              className="w-full h-full object-cover rounded-lg border"
+                            />
+
+                            {/* Delete button */}
+                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-all rounded-lg flex items-center justify-center">
+                              <Button
+                                type="button"
+                                variant="destructive"
+                                size="sm"
+                                onClick={() => removeImage(index)}
+                              >
+                                <XIcon className="h-4 w-4" />
+                              </Button>
                             </div>
-                          )}
-                        </div>
-                      ))}
+
+                            {index === 0 && (
+                              <div className="absolute -top-2 -left-2">
+                                <Badge variant="secondary" className="text-xs px-2 py-1">Main</Badge>
+                              </div>
+                            )}
+                          </div>
+                        ))
+                      }
                     </div>
                     <p className="text-responsive-xs text-muted-foreground">
                       First image will be used as the main product photo.
