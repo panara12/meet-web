@@ -8,6 +8,7 @@ const tenent_middleware = require("./middleware/tenent_middleware");
 const getTenentList = require("./utils/tenentgeter");
 const seller = require("./routes/seller");
 const product = require("./routes/product");
+const product_category = require("./routes/product_category");
 const auth = require("./routes/auth");
 const user_routes = require("./routes/user_routes");
 const salesman_notes = require("./routes/salesman_notes_routes");
