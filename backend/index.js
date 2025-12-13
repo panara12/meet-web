@@ -88,6 +88,7 @@ app.use("/seller", tenent_middleware, seller);
 app.use("/order", tenent_middleware, order);
 app.use("/user", tenent_middleware, user_routes);
 app.use("/product", tenent_middleware, product);
+app.use("/product-category", tenent_middleware, product_category);
 app.use("/location", tenent_middleware, Location);
 app.use("/product-category", tenent_middleware, product_category);
 app.use("/payment", tenent_middleware, payment);
