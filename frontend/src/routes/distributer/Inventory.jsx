@@ -341,7 +341,7 @@ function Inventory() {
         barcode: formData.barcode
       }
 
-      // console.log('adding product', productData)
+      console.log('adding product', productData)
 
       addProduct(productData)
       incrementProductsCount(formData.companyId)
@@ -1987,7 +1987,6 @@ function Inventory() {
                   </Button>
 
                   {/* SKU List */}
-                  {console.log("sku data onyl edit".formData)}
                   {formData.skus && formData.skus.length > 0 && (
                     <div className="space-y-4">
                       {formData.skus.map((sku, index) => (

@@ -4,6 +4,7 @@ const path = require('path');
 const user_session_checker = require('../middleware/user_session');
 const { uploadFileToDO } = require("../utils/digitalocean");
 const {upload,multerErrorHandler} = require('../middleware/multer');
+const mongoose = require('mongoose');
 
 const router = express.Router();
 
@@ -11,38 +12,34 @@ const router = express.Router();
 router.post(
   '/addproduct',
   user_session_checker('add_product'),
-  upload.array('images[]', 5), // up to 5 product images
+  upload.array('images[]', 5),
   multerErrorHandler,
   async (req, res) => {
     manualLog('entered add products route');
     console.log('file data', req.files);
     console.log('req body data', req.body);
+    
     try {
-      const {
-        name,
-        description,
-        category,
-        brand,
-        companyId,
-        color,
-        price,
-        costPrice,
-        stockQuantity,
-        lowStockThreshold,
-        status,
-        tags,
-        supplier,
-        barcode,
-        dimensions,
-        skus,
-      } = req.body;
+      // ✅ Extract all fields from req.body
+      const name = req.body.name;
+      const description = req.body.description;
+      const category = req.body.category;
+      const brand = req.body.brand;
+      const companyId = req.body.companyId;
+      const color = req.body.color;
+      const price = req.body.price;
+      const lowStockThreshold = req.body.lowStockThreshold;
+      const status = req.body.status;
+      const tags = req.body.tags;
+      const supplier = req.body.supplier;
+      const barcode = req.body.barcode;
+      const dimensions = req.body.dimensions;
+      const skus = req.body.skus;
 
       const tenent_username = req.tenent.D_dbname;
       const folderPath = `${tenent_username}/products`;
 
-      
-
-      // ✅ File upload to DigitalOcean (same logic as user upload)
+      // ✅ File upload to DigitalOcean
       let imageDocs = [];
       if (req.files && req.files.length > 0) {
         const res_DO = await Promise.all(
@@ -56,60 +53,148 @@ router.post(
         console.log("digital ocean response", res_DO);
         imageDocs = res_DO.map((file) => ({
           url: file.url,
-          doc_name: file.name, // keeping same structure as user upload
+          doc_name: file.name,
         }));
         console.log("imageDocs", imageDocs);
       }
 
-      // ✅ Handle tags
-      // const tagsArray = Array.isArray(tags)
-      //   ? tags
-      //   : tags
-      //   ? tags.split(',').map((t) => t.trim()).filter(Boolean)
-      //   : [];
+      // ✅ Validate images
+      if (imageDocs.length === 0) {
+        return res.status(400).json({
+          message: 'At least one product image is required',
+        });
+      }
 
-      // ✅ Handle dimensions
-      const dimensionsObj =
-        typeof dimensions === 'string' ? JSON.parse(dimensions) : dimensions || {};
+      // ✅ Handle dimensions - convert [Object: null prototype] to plain object
+      let dimensionsObj = {
+        length: null,
+        width: null,
+        height: null,
+        weight: null,
+        unit: 'cm',
+        weightUnit: 'kg'
+      };
 
-      // ✅ Handle SKUs
-      const skusArray = Array.isArray(skus) ? skus : [];
+      if (dimensions) {
+        if (typeof dimensions === 'string') {
+          dimensionsObj = JSON.parse(dimensions);
+        } else if (typeof dimensions === 'object') {
+          dimensionsObj = {
+            length: dimensions.length || null,
+            width: dimensions.width || null,
+            height: dimensions.height || null,
+            weight: dimensions.weight || null,
+            unit: dimensions.unit || 'cm',
+            weightUnit: dimensions.weightUnit || 'kg',
+          };
+        }
+      }
 
-      const Product = req.db.model('Product');
-      const new_product = new Product({
-        name,
+      console.log('Processed dimensions:', dimensionsObj);
+
+      // ✅ Handle SKUs - convert [Object: null prototype] to plain array
+      let skusArray = [];
+      
+      if (skus) {
+        if (typeof skus === 'string') {
+          skusArray = JSON.parse(skus);
+        } else if (Array.isArray(skus)) {
+          skusArray = skus.map(sku => ({
+            sku: sku.sku || '',
+            color: sku.color || null,
+            size: sku.size || null,
+            price: sku.price || null,
+            costPrice: sku.costPrice || null,
+            stockQuantity: sku.stockQuantity || null,
+            barcode: sku.barcode || null,
+          }));
+        }
+      }
+
+      console.log('Processed SKUs:', skusArray);
+
+      // ✅ Convert companyId to ObjectId
+      let companyObjectId = null;
+      if (companyId && mongoose.Types.ObjectId.isValid(companyId)) {
+        companyObjectId = new mongoose.Types.ObjectId(companyId);
+      } else {
+        return res.status(400).json({
+          message: 'Valid Company ID is required',
+        });
+      }
+
+      // ✅ Create product object with all fields
+      // const Product = req.db.model('Product');
+      // console.log('Creating new product with data:',Product);
+      // Force register
+  let Product;
+  try {
+    Product = req.db.model('Product');
+  } catch (e) {
+    Product = req.db.model('Product', productSchema);
+  }
+  
+  // console.log('✅ Model registered!');
+  // console.log('Fields:', Object.keys(Product.schema.paths));
+  // console.log('Has "name"?', Product.schema.paths.name ? 'YES' : 'NO');
+  // console.log('Has "brand"?', Product.schema.paths.brand ? 'YES' : 'NO');
+      
+      const productData = {
+        name: name,
         description: description || null,
-        category: category || null,
-        brand,
-        companyId,
-        color,
-        price,
-        lowStockThreshold: lowStockThreshold ? parseInt(lowStockThreshold) : null,
+        category: category,
+        brand: brand,
+        companyId: companyObjectId,
+        color: color || null,
+        price: price || null,
+        lowStockThreshold: lowStockThreshold ? parseInt(lowStockThreshold, 10) : null,
         status: status || 'active',
-        tags: tags, // stored as comma string
-        supplier,
+        tags: tags || null,
+        supplier: supplier,
         barcode: barcode || null,
         images: imageDocs,
         dimensions: dimensionsObj,
         skus: skusArray,
-      });
+      };
+
+      console.log('Product data to save:', JSON.stringify(productData, null, 2));
+
+      const new_product = new Product(productData);
+
+      console.log('New product instance:', new_product);
 
       await new_product.save();
 
+      console.log('Product after save:', new_product);
+
       manualLog(
-        `new product added :: ${new_product._id} by user: ${req.session.user.username}`
+        `new product added :: ${new_product} by user: ${req.session.user.username}`
       );
 
       res.status(200).json({
         message: 'New product added successfully',
         product: new_product,
       });
+
     } catch (error) {
       console.log('Error in add new product:', error);
+      console.log('Error name:', error.name);
+      console.log('Error stack:', error.stack);
+      
+      if (error.name === 'ValidationError') {
+        const messages = Object.values(error.errors).map(err => err.message);
+        return res.status(400).json({
+          message: 'Validation error',
+          errors: messages,
+          details: error.errors
+        });
+      }
+
       manualLog(`Error in add new product :: ${JSON.stringify(error)}`);
       res.status(500).json({
         message: 'There was an error adding the product',
         error: error.message,
+        stack: error.stack
       });
     }
   }

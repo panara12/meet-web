@@ -5,6 +5,10 @@ const imageSchema = new mongoose.Schema({
   url: {
     type: String,
     required: [true, 'Please enter image URL'],
+  },
+  doc_name: {
+    type: String,
+    default: null,
   }
 });
 
@@ -38,9 +42,8 @@ const productSchema = new mongoose.Schema(
 
     // Category – can be null (was required before)
     category: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'ProductCategory',
-      default: null,
+      type: String,
+      required: [true, 'Brand name is required'],
     },
 
     // Brand name – string and required
@@ -139,4 +142,4 @@ const productSchema = new mongoose.Schema(
 
 
 
-module.exports = { productSchema };
+module.exports =  productSchema;
