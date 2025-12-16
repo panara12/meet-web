@@ -411,9 +411,6 @@ router.delete(
       if (!deleted_product)
         return res.status(404).json({ message: 'Product not found' });
 
-      const removed_imgs = deleted_product.images.map((img) => img.public_id);
-      await cloudinary_delete(removed_imgs);
-
       res.status(200).json({
         message: 'product deleted',
         product: deleted_product,

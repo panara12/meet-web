@@ -1,12 +1,14 @@
-import { useQuery } from '@tanstack/react-query'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import productServices from '../../services/productService'
 
 export function useDeleteProduct() {
-  return useQuery({
-    queryKey:["AllProducts"],
-    queryFn:()=>productServices.deleteProduct(),
-    onSuccess:(res)=>{
-        return res.data;
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: productServices.deleteProduct,
+    onSuccess: (res) => {
+        console.log(res);
+        queryClient.invalidateQueries(['AllProducts']); 
     }
-  })
+  });
 }

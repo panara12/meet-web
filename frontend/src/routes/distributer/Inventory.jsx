@@ -459,11 +459,12 @@ function Inventory() {
 
   const handleDeleteProduct = async () => {
     if (!selectedProduct) return
+    console.log('deleting product',selectedProduct)
 
     setIsSubmitting(true)
     try {
-      deleteProduct(selectedproduct._id)
-      decrementProductsCount(selectedProduct.companyId)
+      await deleteProduct(selectedProduct._id)
+      await decrementProductsCount(selectedProduct.companyId)
       toast.success(`Product "${selectedProduct.name}" deleted successfully`)
       setShowDeleteDialog(false)
       setSelectedProduct(null)
