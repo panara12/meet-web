@@ -1,12 +1,14 @@
-import { useQuery } from '@tanstack/react-query'
+import { useQueryClient,useMutation } from '@tanstack/react-query'
 import categoryServices from '../../services/categoryService'
 
 export function useDeleteCategory() {
-  return useQuery({
-    queryKey:["AllCategories"],
-    queryFn:()=>categoryServices.deleteCategory(),
-    onSuccess:(res)=>{
-        return res.data;
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: categoryServices.deleteCategory,
+    onSuccess: (res) => {
+        console.log(res);
+        queryClient.invalidateQueries(['AllCategories']); 
     }
-  })
+  });
 }

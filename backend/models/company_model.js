@@ -60,7 +60,7 @@ const companySchema = new mongoose.Schema(
       accountHolderName: { type: String, default: "" },
       accountType: {
         type: String,
-        enum: ["current", "savings"],
+        enum: ["current", "savings","Cash Credit","Overdraft"],
         default: "current"
       },
       swiftCode: { type: String, default: "" }

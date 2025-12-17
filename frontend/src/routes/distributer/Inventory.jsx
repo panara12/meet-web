@@ -138,16 +138,22 @@ function Inventory() {
 
   //preview url for the inputed imgs
   const handleImageChange = (e) => {
-  const files = e.target.files;
+    const files = e.target.files;
 
-  if (!files) return;
+    if (!files) return;
 
-  const urls = Array.from(files).map((file) =>
-    URL.createObjectURL(file)
-  );
+    const urls = Array.from(files).map((file) =>
+      URL.createObjectURL(file)
+    );
 
-  setPreviewUrls(urls);
-};
+    setPreviewUrls((prevUrls) => {
+      if (prevUrls && prevUrls.length > 0) {
+        return [...prevUrls, ...urls];
+      } else {
+        return urls;
+      }
+    });
+  };
 
   // Filter and sort products
   const filteredAndSortedProducts = useMemo(() => {
@@ -560,7 +566,13 @@ function Inventory() {
       URL.createObjectURL(file)
     );
 
-    setPreviewUrls(urls);
+    setPreviewUrls((prevUrls) => {
+      if (prevUrls && prevUrls.length > 0) {
+        return [...prevUrls, ...urls];
+      } else {
+        return urls;
+      }
+    });
     
     if (files) {
       handleFiles(Array.from(files))
@@ -1414,7 +1426,7 @@ function Inventory() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Categories</SelectItem>
-              {categories.map(category => (
+              {categories.length>0 && categories.map(category => (
                 <SelectItem key={category._id} value={category.name}>{category.name}</SelectItem>
               ))}
             </SelectContent>

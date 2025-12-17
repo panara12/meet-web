@@ -523,8 +523,8 @@ function Company() {
                       <SelectContent>
                         <SelectItem value="savings">Savings</SelectItem>
                         <SelectItem value="current">Current</SelectItem>
-                        <SelectItem value="cc">Cash Credit</SelectItem>
-                        <SelectItem value="od">Overdraft</SelectItem>
+                        <SelectItem value="Cash Credit">Cash Credit</SelectItem>
+                        <SelectItem value="Overdraft">Overdraft</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>

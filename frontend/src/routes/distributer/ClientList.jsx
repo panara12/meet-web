@@ -84,7 +84,6 @@ function ClientList() {
       setErrorMsg(message);
     }
   });
-  console.log(addSellerError)
   const {mutate:updateSeller, isPending:updateSellerisPending, isError:updateSellerisError, error:updateSellerError} = useUpdateSeller({
     onSuccess: ()=>{
       setIsEditDialogOpen(false);
@@ -205,6 +204,7 @@ function ClientList() {
     //   setIsAddDialogOpen(false);
     //   resetForm();
     // }
+    setIsAddDialogOpen(false);
     toast.success("Client added successfully");
   }, [formData, clients, resetForm]);
 

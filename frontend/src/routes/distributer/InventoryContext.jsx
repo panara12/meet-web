@@ -30,9 +30,9 @@ useEffect(() => {
     // console.log("Fetched Product List:", getProductList);
     setProducts(getProductList.product);
     setCategories(categoriesAll)
-    categories = categoriesAll.category
+    categories = categoriesAll?.category || [];
   }
-}, [getProductList]);
+}, [getProductList, categoriesAll]);
 // console.log("Fetched Products:", getProductList);
 //     console.log("Fetched category List:", categoriesAll);
 
