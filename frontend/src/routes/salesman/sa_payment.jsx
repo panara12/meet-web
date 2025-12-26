@@ -29,6 +29,7 @@ export default function PaymentUpdate() {
 
   useEffect(() => {
     if (getSellerList?.seller?.seller_data) {
+      console.log("seller data",getSellerList)
       setSeller(getSellerList.seller.seller_data);
     }
   }, [getSellerList]);
@@ -41,9 +42,9 @@ export default function PaymentUpdate() {
 
   // Filter clients based on search query
   const filteredClients = seller.filter(client =>
-    client.company_name.toLowerCase().includes(clientSearchQuery.toLowerCase()) ||
-    client.phone_number.toString().includes(clientSearchQuery) ||
-    client.primary_email.toLowerCase().includes(clientSearchQuery)
+    client.name.toLowerCase()?.includes(clientSearchQuery.toLowerCase()) ||
+    client.phone.toString()?.includes(clientSearchQuery) ||
+    client.email.toLowerCase()?.includes(clientSearchQuery)
   );
 
   const handleClientSearchChange = (value) => {
@@ -198,10 +199,10 @@ For any queries regarding this transaction, please contact your distributor’s 
                       >
                         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
                           <div>
-                            <p className="font-medium text-sm text-gray-900">{client.company_name}</p>
-                            <p className="text-xs text-gray-500">{client.phone_number}</p>
+                            <p className="font-medium text-sm text-gray-900">{client.name}</p>
+                            <p className="text-xs text-gray-500">{client.phone}</p>
                           </div>
-                          <p className="text-xs text-gray-500 truncate">{client.primary_email}</p>
+                          <p className="text-xs text-gray-500 truncate">{client.email}</p>
                         </div>
                       </div>
                     ))}

@@ -35,6 +35,8 @@ router.post(
       const barcode = req.body.barcode;
       const dimensions = req.body.dimensions;
       const skus = req.body.skus;
+      const innerPack = req.body.innerPack;
+      const masterPack = req.body.masterPack;
 
       const tenent_username = req.tenent.D_dbname;
       const folderPath = `${tenent_username}/products`;
@@ -152,6 +154,8 @@ router.post(
         tags: tags || null,
         supplier: supplier,
         barcode: barcode || null,
+        innerPack: innerPack || null,
+        masterPack: masterPack || null,
         images: imageDocs,
         dimensions: dimensionsObj,
         skus: skusArray,
@@ -341,7 +345,7 @@ router.get(
     try {
       const { id } = req.params;
       const Product = req.db.model('Product');
-      const product_data = await Product.findById(id);
+      const product_data = await Product.findById(id).populate('companyId');
       if (!product_data) return res.status(404).json({ message: 'Product not found' });
 
       manualLog(`get the product by id :: ${product_data._id}`);
@@ -374,7 +378,7 @@ router.get(
       const product_data = await Product.find()
         .skip(skip)
         .limit(limitNumber)
-        .sort({ createdAt: -1 }); // Sort by newest first
+        .sort({ createdAt: -1 }).populate('companyId'); // Sort by newest first
 
       // Get total count for pagination info
       const totalProducts = await Product.countDocuments();

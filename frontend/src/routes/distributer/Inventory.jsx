@@ -97,6 +97,8 @@ function Inventory() {
   tags: '',
   supplier: "",
   barcode: "",      // optional: global barcode (SKUs have their own barcode too)
+  innerPack:'',
+  masterPack:'',
   images: [],
   dimensions: {
     length: "",
@@ -231,6 +233,8 @@ function Inventory() {
       tags: "",
       supplier: "",
       barcode: "",
+      innerPack:'',
+      masterPack:'',
       images: [],
       dimensions: {
         length: "",
@@ -301,6 +305,8 @@ function Inventory() {
       formDataToSend.append("tags", formData.tags || "");
       formDataToSend.append("supplier", formData.supplier || "");
       formDataToSend.append("barcode", formData.barcode || "");
+      formDataToSend.append("innerPack", formData.innerPack || "");
+      formDataToSend.append("masterPack", formData.masterPack || "");
 
       // ✅ Dimensions and SKUs should be JSON-stringified
       formDataToSend.append("dimensions", JSON.stringify(formData.dimensions));
@@ -344,7 +350,9 @@ function Inventory() {
         skus:formData.skus,
         tags: formData.tags,
         supplier: formData.supplier,
-        barcode: formData.barcode
+        barcode: formData.barcode,
+        innerPack: formData.innerPack || '',
+        masterPack: formData.masterPack || '',
       }
 
       console.log('adding product', productData)
@@ -419,6 +427,8 @@ function Inventory() {
       formDataToSend.append("tags", formData.tags || "");
       formDataToSend.append("supplier", formData.supplier || "");
       formDataToSend.append("barcode", formData.barcode || "");
+      formDataToSend.append("innerPack", formData.innerPack || "");
+      formDataToSend.append("masterPack", formData.masterPack || "");
 
       // ✅ Dimensions and SKUs should be JSON-stringified
       formDataToSend.append("dimensions", JSON.stringify(formData.dimensions));
@@ -510,6 +520,8 @@ function Inventory() {
       tags: product.tags,
       supplier: product.supplier || "",
       barcode: product.barcode || "",
+      innerPack:product.innerPack||'',
+      masterPack:product.masterPack||'',
       images: [...product.images],
       dimensions: {
         length: product.dimensions.length.toString(),
@@ -1210,6 +1222,33 @@ function Inventory() {
                     </div>
                   </div>
                 </div>
+
+                <div className="space-y-4">
+                  <Label>Package</Label>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="innerPack">Inner Pack</Label>
+                      <Input
+                        id="innerPack"
+                        type="text"
+                        value={formData.innerPack}
+                        onChange={(e) => setFormData({...formData, innerPack: e.target.value})}
+                        placeholder="Enter inner pack"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="masterPack">Master Pack</Label>
+                      <Input
+                        id="masterPack"
+                        type="text"
+                        value={formData.masterPack}
+                        onChange={(e) => setFormData({...formData, masterPack: e.target.value})}
+                        placeholder="Enter master pack"
+                      />
+                    </div>
+                  </div>
+                </div>
+
               </TabsContent>
 
               <TabsContent value="images" className="space-y-4">
@@ -2248,6 +2287,32 @@ function Inventory() {
                           <SelectItem value="lb">lb</SelectItem>
                         </SelectContent>
                       </Select>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <Label>Package</Label>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="innerPack">Inner Pack</Label>
+                      <Input
+                        id="innerPack"
+                        type="text"
+                        value={formData.innerPack}
+                        onChange={(e) => setFormData({...formData, innerPack: e.target.value})}
+                        placeholder="Enter inner pack"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="masterPack">Master Pack</Label>
+                      <Input
+                        id="masterPack"
+                        type="text"
+                        value={formData.masterPack}
+                        onChange={(e) => setFormData({...formData, masterPack: e.target.value})}
+                        placeholder="Enter master pack"
+                      />
                     </div>
                   </div>
                 </div>

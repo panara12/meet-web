@@ -29,10 +29,12 @@ import {
 } from 'lucide-react';
 import { useGetAllSeller } from '../../hooks/seller/useGetAllSeller';
 import { useGetAllOrders } from '../../hooks/order/useGetAllOrder';
+import { useGetAllProduct, useGetAllProductCountByCompany } from "../../hooks/product/useGetAllProduct";
 import { useEffect } from 'react';
 import { useSelector } from 'react-redux';
 
-
+//ENV CONFIG
+const digital_ocean_url = import.meta.env.VITE_DIGITAL_OCEAN_URL;
 
 // Mock data
 const mockClients = [
@@ -113,23 +115,51 @@ const mockProducts = [
 ];
 
 // Image fallback component
-const ImageWithFallback = ({ src, alt, className, ...props }) => {
+const ImageWithFallback = ({ src, alt, className, onLoad, onError: customOnError, showLoader = true, ...props }) => {
   const [imgSrc, setImgSrc] = useState(src);
   const [hasError, setHasError] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    setIsLoading(true);
+    setImgSrc(src);
+    setHasError(false);
+  }, [src]);
 
   const handleError = () => {
     setHasError(true);
+    setIsLoading(false);
     setImgSrc('https://via.placeholder.com/400x400?text=No+Image');
+    if (customOnError) customOnError();
+  };
+
+  const handleLoad = () => {
+    setIsLoading(false);
+    if (onLoad) onLoad();
   };
 
   return (
-    <img 
-      src={imgSrc} 
-      alt={alt} 
-      className={className}
-      onError={handleError}
-      {...props} 
-    />
+    <div className="relative w-full h-full">
+      {/* Loading Spinner */}
+      {isLoading && showLoader && (
+        <div className="absolute inset-0 flex items-center justify-center bg-muted/50 backdrop-blur-sm z-10">
+          <div className="flex flex-col items-center gap-2">
+            <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
+            <p className="text-xs text-muted-foreground">Loading...</p>
+          </div>
+        </div>
+      )}
+      
+      {/* Image */}
+      <img 
+        src={digital_ocean_url + imgSrc} 
+        alt={alt} 
+        className={`${className} ${isLoading ? 'opacity-0' : 'opacity-100'} transition-opacity duration-300`}
+        onError={handleError}
+        onLoad={handleLoad}
+        {...props} 
+      />
+    </div>
   );
 };
 
@@ -157,6 +187,14 @@ export default function AddOrder() {
   const [searchQuery, setSearchQuery] = useState("");
   const [filterCompany, setFilterCompany] = useState("");
   const [filterCategory, setFilterCategory] = useState("");
+
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+  const [mainImageLoading, setMainImageLoading] = useState(true);
+  const [thumbnailsLoading, setThumbnailsLoading] = useState({});
+  const [selectedSku, setSelectedSku] = useState(null);
+  const [availableSizes, setAvailableSizes] = useState([]);
+  const [availableColors, setAvailableColors] = useState([]);
+
   const [paymentData, setPaymentData] = useState({
     amount: "",
     type: "",
@@ -165,6 +203,22 @@ export default function AddOrder() {
   const { data: getSellerList, isPending:sellerPending, isError:issellerError, error:sellerError } = useGetAllSeller();
   const { data: getAllOrders, isPending:isAllorderPending, isError:isAllOrderError, error:allOrderError } = useGetAllOrders();
   const [clientsdata,setClientsdata] = useState([]);
+  const { 
+    data: getProductList, 
+    isPending: productListPending, 
+    isError: isProductListError, 
+    error: productListError 
+  } = useGetAllProduct({});
+  const [products, setProducts] = useState([]);
+  
+  useEffect(() => {
+    if (getProductList?.product) {
+      console.log("Fetched Product List:", getProductList);
+      setProducts(getProductList.product);
+    }
+  }, [getProductList]);
+
+
   const [orderCount,setOrderCount] = useState(0);
   useEffect(()=>{
       if (getAllOrders?.count) {
@@ -182,24 +236,29 @@ export default function AddOrder() {
 
 
   // Get unique companies and categories for filter options
-  const companies = [...new Set(mockProducts.map(p => p.company))].sort();
-  const categories = [...new Set(mockProducts.map(p => p.category))].sort();
+  const companies = products
+    .map(p => p.companyId)
+    .filter(
+      (company, index, self) =>
+        index === self.findIndex(c => c._id === company._id)
+    );  
+  const categories = [...new Set(products.map(p => p.category))].sort();
 
   // Filter clients based on search query
   const filteredClients = clientsdata.filter(client => {
-    const searchLower = clientSearchQuery.toLowerCase();
-    return client.company_name.toLowerCase().includes(searchLower) ||
-           client.phone_number.toString().includes(clientSearchQuery) ||
-           client.primary_email.toLowerCase().includes(searchLower);
+    const searchLower = clientSearchQuery?.toLowerCase();
+    return client.name.toLowerCase().includes(searchLower) ||
+           client.phone.toString().includes(clientSearchQuery) ||
+           client.email.toLowerCase().includes(searchLower);
   });
 
   // Filter products based on search and filters
-  const filteredProducts = mockProducts.filter(product => {
+  const filteredProducts = products.filter(product => {
     const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          product.material.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         product.company.toLowerCase().includes(searchQuery.toLowerCase());
+                         product.companyId.toLowerCase().includes(searchQuery.toLowerCase());
     
-    const matchesCompany = !filterCompany || filterCompany === "all-companies" || product.company === filterCompany;
+    const matchesCompany = !filterCompany || filterCompany === "all-companies" || product.companyId.name === filterCompany;
     const matchesCategory = !filterCategory || filterCategory === "all-categories" || product.category === filterCategory;
     
     return matchesSearch && matchesCompany && matchesCategory;
@@ -213,7 +272,7 @@ export default function AddOrder() {
 
   const handleClientSelect = (client) => {
     setSelectedClient(client._id);
-    setClientSearchQuery(client.company_name);
+    setClientSearchQuery(client.name);
     setShowClientDropdown(false);
   };
 
@@ -227,11 +286,71 @@ export default function AddOrder() {
 
   const handleProductSelect = (product) => {
     setSelectedProduct(product);
-    setSelectedColor("");
-    setSelectedSize("");
+    setSelectedImageIndex(0);
+    setMainImageLoading(true);
+    setThumbnailsLoading({});
+    
+    // Extract unique colors and sizes from SKUs
+    if (product.skus && product.skus.length > 0) {
+      const colors = [...new Set(product.skus.map(sku => sku.color).filter(Boolean))];
+      const sizes = [...new Set(product.skus.map(sku => sku.size).filter(Boolean))];
+      setAvailableColors(colors);
+      setAvailableSizes(sizes);
+      
+      // Set first SKU as default
+      setSelectedSku(product.skus[0]);
+      setSelectedColor(colors[0] || "");
+      setSelectedSize(sizes[0] || "");
+    } else {
+      // Fallback to product-level color if no SKUs
+      const colors = product.color ? product.color.split(",").map(c => c.trim()) : [];
+      setAvailableColors(colors);
+      setSelectedColor(colors[0] || "");
+      setSelectedSize("");
+      setSelectedSku(null);
+    }
+    
     setQuantity(1);
     setInstructions("");
     setShowProductDetail(true);
+  };
+
+  // Handle thumbnail click with loading
+  const handleThumbnailClick = (index) => {
+    if (selectedImageIndex !== index) {
+      setMainImageLoading(true);
+      setSelectedImageIndex(index);
+    }
+  };
+
+  // Update color change handler
+  const handleColorChange = (color) => {
+    setSelectedColor(color);
+    handleColorSizeChange(color, selectedSize);
+  };
+
+  const handleSizeChange = (size) => {
+    setSelectedSize(size);
+    handleColorSizeChange(selectedColor, size);
+  };
+
+  // Handle color/size selection to find matching SKU
+  const handleColorSizeChange = (newColor, newSize) => {
+    if (!selectedProduct.skus || selectedProduct.skus.length === 0) return;
+    
+    const color = newColor || selectedColor;
+    const size = newSize || selectedSize;
+    
+    // Find matching SKU
+    const matchingSku = selectedProduct.skus.find(sku => {
+      const colorMatch = !color || sku.color === color;
+      const sizeMatch = !size || sku.size === size;
+      return colorMatch && sizeMatch;
+    });
+    
+    if (matchingSku) {
+      setSelectedSku(matchingSku);
+    }
   };
 
   const handleAddToCart = () => {
@@ -365,6 +484,7 @@ ${cart.map((item, index) =>
     });
   };
 
+
   const selectedClientData = clientsdata.find(c => c._id === selectedClient);
 
   return (
@@ -411,10 +531,10 @@ ${cart.map((item, index) =>
                     >
                       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
                         <div>
-                          <p className="font-medium text-sm sm:text-base">{client.company_name}</p>
-                          <p className="text-xs sm:text-sm text-muted-foreground">{client.phone_number}</p>
+                          <p className="font-medium text-sm sm:text-base">{client.name}</p>
+                          <p className="text-xs sm:text-sm text-muted-foreground">{client.phone}</p>
                         </div>
-                        <p className="text-xs text-muted-foreground truncate">{client.primary_email}</p>
+                        <p className="text-xs text-muted-foreground truncate">{client.email}</p>
                       </div>
                     </div>
                   ))}
@@ -434,10 +554,10 @@ ${cart.map((item, index) =>
               <div className="p-3 sm:p-4 bg-muted/50 rounded-lg space-y-1">
                 <div className="flex items-center gap-2">
                   <Check className="h-4 w-4 text-green-600" />
-                  <p className="font-medium text-sm sm:text-base">{selectedClientData.company_name}</p>
+                  <p className="font-medium text-sm sm:text-base">{selectedClientData.name}</p>
                 </div>
-                <p className="text-xs sm:text-sm text-muted-foreground">{selectedClientData.phone_number}</p>
-                <p className="text-xs sm:text-sm text-muted-foreground">{selectedClientData.primary_email}</p>
+                <p className="text-xs sm:text-sm text-muted-foreground">{selectedClientData.phone}</p>
+                <p className="text-xs sm:text-sm text-muted-foreground">{selectedClientData.email}</p>
               </div>
             )}
           </CardContent>
@@ -495,27 +615,29 @@ ${cart.map((item, index) =>
                 className="pl-8 sm:pl-10 text-sm sm:text-base"
               />
             </div>
-            <div>
+            {companies.length>0 && <div>
               <Select value={filterCompany} onValueChange={setFilterCompany}>
                 <SelectTrigger className="text-sm sm:text-base">
                   <SelectValue placeholder="Filter by company" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="bg-white">
                   <SelectItem value="all-companies">All Companies</SelectItem>
+                  {console.log(companies)}
                   {companies.map((company) => (
-                    <SelectItem key={company} value={company}>
-                      {company}
+                    <SelectItem key={company._id} value={company.name}>
+                      {company.name}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
+            }
             <div>
               <Select value={filterCategory} onValueChange={setFilterCategory}>
                 <SelectTrigger className="text-sm sm:text-base">
                   <SelectValue placeholder="Filter by category" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="bg-white">
                   <SelectItem value="all-categories">All Categories</SelectItem>
                   {categories.map((category) => (
                     <SelectItem key={category} value={category}>
@@ -577,10 +699,10 @@ ${cart.map((item, index) =>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4">
               {filteredProducts.map((product) => (
-                <Card key={product.id} className="cursor-pointer hover:shadow-md transition-all duration-200 hover:scale-[1.02]" onClick={() => handleProductSelect(product)}>
+                <Card key={product._id} className="cursor-pointer hover:shadow-md transition-all duration-200 hover:scale-[1.02]" onClick={() => handleProductSelect(product)}>
                   <div className="aspect-square overflow-hidden rounded-t-lg bg-muted">
                     <ImageWithFallback
-                      src={product.image}
+                      src={product.images[0].url}
                       alt={product.name}
                       className="w-full h-full object-cover hover:scale-105 transition-transform duration-200"
                     />
@@ -651,8 +773,9 @@ ${cart.map((item, index) =>
                 {cart.map((item) => (
                   <div key={item.id} className="flex gap-3 p-3 border rounded-lg bg-card">
                     <div className="w-14 h-14 sm:w-16 sm:h-16 overflow-hidden rounded flex-shrink-0 bg-muted">
+                      {console.log(item.product.images[0].url)}
                       <ImageWithFallback
-                        src={item.product.image}
+                        src={item.product.images[0].url}
                         alt={item.product.name}
                         className="w-full h-full object-cover"
                       />
@@ -742,127 +865,344 @@ ${cart.map((item, index) =>
       </Sheet>
 
       {/* Product Detail Dialog */}
-      <Dialog open={showProductDetail} onOpenChange={setShowProductDetail}>
-        <DialogContent className="max-w-4xl max-h-[90vh] bg-white overflow-hidden flex flex-col">
-          <DialogHeader className="flex-shrink-0">
-            <DialogTitle className="text-lg sm:text-xl">Product Details</DialogTitle>
-            <DialogDescription className="text-sm sm:text-base">
-              Customize your product selection
-            </DialogDescription>
-          </DialogHeader>
-          {selectedProduct && (
-            <ScrollArea className="flex-1 overflow-auto">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 p-1">
-                <div className="space-y-3 sm:space-y-4">
-                  <div className="aspect-square overflow-hidden rounded-lg bg-muted">
-                    <ImageWithFallback
-                      src={selectedProduct.image}
-                      alt={selectedProduct.name}
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                  <div className="space-y-1 sm:space-y-2">
-                    <h3 className="text-lg sm:text-xl">{selectedProduct.name}</h3>
-                    <p className="text-sm sm:text-base text-muted-foreground">{selectedProduct.material}</p>
-                    <div className="flex items-center gap-2">
-                      <Badge variant="outline" className="text-xs sm:text-sm">{selectedProduct.category}</Badge>
-                      <Badge variant="secondary" className="text-xs">{selectedProduct.company}</Badge>
-                    </div>
-                    <p className="text-xl sm:text-2xl font-semibold">${selectedProduct.price}</p>
+<Dialog open={showProductDetail} onOpenChange={setShowProductDetail}>
+  <DialogContent className="max-w-6xl w-[95vw] max-h-[90vh] bg-white overflow-hidden flex flex-col">
+    <DialogHeader className="flex-shrink-0">
+      <DialogTitle className="text-lg sm:text-xl">Product Details</DialogTitle>
+      <DialogDescription className="text-sm sm:text-base">
+        Customize your product selection
+      </DialogDescription>
+    </DialogHeader>
+    {selectedProduct && (
+      <ScrollArea className="flex-1 overflow-auto">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 p-1">
+          {/* Left Side - Images (same as before) */}
+          <div className="space-y-3 sm:space-y-4">
+            {/* Main Image with Loading */}
+            <div className="relative aspect-square overflow-hidden rounded-lg bg-muted border-2 border-border">
+              {mainImageLoading && (
+                <div className="absolute inset-0 flex items-center justify-center bg-muted z-10">
+                  <div className="flex flex-col items-center gap-3">
+                    <div className="h-12 w-12 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
+                    <p className="text-sm font-medium text-muted-foreground">Loading image...</p>
                   </div>
                 </div>
-                <div className="space-y-4 sm:space-y-6">
-                  <div className="space-y-2 sm:space-y-3">
-                    <Label className="text-sm sm:text-base">Available Colors (Optional)</Label>
-                    <RadioGroup value={selectedColor} onValueChange={setSelectedColor}>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-2">
-                        {selectedProduct.colors.map((color) => (
-                          <div key={color} className="flex items-center space-x-2 p-2 border rounded-lg hover:bg-muted/50 transition-colors">
-                            <RadioGroupItem value={color} id={color} />
-                            <Label htmlFor={color} className="text-sm sm:text-base font-normal cursor-pointer flex-1">{color}</Label>
-                          </div>
-                        ))}
-                      </div>
-                    </RadioGroup>
-                    <p className="text-xs text-muted-foreground">
-                      If no color is selected, we'll use the first available color
-                    </p>
-                  </div>
+              )}
+              
+              <img
+                src={digital_ocean_url + selectedProduct.images[selectedImageIndex]?.url}
+                alt={`${selectedProduct.name} - Image ${selectedImageIndex + 1}`}
+                className={`w-full h-full object-cover cursor-zoom-in transition-all duration-300 ${mainImageLoading ? 'opacity-0 scale-95' : 'opacity-100 scale-100 hover:scale-105'}`}
+                onLoad={() => setMainImageLoading(false)}
+                onError={() => setMainImageLoading(false)}
+              />
+            </div>
 
-                  <div className="space-y-2">
-                    <Label className="text-sm sm:text-base">Size (Required)</Label>
-                    <Select value={selectedSize} onValueChange={setSelectedSize}>
-                      <SelectTrigger className="text-sm sm:text-base">
-                        <SelectValue placeholder="Select size" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {selectedProduct.sizes.map((size) => (
-                          <SelectItem key={size} value={size} className="text-sm sm:text-base">{size}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label className="text-sm sm:text-base">Quantity</Label>
-                    <div className="flex items-center gap-2 mt-2">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                        className="h-8 w-8 sm:h-9 sm:w-9 p-0"
-                      >
-                        <Minus className="h-3 w-3 sm:h-4 sm:w-4" />
-                      </Button>
-                      <Input
-                        type="number"
-                        value={quantity}
-                        onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value) || 1))}
-                        className="w-16 sm:w-20 text-center text-sm sm:text-base"
-                        min="1"
-                      />
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => setQuantity(quantity + 1)}
-                        className="h-8 w-8 sm:h-9 sm:w-9 p-0"
-                      >
-                        <Plus className="h-3 w-3 sm:h-4 sm:w-4" />
-                      </Button>
-                      <div className="flex-1 text-right">
-                        <span className="text-sm sm:text-base font-medium">
-                          Subtotal: ${(selectedProduct.price * quantity).toFixed(2)}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label className="text-sm sm:text-base">Special Instructions</Label>
-                    <Textarea
-                      placeholder="Any special instructions or customizations..."
-                      value={instructions}
-                      onChange={(e) => setInstructions(e.target.value)}
-                      className="mt-2 text-sm sm:text-base resize-none"
-                      rows={3}
+            {/* Thumbnails */}
+            {selectedProduct.images.length > 1 && (
+              <div className="grid grid-cols-4 sm:grid-cols-5 gap-2 sm:gap-3">
+                {selectedProduct.images.map((img, index) => (
+                  <div
+                    key={index}
+                    onClick={() => {
+                      setMainImageLoading(true);
+                      setSelectedImageIndex(index);
+                    }}
+                    className={`relative aspect-square overflow-hidden rounded-md cursor-pointer transition-all duration-200 hover:scale-105 ${selectedImageIndex === index ? 'ring-2 ring-primary ring-offset-2 scale-105' : 'ring-1 ring-border opacity-70 hover:opacity-100'}`}
+                  >
+                    <img
+                      src={digital_ocean_url + img.url}
+                      alt={`Thumbnail ${index + 1}`}
+                      className="w-full h-full object-cover"
+                      loading="lazy"
                     />
                   </div>
+                ))}
+              </div>
+            )}
 
-                  <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t">
-                    <Button variant="outline" onClick={() => setShowProductDetail(false)} className="flex-1 text-sm sm:text-base">
-                      Cancel
-                    </Button>
-                    <Button onClick={handleAddToCart} className="flex-1 text-sm sm:text-base" disabled={!selectedSize}>
-                      <Plus className="h-4 w-4 mr-2" />
-                      Add to Cart - ${(selectedProduct.price * quantity).toFixed(2)}
-                    </Button>
+            {/* Product Info - Mobile */}
+            <div className="space-y-2 lg:hidden pt-2">
+              <h3 className="text-lg sm:text-xl font-semibold">{selectedProduct.name}</h3>
+              <p className="text-sm sm:text-base text-muted-foreground">
+                {selectedProduct.description || "High quality product"}
+              </p>
+              <div className="flex items-center gap-2 flex-wrap">
+                <Badge variant="outline" className="text-xs sm:text-sm">
+                  {selectedProduct.category}
+                </Badge>
+                <Badge variant="secondary" className="text-xs">
+                  {selectedProduct.brand}
+                </Badge>
+              </div>
+              
+              {/* Price Display */}
+              <div className="flex items-baseline gap-2">
+                <p className="text-2xl font-bold text-primary">
+                  ${selectedSku?.price || selectedProduct.price}
+                </p>
+                {selectedSku?.costPrice && selectedSku.costPrice !== selectedSku.price && (
+                  <p className="text-lg text-muted-foreground line-through">
+                    ${selectedSku.costPrice}
+                  </p>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Right Side - Product Details */}
+          <div className="space-y-4 sm:space-y-6">
+            {/* Product Info - Desktop */}
+            <div className="space-y-2 hidden lg:block">
+              <h3 className="text-lg sm:text-xl font-semibold">{selectedProduct.name}</h3>
+              <p className="text-sm sm:text-base text-muted-foreground">
+                {selectedProduct.description || "High quality product"}
+              </p>
+              <div className="flex items-center gap-2 flex-wrap">
+                <Badge variant="outline" className="text-xs sm:text-sm">
+                  {selectedProduct.category}
+                </Badge>
+                <Badge variant="secondary" className="text-xs">
+                  {selectedProduct.brand}
+                </Badge>
+                {selectedSku?.sku && (
+                  <Badge variant="outline" className="text-xs font-mono">
+                    SKU: {selectedSku.sku}
+                  </Badge>
+                )}
+              </div>
+              
+              {/* Price Display */}
+              <div className="flex items-baseline gap-2">
+                <p className="text-2xl font-bold text-primary">
+                  ${selectedSku?.price || selectedProduct.price}
+                </p>
+                {selectedSku?.costPrice && selectedSku.costPrice !== selectedSku.price && (
+                  <p className="text-lg text-muted-foreground line-through">
+                    ${selectedSku.costPrice}
+                  </p>
+                )}
+              </div>
+              
+              {/* Stock Status */}
+              {selectedSku?.stockQuantity && (
+                <div className="flex items-center gap-2">
+                  {parseInt(selectedSku.stockQuantity) > 0 ? (
+                    <>
+                      <Badge variant="outline" className="text-green-600 border-green-600">
+                        In Stock
+                      </Badge>
+                      <span className="text-sm text-muted-foreground">
+                        {selectedSku.stockQuantity} units available
+                      </span>
+                    </>
+                  ) : (
+                    <Badge variant="destructive">Out of Stock</Badge>
+                  )}
+                </div>
+              )}
+            </div>
+
+            <Separator className="hidden lg:block" />
+
+            {/* Color Selection */}
+            {availableColors.length > 0 && (
+              <div className="space-y-2 sm:space-y-3">
+                <Label className="text-sm sm:text-base font-semibold">
+                  Select Color {availableColors.length > 0 && <span className="text-destructive">*</span>}
+                </Label>
+                <RadioGroup value={selectedColor} onValueChange={handleColorChange}>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-2">
+                    {availableColors.map((color) => (
+                      <div
+                        key={color}
+                        className={`flex items-center space-x-2 p-3 border rounded-lg hover:bg-muted/50 transition-colors cursor-pointer ${selectedColor === color ? 'border-primary bg-primary/5' : ''}`}
+                      >
+                        <RadioGroupItem value={color} id={color} />
+                        <Label
+                          htmlFor={color}
+                          className="text-sm sm:text-base font-normal cursor-pointer flex-1"
+                        >
+                          {color}
+                        </Label>
+                      </div>
+                    ))}
                   </div>
+                </RadioGroup>
+              </div>
+            )}
+
+            {/* Size Selection */}
+            {availableSizes.length > 0 && (
+              <div className="space-y-2">
+                <Label className="text-sm sm:text-base font-semibold">
+                  Select Size <span className="text-destructive">*</span>
+                </Label>
+                <RadioGroup value={selectedSize} onValueChange={handleSizeChange}>
+                  <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 mt-2">
+                    {availableSizes.map((size) => {
+                      const sizeSkus = selectedProduct.skus.filter(sku => sku.size === size);
+                      const hasStock = sizeSkus.some(sku => !sku.stockQuantity || parseInt(sku.stockQuantity) > 0);
+                      
+                      return (
+                        <div
+                          key={size}
+                          className={`relative flex items-center justify-center p-3 border rounded-lg transition-colors cursor-pointer ${selectedSize === size ? 'border-primary bg-primary/5 font-semibold' : 'hover:bg-muted/50'} ${!hasStock ? 'opacity-50 cursor-not-allowed' : ''}`}
+                          onClick={() => hasStock && handleSizeChange(size)}
+                        >
+                          <RadioGroupItem value={size} id={size} className="sr-only" disabled={!hasStock} />
+                          <Label
+                            htmlFor={size}
+                            className="text-sm sm:text-base font-normal cursor-pointer"
+                          >
+                            {size}
+                          </Label>
+                          {!hasStock && (
+                            <div className="absolute inset-0 flex items-center justify-center">
+                              <div className="w-full h-0.5 bg-destructive rotate-45 transform origin-center"></div>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </RadioGroup>
+              </div>
+            )}
+
+            {/* Selected SKU Info */}
+            {selectedSku && (
+              <div className="p-4 bg-muted/30 rounded-lg border space-y-2">
+                <h4 className="font-semibold text-sm">Selected Variant</h4>
+                <div className="grid grid-cols-2 gap-2 text-sm">
+                  {selectedSku.sku && (
+                    <div>
+                      <span className="text-muted-foreground">SKU:</span>
+                      <span className="ml-2 font-mono">{selectedSku.sku}</span>
+                    </div>
+                  )}
+                  {selectedSku.color && (
+                    <div>
+                      <span className="text-muted-foreground">Color:</span>
+                      <span className="ml-2">{selectedSku.color}</span>
+                    </div>
+                  )}
+                  {selectedSku.size && (
+                    <div>
+                      <span className="text-muted-foreground">Size:</span>
+                      <span className="ml-2">{selectedSku.size}</span>
+                    </div>
+                  )}
+                  {selectedSku.stockQuantity && (
+                    <div>
+                      <span className="text-muted-foreground">Stock:</span>
+                      <span className="ml-2 font-semibold">{selectedSku.stockQuantity} units</span>
+                    </div>
+                  )}
+                  {selectedSku.barcode && (
+                    <div className="col-span-2">
+                      <span className="text-muted-foreground">Barcode:</span>
+                      <span className="ml-2 font-mono text-xs">{selectedSku.barcode}</span>
+                    </div>
+                  )}
                 </div>
               </div>
-            </ScrollArea>
-          )}
-        </DialogContent>
-      </Dialog>
+            )}
+
+            {/* Quantity Selection */}
+            <div className="space-y-2">
+              <Label className="text-sm sm:text-base font-semibold">Quantity</Label>
+              <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                    className="h-9 w-9 p-0"
+                  >
+                    <Minus className="h-4 w-4" />
+                  </Button>
+                  <Input
+                    type="number"
+                    value={quantity}
+                    onChange={(e) => {
+                      const val = Math.max(1, parseInt(e.target.value) || 1);
+                      const maxStock = selectedSku?.stockQuantity ? parseInt(selectedSku.stockQuantity) : 999;
+                      setQuantity(Math.min(val, maxStock));
+                    }}
+                    className="w-20 text-center text-sm sm:text-base"
+                    min="1"
+                    max={selectedSku?.stockQuantity || 999}
+                  />
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => {
+                      const maxStock = selectedSku?.stockQuantity ? parseInt(selectedSku.stockQuantity) : 999;
+                      setQuantity(Math.min(quantity + 1, maxStock));
+                    }}
+                    className="h-9 w-9 p-0"
+                  >
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                </div>
+                <div className="flex-1 text-right">
+                  <div className="text-sm text-muted-foreground">Subtotal</div>
+                  <span className="text-lg font-bold text-primary">
+                    ${((selectedSku?.price || selectedProduct.price) * quantity).toFixed(2)}
+                  </span>
+                </div>
+              </div>
+              {selectedSku?.stockQuantity && quantity >= parseInt(selectedSku.stockQuantity) && (
+                <p className="text-xs text-amber-600">
+                  Maximum available quantity reached
+                </p>
+              )}
+            </div>
+
+            {/* Special Instructions */}
+            <div className="space-y-2">
+              <Label className="text-sm sm:text-base font-semibold">
+                Special Instructions
+              </Label>
+              <Textarea
+                placeholder="Any special instructions or customizations..."
+                value={instructions}
+                onChange={(e) => setInstructions(e.target.value)}
+                className="mt-2 text-sm sm:text-base resize-none min-h-[80px]"
+                rows={3}
+              />
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setShowProductDetail(false);
+                  setSelectedImageIndex(0);
+                  setMainImageLoading(true);
+                  setSelectedSku(null);
+                }}
+                className="flex-1 text-sm sm:text-base h-11"
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleAddToCart}
+                className="flex-1 text-sm sm:text-base h-11"
+                disabled={!selectedSize || !selectedColor || (selectedSku?.stockQuantity && parseInt(selectedSku.stockQuantity) === 0)}
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Add to Cart - ${((selectedSku?.price || selectedProduct.price) * quantity).toFixed(2)}
+              </Button>
+            </div>
+          </div>
+        </div>
+      </ScrollArea>
+    )}
+  </DialogContent>
+</Dialog>
 
       {/* Order Completion Dialog */}
       <Dialog open={showOrderCompletion} onOpenChange={setShowOrderCompletion}>
@@ -949,7 +1289,7 @@ ${cart.map((item, index) =>
                   <SelectTrigger className="mt-2">
                     <SelectValue placeholder="Select payment type" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="bg-white">
                     <SelectItem value="cash">Cash</SelectItem>
                     <SelectItem value="credit-card">Credit Card</SelectItem>
                     <SelectItem value="debit-card">Debit Card</SelectItem>

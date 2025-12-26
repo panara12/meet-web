@@ -100,6 +100,14 @@ const productSchema = new mongoose.Schema(
       type: String,
       default: null,
     },
+    innerPack:{
+      type:String,
+      default:null,
+    },
+    masterPack:{
+      type:String,
+      default:null,
+    },
 
     // Array of image URLs
     images: {
