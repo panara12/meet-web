@@ -22,6 +22,7 @@ const sessionLoader = require("./utils/sessionlodder");
 const Location = require("./routes/location");
 const email = require("./routes/email");
 const payment = require("./routes/payment");
+const limits = require("./routes/limit");
 const sendScheduleEmails  = require("./routes/vvtmails");
 const limiter = require("./middleware/ratelimit");
 
@@ -92,6 +93,7 @@ app.use("/product-category", tenent_middleware, product_category);
 app.use("/location", tenent_middleware, Location);
 app.use("/payment", tenent_middleware, payment);
 app.use("/saleman-notes", tenent_middleware, salesman_notes);
+app.use('/limit/', tenent_middleware, limits);
 app.use('/api', sendScheduleEmails);
 app.use("/email", email);
 
