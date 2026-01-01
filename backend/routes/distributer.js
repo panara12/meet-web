@@ -52,6 +52,16 @@ router.post('/adddistributer',async (req,res)=>{
         password:hashedPassword
     });
 
+    const Limits = req.db.model("Limits");
+    await Limits.create({
+        adminlimit:1,
+        salemanlimit:2,
+        packagelimit:1,
+        billinglimit:1,
+        liveLocationlimit:20,
+        routeLocationlimit:20
+    });
+
     res.status(200).json({
         message:"user registerd",
         Distributer:{new_user}

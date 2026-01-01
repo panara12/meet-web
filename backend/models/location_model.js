@@ -7,37 +7,6 @@ const locationSchema = new mongoose.Schema({
     required: [true, 'User ID is required']
   },
   
-  // Location Details
-  latitude: {
-    type: Number,
-    required: [true, 'Latitude is required'],
-    validate: {
-      validator: function (v) {
-        return v >= -90 && v <= 90;
-      },
-      message: 'Latitude must be between -90 and 90'
-    }
-  },
-  longitude: {
-    type: Number,
-    required: [true, 'Longitude is required'],
-    validate: {
-      validator: function (v) {
-        return v >= -180 && v <= 180;
-      },
-      message: 'Longitude must be between -180 and 180'
-    }
-  },
-  locationName: {
-    type: String,
-    required: [true, 'Location name is required']
-  },
-  accuracy: {
-    type: Number,
-    default: 0,
-    min: 0
-  },
-  
   // Tracking Info
   tenantName: {
     type: String,

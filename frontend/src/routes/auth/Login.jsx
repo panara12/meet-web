@@ -4,13 +4,17 @@ import { ChevronDown, Shield, User, Package, CreditCard, Truck } from 'lucide-re
 import { useLogin } from '../../hooks/auth/useLogin';
 import ErrorMessage from '../../component/ui/errorMessage';
 import { Link } from 'react-router-dom';
+import useGeolocation from '../../hooks/location/useGeolocation';
+import { useAddLocation } from '../../hooks/location/useAddLocation';
 
 
 function Login() {
     const [selectedLoginType, setSelectedLoginType] = useState('username');
     const [username, setusername] = useState('');
     const [password, setPassword] = useState('');
-    const {mutate:UserLogin,isPending, isError, error} = useLogin()
+    const {mutate:UserLogin,isPending, isError, error} = useLogin();
+    const {mutate:addUserLocation,isPending:isAddLocationPending, isError:isaddLocationError, error:addLocationError} = useAddLocation();
+    const location = useGeolocation();
 
     const [isOpen, setIsOpen] = useState(false);
     const [selectedRole, setSelectedRole] = useState(null);
@@ -56,6 +60,7 @@ function Login() {
   const handleLogin = ()=>{
     const userdata = {username:username,password:password}
     UserLogin(userdata);
+    addUserLocation({latitude:location.latitude,longitude:location.longitude});
   }
 
 

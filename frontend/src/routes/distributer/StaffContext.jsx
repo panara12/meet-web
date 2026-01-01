@@ -1,33 +1,17 @@
-import { createContext, useContext, useState } from "react"
+import { createContext, useContext, useState, useEffect } from "react"
+import { useSelector, useDispatch } from "react-redux"
+import { setUserAllList } from "../../store/slice/appSlice"
 import { useGetAllUser } from "../../hooks/user/useGetAllUser"
-import { useEffect } from "react"
 import { useDeleteUser } from "../../hooks/user/useDeleteUser"
 import { useUpdateUser } from "../../hooks/user/useUpdateUser"
 import { useAddUser } from "../../hooks/user/useAddUser"
-import { useSelector,useDispatch } from "react-redux"
-import { setUserAllList } from "../../store/slice/appSlice";
+import { useGetAllLimit } from "../../hooks/limit/useGetAllLimit"
+import { useUpdateLimit } from "../../hooks/limit/useUpdateLimit"
+import { useGetLocationById } from "../../hooks/location/useGetLocationById"
 
 const StaffContext = createContext(undefined)
 
-// ---- Helpers ----
-const generateMockLocation = () => {
-  const baseLatitude = 40.7128
-  const baseLongitude = -74.0060
-  const randomOffset = () => (Math.random() - 0.5) * 0.1
-
-  return {
-    latitude: baseLatitude + randomOffset(),
-    longitude: baseLongitude + randomOffset(),
-    address: `${Math.floor(Math.random() * 999) + 1} ${
-      ["Broadway", "Park Ave", "Madison Ave", "Lexington Ave"][
-        Math.floor(Math.random() * 4)
-      ]
-    }, NY`,
-    timestamp: new Date().toISOString(),
-    accuracy: Math.floor(Math.random() * 10) + 5,
-  }
-}
-
+// ---- Helper: Get Current Location ----
 const getCurrentLocation = () => {
   return new Promise((resolve, reject) => {
     if (!navigator.geolocation) {
@@ -39,24 +23,9 @@ const getCurrentLocation = () => {
       (position) => {
         const { latitude, longitude, accuracy } = position.coords
 
+        // Use coordinates as fallback address
         let address = `${latitude.toFixed(6)}, ${longitude.toFixed(6)}`
-        try {
-          const streets = [
-            "Main St",
-            "Oak Ave",
-            "Park Blvd",
-            "First St",
-            "Second Ave",
-            "Broadway",
-            "Market St",
-          ]
-          const randomStreet = streets[Math.floor(Math.random() * streets.length)]
-          const randomNumber = Math.floor(Math.random() * 9999) + 1
-          address = `${randomNumber} ${randomStreet}, Current Location`
-        } catch (error) {
-          // fallback
-        }
-
+        
         resolve({
           latitude,
           longitude,
@@ -89,208 +58,298 @@ const getCurrentLocation = () => {
   })
 }
 
-const generateLocationHistory = (count = 5) => {
-  const history = []
-  for (let i = 0; i < count; i++) {
-    const location = generateMockLocation()
-    const date = new Date()
-    date.setHours(date.getHours() - i * 2)
-
-    history.push({
-      id: `loc-${Date.now()}-${i}`,
-      ...location,
-      timestamp: date.toISOString(),
-    })
-  }
-  return history
-}
-
-// ---- Initial Staff ----
-const initialStaff = [
-  {
-    id: "EMP-001",
-    firstName: "John",
-    lastName: "Doe",
-    email: "john.doe@company.com",
-    phone: "+1 (555) 123-4567",
-    address: "123 Admin St, NY 10001",
-    role: "Admin",
-    department: "Management",
-    status: "Active",
-    hireDate: "2023-01-15",
-    salary: 85000,
-    employeeId: "ADM001",
-    emergencyContact: "Jane Doe - +1 (555) 123-4568",
-    notes:
-      "Senior administrator with full system access. Excellent leadership skills.",
-    lastLogin: "2024-01-16",
-    permissions: ["full_access", "user_management", "system_settings"],
-    workHours: "Full-time",
-    locationTracking: {
-      currentLocation: generateMockLocation(),
-      locationHistory: generateLocationHistory(),
-      monthlyRequestsUsed: 3,
-      monthlyRequestsLimit: 20,
-      lastRequestDate: new Date().toISOString(),
-      isTrackingEnabled: true,
-    },
-  },
-  {
-    id: "EMP-002",
-    firstName: "Sarah",
-    lastName: "Johnson",
-    email: "sarah.johnson@company.com",
-    phone: "+1 (555) 987-6543",
-    address: "456 Sales Ave, CA 94102",
-    role: "Sales-man",
-    department: "Sales",
-    status: "Active",
-    hireDate: "2023-03-20",
-    salary: 65000,
-    employeeId: "SAL002",
-    emergencyContact: "Mike Johnson - +1 (555) 987-6544",
-    notes:
-      "Dedicated sales representative with strong client relationship skills.",
-    lastLogin: "2024-01-16",
-    permissions: ["sales_access", "client_management", "order_management"],
-    workHours: "Full-time",
-    locationTracking: {
-      currentLocation: generateMockLocation(),
-      locationHistory: generateLocationHistory(),
-      monthlyRequestsUsed: 7,
-      monthlyRequestsLimit: 20,
-      lastRequestDate: new Date().toISOString(),
-      isTrackingEnabled: true,
-    },
-  },
-  // ... (rest of staff same as your code)
-]
-
 // ---- Provider ----
 export function StaffProvider({ children }) {
-  const [staff, setStaff] = useState(initialStaff)
-  const dispatch = useDispatch();
-  const userAllList = useSelector((state) => state.app.userAllList);
-  const {data:getAllUser,isPending:isgetAllUserPending,isError:isgetAllUserError,Error:getAllUserError} = useGetAllUser()
-  useEffect(()=>{
-    if(getAllUser?.data){
-      console.log(getAllUser.data.user)
-      dispatch(setUserAllList(getAllUser.data.user));
+  const [staff, setStaff] = useState([])
+  const dispatch = useDispatch()
+  const userAllList = useSelector((state) => state.app.userAllList)
+  const [limits, setLimits] = useState(null)
+
+  // API Hooks
+  const { data: getAllUser, isPending: isgetAllUserPending, isError: isgetAllUserError, error: getAllUserError } = useGetAllUser()
+  const { data: getLimits, isPending: getLimitsPending, isError: isLimitError, error: limitError } = useGetAllLimit()
+  const { mutate: addUser, isPending: isAddUserPending, isError: isAddUserError, error: addUserError } = useAddUser()
+  const { mutate: updateUser, isPending: isUpdateUserPending, isError: isUpdateUserError, error: updateUserError } = useUpdateUser()
+  const { mutate: deleteUser, isPending: isDeleteUserPending, isError: isDeleteUserError, error: deleteUserError } = useDeleteUser()
+  const { mutate: updateLimit, isPending: isUpdateLimitPending, isError: isUpdateLimitError, error: updateLimitError } = useUpdateLimit()
+  const { mutate: getLocationById, isPending: isGetLocationByIdPending, isError: isGetLocationByIdError, error: getLocationByIdError } = useGetLocationById()
+
+  // Load users from API
+  useEffect(() => {
+    if (getAllUser?.data?.user) {
+      console.log('Loaded users:', getAllUser.data.user)
+      dispatch(setUserAllList(getAllUser.data.user))
       setStaff(getAllUser.data.user)
     }
-  },[getAllUser])
-  console.log('redux user data',userAllList)
+  }, [getAllUser, dispatch])
 
-    const {mutate:addUser,isPending:isAddUserPending, isError:isAddUserError, error:addUserError} = useAddUser()
-    const {mutate:updateUser,isPending:isUpdateUserPending, isError:isUpdateUserError, error:updateUserError} = useUpdateUser()
-    const {mutate:deleteUser,isPending:isDeleteUserPending, isError:isDeleteUserError, error:deleteUserError} = useDeleteUser()
+  // Load limits from API
+  useEffect(() => {
+    if (getLimits?.data) {
+      console.log('Loaded limits:', getLimits.data)
+      setLimits(getLimits.data)
+    }
+  }, [getLimits])
 
+  // Get common location request stats
+  const getCommonLocationStats = () => {
+    if (!limits) {
+      return {
+        used: 0,
+        limit: 20,
+        remaining: 20
+      }
+    }
+
+    const used = limits.data[0].liveLocationlimit || 0
+    const limit = limits.data[0].liveLocationlimit || 20
+
+    return {
+      used,
+      limit,
+      remaining: limits.data[0].liveLocationlimit
+    }
+  }
+
+  // CRUD Operations
   const addStaff = (newStaff) => {
+    if (!newStaff) {
+      console.error("Cannot add staff: Invalid data")
+      return
+    }
     addUser(newStaff)
-    console.log(newStaff)
   }
 
   const updateStaff = (id, updatedStaff) => {
-    updateUser({id,updates:updatedStaff})
+    if (!id || !updatedStaff) {
+      console.error("Cannot update staff: Invalid parameters")
+      return
+    }
+    updateUser({ id, updates: updatedStaff })
   }
 
   const deleteStaff = (id) => {
-    deleteUser({id})
+    if (!id) {
+      console.error("Cannot delete staff: Invalid ID")
+      return
+    }
+    deleteUser({ id })
   }
 
-  const getStaffById = (id) => staff.find((s) => s._id === id)
+  // Query Operations
+  const getStaffById = (id) => {
+    if (!id || !staff) return null
+    return staff.find((s) => s._id === id) || null
+  }
 
-  const getStaffByRole = (role) => staff.filter((s) => s.role === role)
+  const getStaffByRole = (role) => {
+    if (!role || !staff) return []
+    return staff.filter((s) => s.role === role)
+  }
 
-  const getRoleCount = (role) => staff.filter((s) => s.role === role).length
+  const getRoleCount = (role) => {
+    if (!role || !staff) return 0
+    return staff.filter((s) => s.role === role).length
+  }
+
+  // Location Operations - NEW: Fetch location from API
+  const fetchStaffLocation = (userId) => {
+    return new Promise((resolve, reject) => {
+      if (!userId) {
+        reject(new Error("User ID is required"))
+        return
+      }
+
+      // Check common limit before fetching
+      const commonStats = getCommonLocationStats()
+      if (commonStats.remaining <= 0) {
+        reject(new Error("Monthly location request limit reached for all users"))
+        return
+      }
+      console.log("Fetching location for user:", userId)
+      getLocationById(
+        { userId },
+        {
+          onSuccess: (response) => {
+            console.log("Location fetched successfully:", response)
+            
+            // Extract coordinates from response
+            if (response?.data?.location?.coordinates?.coordinates) {
+              const [longitude, latitude] = response.data.location.coordinates.coordinates
+              
+              const locationData = {
+                latitude,
+                longitude,
+                address: `${latitude.toFixed(6)}, ${longitude.toFixed(6)}`,
+                timestamp: response.data.location.createdAt || new Date().toISOString(),
+                accuracy: 0,
+              }
+              
+              resolve(locationData)
+            } else {
+              reject(new Error("Invalid location data format"))
+            }
+          },
+          onError: (error) => {
+            console.error("Failed to fetch location:", error)
+            reject(error)
+          }
+        }
+      )
+    })
+  }
+
+  // Update location request count after successful map load
+  const decrementLocationRequest = () => {
+    console.log("Decrementing location request count",limits)
+    if (!limits) {
+      console.error("Limits not available")
+      return false
+    }
+    let reqcount = limits.data[0].liveLocationlimit;
+
+    const newUsedCount = reqcount - 1;
+    
+    updateLimit({
+      id: limits.data[0]._id,
+      updates: {
+        liveLocationlimit: newUsedCount
+      }
+    })
+
+    // Update local state immediately for better UX
+    setLimits({
+      ...limits,
+      locationRequestsUsed: newUsedCount
+    })
+    console.log("updated limits",limits)
+
+    return true
+  }
 
   const requestLocationUpdate = async (staffId) => {
-    const member = staff.find((s) => s._id === staffId)
-    if (!member) return false
+    if (!staffId) {
+      console.error("Cannot request location: Invalid staff ID")
+      return false
+    }
 
-    if (!member.locationTracking.isTrackingEnabled) {
+    const member = staff.find((s) => s._id === staffId)
+    if (!member) {
+      console.error("Staff member not found")
+      return false
+    }
+
+    // Check if location tracking exists and is enabled
+    if (!member.locationTracking || !member.locationTracking.isTrackingEnabled) {
       throw new Error("Location tracking is disabled for this staff member")
     }
 
-    if (
-      member.locationTracking.monthlyRequestsUsed >=
-      member.locationTracking.monthlyRequestsLimit
-    ) {
-      throw new Error("Monthly location request limit reached")
+    // Check common limit instead of individual limit
+    const commonStats = getCommonLocationStats()
+    if (commonStats.remaining <= 0) {
+      throw new Error("Monthly location request limit reached for all users")
     }
 
     try {
+      // Get current location from browser
       const newLocation = await getCurrentLocation()
       const newHistoryEntry = {
         id: `loc-${Date.now()}`,
         ...newLocation,
       }
 
+      // Safely get current location history
+      const currentHistory = member.locationTracking?.locationHistory || []
+      
+      // Update staff location in database
       updateStaff(staffId, {
         locationTracking: {
-          ...member.locationTracking,
+          ...(member.locationTracking || {}),
           currentLocation: newLocation,
           locationHistory: [
             newHistoryEntry,
-            ...member.locationTracking.locationHistory,
-          ].slice(0, 20),
-          monthlyRequestsUsed: member.locationTracking.monthlyRequestsUsed + 1,
+            ...currentHistory,
+          ].slice(0, 20), // Keep last 20 locations
           lastRequestDate: new Date().toISOString(),
         },
       })
+
+      // Update common limit - increment the used count
+      if (limits && limits._id) {
+        const newUsedCount = (limits.locationRequestsUsed || 0) + 1
+        
+        updateLimit({
+          id: limits._id,
+          updates: {
+            locationRequestsUsed: newUsedCount
+          }
+        })
+
+        // Update local state immediately for better UX
+        setLimits({
+          ...limits,
+          locationRequestsUsed: newUsedCount
+        })
+      }
 
       return true
     } catch (error) {
-      console.warn("Real geolocation failed, using mock location:", error)
-
-      const newLocation = generateMockLocation()
-      const newHistoryEntry = {
-        id: `loc-${Date.now()}`,
-        ...newLocation,
-      }
-
-      updateStaff(staffId, {
-        locationTracking: {
-          ...member.locationTracking,
-          currentLocation: newLocation,
-          locationHistory: [
-            newHistoryEntry,
-            ...member.locationTracking.locationHistory,
-          ].slice(0, 20),
-          monthlyRequestsUsed: member.locationTracking.monthlyRequestsUsed + 1,
-          lastRequestDate: new Date().toISOString(),
-        },
-      })
-
-      return true
+      console.error("Failed to get location:", error)
+      throw error
     }
   }
 
   const getLocationHistory = (staffId) => {
+    if (!staffId || !staff) return []
+    
     const member = staff.find((s) => s._id === staffId)
-    return member?.locationTracking.locationHistory || []
+    if (!member || !member.locationTracking) return []
+    
+    return member.locationTracking.locationHistory || []
   }
 
   const clearLocationHistory = (staffId) => {
-    const member = staff.find((s) => s._id === staffId)
-    if (!member) return
+    if (!staffId) {
+      console.error("Cannot clear history: Invalid staff ID")
+      return
+    }
 
+    const member = staff.find((s) => s._id === staffId)
+    if (!member) {
+      console.error("Staff member not found")
+      return
+    }
+
+    // Safely clear history with null checks
+    const currentTracking = member.locationTracking || {}
+    
     updateStaff(staffId, {
       locationTracking: {
-        ...member.locationTracking,
+        ...currentTracking,
         locationHistory: [],
       },
     })
   }
 
   const toggleLocationTracking = (staffId) => {
-    const member = staff.find((s) => s._id === staffId)
-    if (!member) return
+    if (!staffId) {
+      console.error("Cannot toggle tracking: Invalid staff ID")
+      return
+    }
 
+    const member = staff.find((s) => s._id === staffId)
+    if (!member) {
+      console.error("Staff member not found")
+      return
+    }
+
+    // Safely toggle with null checks
+    const currentTracking = member.locationTracking || {}
+    
     updateStaff(staffId, {
       locationTracking: {
-        ...member.locationTracking,
-        isTrackingEnabled: !member.locationTracking.isTrackingEnabled,
+        ...currentTracking,
+        isTrackingEnabled: !currentTracking.isTrackingEnabled,
       },
     })
   }
@@ -309,6 +368,13 @@ export function StaffProvider({ children }) {
         getLocationHistory,
         clearLocationHistory,
         toggleLocationTracking,
+        getCommonLocationStats,
+        fetchStaffLocation,
+        decrementLocationRequest,
+        limits,
+        isLoading: isgetAllUserPending || getLimitsPending,
+        isError: isgetAllUserError || isLimitError,
+        isLocationLoading: isGetLocationByIdPending,
       }}
     >
       {children}

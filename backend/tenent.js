@@ -37,6 +37,7 @@ const gettenentDb = async (dbName)=>{
         conn.model('ProductCategory',require('./models/product_category_model'));
         conn.model('Payment',require('./models/payment_model'));
         conn.model('Salesman_notes',require('./models/salesman_notes'));
+        conn.model('Limits',require('./models/limits_model'));
         connectionCache[dbName] = conn;
         return conn;
 

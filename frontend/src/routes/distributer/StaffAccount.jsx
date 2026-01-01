@@ -56,19 +56,13 @@ const defaultFormData = {
 
 const roles = ["admin", "packaging", "billing", "salesman"]
 
-// Role limits configuration
-const roleLimits = {
-  "admin": 1,
-  "packaging": 2,
-  "billing": 1,
-  "salesman": 4
-}
+
 const departments = ["admin", "salesman", "packaging", "billing", "seller"]
 const statuses = ["Active", "Inactive", "On Leave", "Terminated"]
 const workHourTypes = ["Full-time", "Part-time", "Contract", "Freelance"]
 
 function StaffAccount() {
-  const { staff, addStaff, updateStaff, deleteStaff, getRoleCount } = useStaff()
+  const { staff, addStaff, updateStaff, deleteStaff, getRoleCount,limits } = useStaff()
   const [searchTerm, setSearchTerm] = useState("")
   const [roleFilter, setRoleFilter] = useState("all")
   const [departmentFilter, setDepartmentFilter] = useState("all")
@@ -81,6 +75,41 @@ function StaffAccount() {
   const [sortDirection, setSortDirection] = useState('asc')
   const [formData, setFormData] = useState(defaultFormData)
   const [documentFiles, setDocumentFiles] = useState({})
+
+
+  // console.log("Staff Data:", limits?.data[0]?.adminlimit);
+
+  // Role limits configuration
+  const roleLimits = useMemo(() => ({
+    "admin": limits?.data?.[0]?.adminlimit || 0,
+    "packaging": limits?.data?.[0]?.packagelimit || 0,
+    "billing": limits?.data?.[0]?.billinglimit || 0,
+    "salesman": limits?.data?.[0]?.salesmanlimit || 0
+  }), [limits]);
+
+  // Add this new hook:
+  const isAnyRoleAvailable = useMemo(() => {
+    // Check if limits data is loaded
+    if (!limits?.data?.[0]) {
+      return false; // Disable if limits not loaded yet
+    }
+
+    // Check each role to see if any has availability
+    const rolesArray = ['admin', 'packaging', 'billing', 'salesman'];
+    
+    for (const role of rolesArray) {
+      const currentCount = getRoleCount(role);
+      const limit = roleLimits[role];
+      
+      // If any role has availability, return true
+      if (limit > currentCount) {
+        return true;
+      }
+    }
+    
+    // If no roles have availability, return false
+    return false;
+  }, [staff, limits, getRoleCount, roleLimits]);
 
   const filteredAndSortedStaff = useMemo(() => {
     return staff
@@ -372,7 +401,6 @@ function StaffAccount() {
     return { current, limit, available: limit - current }
   }, [getRoleCount])
 
-
   const getStatusVariant = useCallback((status) => {
     switch (status) {
       case "Active": return "default"
@@ -415,10 +443,17 @@ function StaffAccount() {
           <h2>Staff Account Management</h2>
           <p className="text-muted-foreground">Manage employee records, roles, and employment details</p>
         </div>
-        <Button onClick={openAddDialog}>
-          <Plus className="h-4 w-4 mr-2" />
-          Add Staff Member
-        </Button>
+        <div className="flex flex-col items-end gap-1">
+          <Button disabled={!isAnyRoleAvailable} onClick={openAddDialog}>
+            <Plus className="h-4 w-4 mr-2" />
+            Add Staff Member
+          </Button>
+          {!isAnyRoleAvailable && (
+            <p className="text-xs text-red-500">
+              All role limits reached
+            </p>
+          )}
+        </div>
       </div>
 
       {/* Stats Overview */}
@@ -1227,8 +1262,9 @@ function StaffAccount() {
                 />
               </div>
             </div>
-
+            {/* Emergency Contact Section */}
             <div>
+              <h3 className="text-lg font-medium">Emergency Contact</h3>
               <Label htmlFor="add-emergencyContact">Person Name</Label>
               <Input 
                 id="add-emergencyContact" 

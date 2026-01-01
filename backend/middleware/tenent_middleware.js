@@ -42,9 +42,9 @@ const tenent_checker = async(req,res,next)=>{
         // console.log(next)
         next();
     } catch (error) {
-        console.log('something wornge in tenent middleware')
+        console.log('something wornge in tenent middleware',error)
         manualLog(`error in tenent middleware :: ${JSON.stringify(error)}`)
-        res.status(500).json({message:'something wrong with the tenent middleware'});
+        res.status(500).json({message:'something wrong with the tenent middleware',error: error});
     }
 }
 

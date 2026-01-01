@@ -32,7 +32,12 @@ const permissions = {
         "delete_payment",
         "edit_payment",
         "get_all_payment",
-        "user_by_userrole"
+        "user_by_userrole",
+        "add_location",
+        "get_location",
+        "update_limits",
+        "get_limits",
+        "view_location"
     ],
     "billing":[
         "get_by_id_product",
@@ -51,7 +56,9 @@ const permissions = {
         "update_notes",
         "delete_notes",
         "get_order_count",
-        "get_all_orders"
+        "get_all_orders",
+        "add_location",
+        "get_location",
     ],
     "seller":[
         "get_by_id_seller",
