@@ -1,16 +1,17 @@
 import React, { useEffect, useRef } from 'react'
-import {Routes,Route} from 'react-router-dom';
+import { Routes, Route } from 'react-router-dom';
 import Dashboard from './sa_dashboard';
-import AddOrder  from './sa_addOrder';
+import AddOrder from './sa_addOrder';
 import AddClient from './sa_addclient';
 import DailyFiles from './sa_dailyFiles';
 import PaymentUpdate from './sa_payment';
-import useGeolocation from '../../hooks/location/useGeolocation';
+import { useGeolocation, LocationPermissionGuard } from './../../hooks/location/useGeolocation';
 import { useAddLocation } from '../../hooks/location/useAddLocation';
 
-function Salesman_router() {
+// Main Routes Component
+function SalesmanRoutes() {
   const { mutate: addUserLocation } = useAddLocation();
-  const location = useGeolocation();
+  const { location } = useGeolocation();
 
   const intervalRef = useRef(null);
   const lastSentRef = useRef(0);
@@ -18,10 +19,9 @@ function Salesman_router() {
   useEffect(() => {
     if (!location.latitude || !location.longitude) return;
 
-    // ⛔ Prevent multiple intervals
     if (intervalRef.current) return;
 
-    // ✅ Send once immediately
+    // Send immediately
     addUserLocation({
       latitude: location.latitude,
       longitude: location.longitude
@@ -29,10 +29,9 @@ function Salesman_router() {
 
     lastSentRef.current = Date.now();
 
+    // Set up 5-minute interval
     intervalRef.current = setInterval(() => {
       const now = Date.now();
-
-      // ⛔ Extra safety: time-based throttle
       if (now - lastSentRef.current < 300000) return;
 
       addUserLocation({
@@ -41,24 +40,34 @@ function Salesman_router() {
       });
 
       lastSentRef.current = now;
-
-    }, 300000); // 5 minutes
+    }, 300000);
 
     return () => {
-      clearInterval(intervalRef.current);
-      intervalRef.current = null;
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
     };
-  }, [location.latitude, location.longitude]);
+  }, [location.latitude, location.longitude, addUserLocation]);
 
   return (
     <Routes>
-        <Route path='/dashboard' element={<Dashboard />} />
-        <Route path='/addorder' element={<AddOrder />} />
-        <Route path='/addclient' element={<AddClient />} />
-        <Route path='/addfiles' element={<DailyFiles />} />
-        <Route path='/paymentupdate' element={<PaymentUpdate />} />
+      <Route path='/dashboard' element={<Dashboard />} />
+      <Route path='/addorder' element={<AddOrder />} />
+      <Route path='/addclient' element={<AddClient />} />
+      <Route path='/addfiles' element={<DailyFiles />} />
+      <Route path='/paymentupdate' element={<PaymentUpdate />} />
     </Routes>
-  )
+  );
 }
 
-export default Salesman_router
+// Wrapped with Permission Guard
+function Salesman_router() {
+  return (
+    <LocationPermissionGuard>
+      <SalesmanRoutes />
+    </LocationPermissionGuard>
+  );
+}
+
+export default Salesman_router;
