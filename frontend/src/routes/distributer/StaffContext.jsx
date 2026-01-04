@@ -111,8 +111,8 @@ export function StaffProvider({ children }) {
   
   // NEW: Path stats
   const pathUsed = limits.data[0].routeLocationlimit || 0
-  const pathLimit = limits.data[0].routeLocationlimit || 20
-  const pathRemaining = pathLimit - pathUsed
+  const pathLimit = limits.data[0].totalRouteLocationlimit || 20
+  const pathRemaining = limits.data[0].routeLocationlimit
 
   return {
     used,

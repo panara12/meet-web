@@ -962,349 +962,342 @@ const handleFetchPathPoints = useCallback(async () => {
 
       {/* Location Tracker Dialog */}
       <Dialog open={showLocationDialog} onOpenChange={handleLocationDialogClose}>
-      <DialogContent className="w-[95vw] max-w-4xl h-[90vh] max-h-[90vh] p-0 gap-0">
-        {/* Header - Fixed */}
-        <DialogHeader className="px-4 sm:px-6 pt-4 sm:pt-6 pb-3 border-b">
-          <DialogTitle className="flex items-center gap-2 text-base sm:text-lg">
-            <Navigation className="h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0" />
-            <span className="truncate">
+        <DialogContent className="max-w-4xl max-h-[90vh]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Navigation className="h-5 w-5" />
               Location Tracker - {selectedStaff?.firstName} {selectedStaff?.lastName}
-            </span>
-          </DialogTitle>
-          <DialogDescription className="text-xs sm:text-sm">
-            Live location tracking and path history for {selectedStaff?.employeeId || 'N/A'}
-          </DialogDescription>
-        </DialogHeader>
-        
-        {/* Warning if limit reached */}
-        {getRequestsRemaining() === 0 && (
-          <div className="mx-4 sm:mx-6 mt-4 p-3 sm:p-4 border border-red-200 rounded-lg bg-red-50">
-            <div className="flex items-start gap-2 text-red-800">
-              <AlertCircle className="h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0 mt-0.5" />
-              <div>
-                <p className="font-medium text-sm sm:text-base">Location Request Limit Reached</p>
-                <p className="text-xs sm:text-sm text-red-700 mt-1">
-                  The monthly location request limit has been reached.
-                </p>
+            </DialogTitle>
+            <DialogDescription>
+              Live location tracking and path history for {selectedStaff?.employeeId || 'N/A'}
+            </DialogDescription>
+          </DialogHeader>
+          
+          {/* Show warning if limit reached */}
+          {getRequestsRemaining() === 0 && (
+            <div className="p-4 border border-red-200 rounded-lg bg-red-50">
+              <div className="flex items-center gap-2 text-red-800">
+                <AlertCircle className="h-5 w-5" />
+                <p className="font-medium">Location Request Limit Reached</p>
               </div>
+              <p className="text-sm text-red-700 mt-1">
+                The monthly location request limit has been reached. 
+                No more location updates can be requested until next month.
+              </p>
+            </div>
+          )}
+          
+          {selectedStaff && (
+            <ScrollArea className="max-h-[70vh]">
+              <Tabs defaultValue="current" className="w-full">
+                <TabsList className="grid w-full grid-cols-4">
+                  <TabsTrigger value="current">Current Location</TabsTrigger>
+                  <TabsTrigger value="path">Path History</TabsTrigger>
+                  <TabsTrigger value="usage">Usage Stats</TabsTrigger>
+                </TabsList>
+                
+                <TabsContent value="current" forceMount  className="space-y-4 data-[state=inactive]:hidden">
+  <div className="space-y-4">
+    <div className="flex items-center justify-between">
+      <h3 className="text-lg font-medium">Live Location</h3>
+      <Button 
+        onClick={handleRequestLocation}
+        disabled={
+          isUpdatingLocation || 
+          getRequestsRemaining() <= 0 ||
+          isLocationLoading
+        }
+        className="flex items-center gap-2"
+      >
+        {(isUpdatingLocation || isLocationLoading) ? (
+          <RefreshCw className="h-4 w-4 animate-spin" />
+        ) : (
+          <Zap className="h-4 w-4" />
+        )}
+        {isUpdatingLocation || isLocationLoading ? "Fetching..." : "Get Live Location"}
+      </Button>
+    </div>
+    
+    {/* Show loading state */}
+    {isLocationLoading && (
+      <div className="p-8 border rounded-lg text-center">
+        <Loader2 className="h-12 w-12 text-primary mx-auto mb-2 animate-spin" />
+        <p className="text-muted-foreground">Fetching location from server...</p>
+      </div>
+    )}
+    
+    {/* Show location if it exists */}
+    {!isLocationLoading && fetchedLocation && (
+      <div className="p-4 border rounded-lg bg-muted/50">
+        {/* Google Maps View with tracking */}
+        <GoogleMapViewWithTracking 
+        latitude={fetchedLocation.latitude}
+        longitude={fetchedLocation.longitude}
+        staffName={`${selectedStaff?.firstName || ''} ${selectedStaff?.lastName || ''}`}
+        address={fetchedLocation.address}
+        onMapLoad={handleMapLoad}
+      />
+
+      {isMapLoaded && (
+        <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
+          <div className="flex items-center gap-2 text-green-800">
+            <CheckCircle2 className="h-4 w-4" />
+            <p className="text-sm font-medium">
+              Location loaded successfully. Request count updated.
+            </p>
+          </div>
+        </div>
+      )}
+        
+        <div className="grid grid-cols-2 gap-4 mt-4">
+          <div>
+            <label className="text-sm font-medium">Address</label>
+            <p className="text-sm text-muted-foreground">
+              {fetchedLocation.address || "Address not available"}
+            </p>
+          </div>
+          <div>
+            <label className="text-sm font-medium">Fetched At</label>
+            <p className="text-sm text-muted-foreground">
+              {formatDate(fetchedLocation.timestamp)}
+            </p>
+          </div>
+          <div>
+            <label className="text-sm font-medium">Coordinates</label>
+            <p className="text-sm text-muted-foreground font-mono">
+              {fetchedLocation.latitude?.toFixed(6) || "N/A"}, 
+              {fetchedLocation.longitude?.toFixed(6) || "N/A"}
+            </p>
+          </div>
+          <div>
+            <label className="text-sm font-medium">Accuracy</label>
+            <p className="text-sm text-muted-foreground">
+              GPS Location
+            </p>
+          </div>
+        </div>
+        
+        {/* Show success message after map loads */}
+        {isMapLoaded && (
+          <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
+            <div className="flex items-center gap-2 text-green-800">
+              <CheckCircle2 className="h-4 w-4" />
+              <p className="text-sm font-medium">
+                Location loaded successfully. Request count updated.
+              </p>
             </div>
           </div>
         )}
+      </div>
+    )}
+    
+    {/* No location available */}
+    {!isLocationLoading && !fetchedLocation && (
+      <div className="p-8 border rounded-lg text-center">
+        <MapPin className="h-12 w-12 text-muted-foreground mx-auto mb-2" />
+        <p className="text-muted-foreground font-medium">No Location Data</p>
+        <p className="text-sm text-muted-foreground mt-1">
+          Click "Get Live Location" to fetch the current position from server
+        </p>
+      </div>
+    )}
+  </div>
+</TabsContent>
+
+<TabsContent value="path" forceMount  className="space-y-4 data-[state=inactive]:hidden">
+  <div className="space-y-4">
+    {/* Header with Controls */}
+    <div className="flex items-center justify-between gap-4">
+      <h3 className="text-lg font-medium">Movement Path</h3>
+      
+      <div className="flex items-center gap-2">
+        {/* Date Input */}
+        <Label htmlFor="path-date" className="text-sm">
+          Date:
+        </Label>
+        <Input
+          id="path-date"
+          type="text"
+          placeholder="dd/mm/yyyy"
+          value={selectedDate}
+          onChange={(e) => setSelectedDate(e.target.value)}
+          className="w-32 text-sm"
+        />
         
-        {/* Content - Scrollable */}
-        {selectedStaff && (
-          <ScrollArea className="flex-1 px-4 sm:px-6">
-            <Tabs defaultValue="current" className="w-full">
-              {/* Tabs List - Responsive */}
-              <TabsList className="grid w-full grid-cols-3 h-auto mb-4">
-                <TabsTrigger value="current" className="text-xs sm:text-sm py-2">
-                  <span className="hidden sm:inline">Current Location</span>
-                  <span className="sm:hidden">Current</span>
-                </TabsTrigger>
-                <TabsTrigger value="path" className="text-xs sm:text-sm py-2">
-                  <span className="hidden sm:inline">Path History</span>
-                  <span className="sm:hidden">Path</span>
-                </TabsTrigger>
-                <TabsTrigger value="usage" className="text-xs sm:text-sm py-2">
-                  <span className="hidden sm:inline">Usage Stats</span>
-                  <span className="sm:hidden">Stats</span>
-                </TabsTrigger>
-              </TabsList>
-              
-              {/* Current Location Tab */}
-              <TabsContent value="current" forceMount className="space-y-4 data-[state=inactive]:hidden mt-0">
-                <div className="space-y-4">
-                  {/* Header with Button - Responsive */}
-                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                    <h3 className="text-base sm:text-lg font-medium">Live Location</h3>
-                    <Button 
-                      onClick={handleRequestLocation}
-                      disabled={
-                        isUpdatingLocation || 
-                        getRequestsRemaining() <= 0 ||
-                        isLocationLoading
-                      }
-                      className="w-full sm:w-auto flex items-center justify-center gap-2 text-sm"
-                      size="sm"
-                    >
-                      {(isUpdatingLocation || isLocationLoading) ? (
-                        <>
-                          <RefreshCw className="h-3 w-3 sm:h-4 sm:w-4 animate-spin" />
-                          <span>Fetching...</span>
-                        </>
-                      ) : (
-                        <>
-                          <Zap className="h-3 w-3 sm:h-4 sm:w-4" />
-                          <span>Get Live Location</span>
-                        </>
-                      )}
-                    </Button>
-                  </div>
-                  
-                  {/* Loading State */}
-                  {isLocationLoading && (
-                    <div className="p-6 sm:p-8 border rounded-lg text-center">
-                      <Loader2 className="h-10 w-10 sm:h-12 sm:w-12 text-primary mx-auto mb-2 animate-spin" />
-                      <p className="text-sm text-muted-foreground">Fetching location from server...</p>
-                    </div>
-                  )}
-                  
-                  {/* Location Display */}
-                  {!isLocationLoading && fetchedLocation && (
-                    <div className="p-3 sm:p-4 border rounded-lg bg-muted/50 space-y-4">
-                      {/* Google Maps View */}
-                      <div className="relative">
-                        <GoogleMapViewWithTracking 
-                          latitude={fetchedLocation.latitude}
-                          longitude={fetchedLocation.longitude}
-                          staffName={`${selectedStaff?.firstName || ''} ${selectedStaff?.lastName || ''}`}
-                          address={fetchedLocation.address}
-                          onMapLoad={handleMapLoad}
-                        />
-                      </div>
-
-                      {/* Success Message */}
-                      {isMapLoaded && (
-                        <div className="p-2 sm:p-3 bg-green-50 border border-green-200 rounded-lg">
-                          <div className="flex items-center gap-2 text-green-800">
-                            <CheckCircle2 className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
-                            <p className="text-xs sm:text-sm font-medium">
-                              Location loaded successfully. Request count updated.
-                            </p>
-                          </div>
-                        </div>
-                      )}
-                      
-                      {/* Location Details - Responsive Grid */}
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                        <div>
-                          <label className="text-xs sm:text-sm font-medium">Address</label>
-                          <p className="text-xs sm:text-sm text-muted-foreground break-words">
-                            {fetchedLocation.address || "Address not available"}
-                          </p>
-                        </div>
-                        <div>
-                          <label className="text-xs sm:text-sm font-medium">Fetched At</label>
-                          <p className="text-xs sm:text-sm text-muted-foreground">
-                            {formatDate(fetchedLocation.timestamp)}
-                          </p>
-                        </div>
-                        <div>
-                          <label className="text-xs sm:text-sm font-medium">Coordinates</label>
-                          <p className="text-xs sm:text-sm text-muted-foreground font-mono break-all">
-                            {fetchedLocation.latitude?.toFixed(6) || "N/A"}, 
-                            {fetchedLocation.longitude?.toFixed(6) || "N/A"}
-                          </p>
-                        </div>
-                        <div>
-                          <label className="text-xs sm:text-sm font-medium">Accuracy</label>
-                          <p className="text-xs sm:text-sm text-muted-foreground">
-                            GPS Location
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                  
-                  {/* No Location State */}
-                  {!isLocationLoading && !fetchedLocation && (
-                    <div className="p-6 sm:p-8 border rounded-lg text-center">
-                      <MapPin className="h-10 w-10 sm:h-12 sm:w-12 text-muted-foreground mx-auto mb-2" />
-                      <p className="text-sm sm:text-base text-muted-foreground font-medium">No Location Data</p>
-                      <p className="text-xs sm:text-sm text-muted-foreground mt-1">
-                        Click "Get Live Location" to fetch the current position
-                      </p>
-                    </div>
-                  )}
+        {/* Load Path Button */}
+        <Button 
+          onClick={handleFetchPathPoints}
+          disabled={
+            isLoadingPath || 
+            isPathPointsLoading || 
+            getCommonLocationStats().pathRemaining <= 0  // ⬅️ ADD THIS LINE
+          }
+          size="sm"
+        >
+          {(isLoadingPath || isPathPointsLoading) ? (
+            <>
+              <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+              Loading...
+            </>
+          ) : (
+            <>
+              <Route className="h-4 w-4 mr-2" />
+              Load Path
+            </>
+          )}
+        </Button>
+      </div>
+    </div>
+    
+    
+    {/* Loading State */}
+    {(isLoadingPath || isPathPointsLoading) && (
+      <div className="p-8 border rounded-lg text-center">
+        <Loader2 className="h-12 w-12 text-primary mx-auto mb-2 animate-spin" />
+        <p className="text-muted-foreground">Loading path data...</p>
+      </div>
+    )}
+    
+    {/* Path Map */}
+    {!isLoadingPath && !isPathPointsLoading && pathPoints.length > 0 && (
+      <div className="p-4 border rounded-lg bg-muted/50">
+        <div className="mb-4">
+          <p className="text-sm font-medium">Path for {selectedDate}</p>
+          <p className="text-xs text-muted-foreground">
+            {pathPoints.length} location points tracked
+          </p>
+        </div>
+        
+        {/* PASS COORDINATES TO YOUR COMPONENT */}
+        <RoadsMapComponent coordinates={pathPoints} />
+        
+        {/* Coordinates List */}
+        <div className="mt-4 max-h-48 overflow-y-auto">
+          <h4 className="font-medium text-sm mb-2">Location Points:</h4>
+          <div className="space-y-2">
+            {pathPoints.map((point, index) => (
+              <div 
+                key={index} 
+                className="flex items-center justify-between text-xs p-2 bg-white rounded border"
+              >
+                <div className="flex items-center gap-2">
+                  <div className={`w-2 h-2 rounded-full ${
+                    index === 0 ? 'bg-green-500' : 
+                    index === pathPoints.length - 1 ? 'bg-red-500' : 
+                    'bg-blue-500'
+                  }`}></div>
+                  <span className="font-medium">
+                    {index === 0 ? 'Start' : 
+                     index === pathPoints.length - 1 ? 'End' : 
+                     `Point ${index + 1}`}
+                  </span>
                 </div>
-              </TabsContent>
-
-              {/* Path History Tab */}
-              <TabsContent value="path" forceMount className="space-y-4 data-[state=inactive]:hidden mt-0">
-                <div className="space-y-4">
-                  {/* Header with Controls - Responsive */}
-                  <div className="flex flex-col gap-3">
-                    <h3 className="text-base sm:text-lg font-medium">Movement Path</h3>
-                    
-                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
-                      {/* Date Input */}
-                      <div className="flex items-center gap-2 flex-1">
-                        <Label htmlFor="path-date" className="text-xs sm:text-sm whitespace-nowrap">
-                          Date:
-                        </Label>
-                        <Input
-                          id="path-date"
-                          type="text"
-                          placeholder="dd/mm/yyyy"
-                          value={selectedDate}
-                          onChange={(e) => setSelectedDate(e.target.value)}
-                          className="flex-1 sm:w-32 text-xs sm:text-sm h-9"
-                        />
+                <span className="text-muted-foreground font-mono">
+                  {point.lat.toFixed(6)}, {point.lng.toFixed(6)}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    )}
+    
+    {/* No Data State */}
+    {!isLoadingPath && !isPathPointsLoading && pathPoints.length === 0 && (
+      <div className="p-8 border rounded-lg text-center">
+        <Route className="h-12 w-12 text-muted-foreground mx-auto mb-2" />
+        <p className="text-muted-foreground font-medium">No Path Data</p>
+        <p className="text-sm text-muted-foreground mt-1">
+          Select a date and click "Load Path" to view movement history
+        </p>
+      </div>
+    )}
+  </div>
+</TabsContent>
+                
+                {/* Add Usage Stats Tab with Common Limits */}
+                <TabsContent value="usage" forceMount  className="space-y-4 data-[state=inactive]:hidden">
+                  <div className="space-y-6">
+                    {/* Common Usage Stats */}
+                    <div className="p-4 border rounded-lg bg-blue-50">
+                      <div className="flex items-center gap-2 mb-3">
+                        <Shield className="h-5 w-5 text-blue-600" />
+                        <h4 className="font-medium text-blue-900">Common Location Requests (All Users)</h4>
                       </div>
-                      
-                      {/* Load Path Button */}
-                      <Button 
-                        onClick={handleFetchPathPoints}
-                        disabled={
-                          isLoadingPath || 
-                          isPathPointsLoading || 
-                          getCommonLocationStats().pathRemaining <= 0
-                        }
-                        className="w-full sm:w-auto text-xs sm:text-sm"
-                        size="sm"
-                      >
-                        {(isLoadingPath || isPathPointsLoading) ? (
-                          <>
-                            <RefreshCw className="h-3 w-3 sm:h-4 sm:w-4 mr-2 animate-spin" />
-                            Loading...
-                          </>
-                        ) : (
-                          <>
-                            <Route className="h-3 w-3 sm:h-4 sm:w-4 mr-2" />
-                            Load Path
-                          </>
-                        )}
-                      </Button>
+                      <div className="space-y-3">
+                        <div className="flex justify-between text-sm">
+                          <span>Total Requests Used</span>
+                          <span className="font-medium">
+                            {getCommonLocationStats().used} / {limits?.data[0]?.totalLiveLocationlimit || 0}
+                          </span>
+                        </div>
+                        <Progress 
+                          value={(getCommonLocationStats().used / limits?.data[0]?.totalLiveLocationlimit) * 100}
+                          className="h-2"
+                        />
+                        <div className="flex justify-between text-xs text-muted-foreground">
+                          <span>{getCommonLocationStats().remaining} requests remaining</span>
+                          <span>Shared across all staff</span>
+                        </div>
+                      </div>
+                      <div className="space-y-3">
+                        <div className="flex justify-between text-sm">
+                          <span>Total Path Requests Used</span>
+                          <span className="font-medium">
+                            {getCommonLocationStats().pathRemaining} / {limits?.data[0]?.totalLiveLocationlimit || 0}
+                          </span>
+                        </div>
+                        <Progress 
+                          value={(getCommonLocationStats().pathRemaining / limits?.data[0]?.totalLiveLocationlimit) * 100}
+                          className="h-2"
+                        />
+                        <div className="flex justify-between text-xs text-muted-foreground">
+                          <span>{getCommonLocationStats().pathRemaining} requests remaining</span>
+                          <span>Shared across all staff</span>
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                  
-                  {/* Loading State */}
-                  {(isLoadingPath || isPathPointsLoading) && (
-                    <div className="p-6 sm:p-8 border rounded-lg text-center">
-                      <Loader2 className="h-10 w-10 sm:h-12 sm:w-12 text-primary mx-auto mb-2 animate-spin" />
-                      <p className="text-sm text-muted-foreground">Loading path data...</p>
-                    </div>
-                  )}
-                  
-                  {/* Path Map Display */}
-                  {!isLoadingPath && !isPathPointsLoading && pathPoints.length > 0 && (
-                    <div className="p-3 sm:p-4 border rounded-lg bg-muted/50 space-y-4">
-                      <div>
-                        <p className="text-xs sm:text-sm font-medium">Path for {selectedDate}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {pathPoints.length} location points tracked
+                    
+                    {/* Individual User Stats
+                    <div className="p-4 border rounded-lg">
+                      <h4 className="font-medium mb-4">
+                        {selectedStaff?.firstName}'s Location Activity
+                      </h4>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="p-4 border rounded-lg text-center">
+                          <p className="text-2xl font-bold text-blue-600">
+                            {selectedStaff?.locationTracking?.locationHistory?.length || 0}
+                          </p>
+                          <p className="text-sm text-muted-foreground">Locations Stored</p>
+                        </div>
+                        <div className="p-4 border rounded-lg text-center">
+                          <p className="text-2xl font-bold text-green-600">
+                            {selectedStaff?.locationTracking?.isTrackingEnabled ? "Active" : "Inactive"}
+                          </p>
+                          <p className="text-sm text-muted-foreground">Tracking Status</p>
+                        </div>
+                      </div>
+                    </div> */}
+                    
+                    {/* Warning if limit is close */}
+                    {getCommonLocationStats().remaining <= 5 && getCommonLocationStats().remaining > 0 && (
+                      <div className="p-4 border border-orange-200 rounded-lg bg-orange-50">
+                        <div className="flex items-center gap-2 text-orange-800">
+                          <AlertCircle className="h-5 w-5" />
+                          <p className="font-medium">Low Request Balance</p>
+                        </div>
+                        <p className="text-sm text-orange-700 mt-1">
+                          Only {getCommonLocationStats().remaining} location requests remaining this month.
+                          The limit resets at the start of each month.
                         </p>
                       </div>
-                      
-                      {/* Map Component */}
-                      <RoadsMapComponent coordinates={pathPoints} />
-                      
-                      {/* Coordinates List - Responsive */}
-                      <div className="max-h-48 overflow-y-auto">
-                        <h4 className="font-medium text-xs sm:text-sm mb-2">Location Points:</h4>
-                        <div className="space-y-2">
-                          {pathPoints.map((point, index) => (
-                            <div 
-                              key={index} 
-                              className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 sm:gap-0 text-xs p-2 bg-white rounded border"
-                            >
-                              <div className="flex items-center gap-2">
-                                <div className={`w-2 h-2 rounded-full flex-shrink-0 ${
-                                  index === 0 ? 'bg-green-500' : 
-                                  index === pathPoints.length - 1 ? 'bg-red-500' : 
-                                  'bg-blue-500'
-                                }`}></div>
-                                <span className="font-medium">
-                                  {index === 0 ? 'Start' : 
-                                   index === pathPoints.length - 1 ? 'End' : 
-                                   `Point ${index + 1}`}
-                                </span>
-                              </div>
-                              <span className="text-muted-foreground font-mono text-xs sm:text-xs ml-4 sm:ml-0 break-all">
-                                {point.lat.toFixed(6)}, {point.lng.toFixed(6)}
-                              </span>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                  
-                  {/* No Data State */}
-                  {!isLoadingPath && !isPathPointsLoading && pathPoints.length === 0 && (
-                    <div className="p-6 sm:p-8 border rounded-lg text-center">
-                      <Route className="h-10 w-10 sm:h-12 sm:w-12 text-muted-foreground mx-auto mb-2" />
-                      <p className="text-sm sm:text-base text-muted-foreground font-medium">No Path Data</p>
-                      <p className="text-xs sm:text-sm text-muted-foreground mt-1">
-                        Select a date and click "Load Path" to view movement history
-                      </p>
-                    </div>
-                  )}
-                </div>
-              </TabsContent>
-              
-              {/* Usage Stats Tab */}
-              <TabsContent value="usage" forceMount className="space-y-4 data-[state=inactive]:hidden mt-0">
-                <div className="space-y-4 sm:space-y-6">
-                  {/* Common Usage Stats */}
-                  <div className="p-3 sm:p-4 border rounded-lg bg-blue-50">
-                    <div className="flex items-center gap-2 mb-3">
-                      <Shield className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600 flex-shrink-0" />
-                      <h4 className="font-medium text-blue-900 text-xs sm:text-sm">
-                        Common Location Requests (All Users)
-                      </h4>
-                    </div>
-                    
-                    {/* Live Location Stats */}
-                    <div className="space-y-3 mb-4">
-                      <div className="flex justify-between text-xs sm:text-sm">
-                        <span>Live Location Requests</span>
-                        <span className="font-medium">
-                          {getCommonLocationStats().used} / {limits?.data[0]?.totalLiveLocationlimit || 0}
-                        </span>
-                      </div>
-                      <Progress 
-                        value={(getCommonLocationStats().used / (limits?.data[0]?.totalLiveLocationlimit || 1)) * 100}
-                        className="h-2"
-                      />
-                      <div className="flex justify-between text-xs text-muted-foreground">
-                        <span>{getCommonLocationStats().remaining} remaining</span>
-                        <span className="hidden sm:inline">Shared across all staff</span>
-                      </div>
-                    </div>
-                    
-                    {/* Path Requests Stats */}
-                    <div className="space-y-3 pt-3 border-t border-blue-200">
-                      <div className="flex justify-between text-xs sm:text-sm">
-                        <span>Path Requests</span>
-                        <span className="font-medium">
-                          {getCommonLocationStats().pathUsed || 0} / {limits?.data[0]?.totalRouteLocationlimit || 0}
-                        </span>
-                      </div>
-                      <Progress 
-                        value={((getCommonLocationStats().pathUsed || 0) / (limits?.data[0]?.totalRouteLocationlimit || 1)) * 100}
-                        className="h-2"
-                      />
-                      <div className="flex justify-between text-xs text-muted-foreground">
-                        <span>{limits?.data[0]?.routeLocationlimit || 0} remaining</span>
-                        <span className="hidden sm:inline">Shared across all staff</span>
-                      </div>
-                    </div>
+                    )}
                   </div>
-                  
-                  {/* Warning if limit is close */}
-                  {getCommonLocationStats().remaining <= 5 && getCommonLocationStats().remaining > 0 && (
-                    <div className="p-3 sm:p-4 border border-orange-200 rounded-lg bg-orange-50">
-                      <div className="flex items-start gap-2 text-orange-800">
-                        <AlertCircle className="h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0 mt-0.5" />
-                        <div>
-                          <p className="font-medium text-xs sm:text-sm">Low Request Balance</p>
-                          <p className="text-xs sm:text-sm text-orange-700 mt-1">
-                            Only {getCommonLocationStats().remaining} location requests remaining this month.
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </TabsContent>
-            </Tabs>
-            
-            {/* Bottom Padding for ScrollArea */}
-            <div className="h-4"></div>
-          </ScrollArea>
-        )}
-      </DialogContent>
+                </TabsContent>
+              </Tabs>
+            </ScrollArea>
+          )}
+        </DialogContent>
       </Dialog>
       </div>
   );
