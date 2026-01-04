@@ -58,8 +58,10 @@ router.post('/adddistributer',async (req,res)=>{
         salemanlimit:2,
         packagelimit:1,
         billinglimit:1,
-        liveLocationlimit:20,
-        routeLocationlimit:20
+        liveLocationlimit:35,
+        totalLiveLocationlimit:35,
+        routeLocationlimit:35,
+        totalRouteLocationlimit:35
     });
 
     res.status(200).json({

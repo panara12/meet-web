@@ -8,6 +8,7 @@ import { useAddUser } from "../../hooks/user/useAddUser"
 import { useGetAllLimit } from "../../hooks/limit/useGetAllLimit"
 import { useUpdateLimit } from "../../hooks/limit/useUpdateLimit"
 import { useGetLocationById } from "../../hooks/location/useGetLocationById"
+import { useGetpathPoints } from "../../hooks/location/useGetPathPoints"
 
 const StaffContext = createContext(undefined)
 
@@ -73,6 +74,7 @@ export function StaffProvider({ children }) {
   const { mutate: deleteUser, isPending: isDeleteUserPending, isError: isDeleteUserError, error: deleteUserError } = useDeleteUser()
   const { mutate: updateLimit, isPending: isUpdateLimitPending, isError: isUpdateLimitError, error: updateLimitError } = useUpdateLimit()
   const { mutate: getLocationById, isPending: isGetLocationByIdPending, isError: isGetLocationByIdError, error: getLocationByIdError } = useGetLocationById()
+  const { mutate: getPathPoints, isPending: isGetPathPointsPending, isError: isGetPathPointsError, error: getPathPointsError } = useGetpathPoints()
 
   // Load users from API
   useEffect(() => {
@@ -93,23 +95,34 @@ export function StaffProvider({ children }) {
 
   // Get common location request stats
   const getCommonLocationStats = () => {
-    if (!limits) {
-      return {
-        used: 0,
-        limit: 20,
-        remaining: 20
-      }
-    }
-
-    const used = limits.data[0].liveLocationlimit || 0
-    const limit = limits.data[0].liveLocationlimit || 20
-
+  if (!limits) {
     return {
-      used,
-      limit,
-      remaining: limits.data[0].liveLocationlimit
+      used: 0,
+      limit: 20,
+      remaining: 20,
+      pathUsed: 0,          // NEW
+      pathLimit: 20,        // NEW
+      pathRemaining: 20     // NEW
     }
   }
+
+  const used = limits.data[0].liveLocationlimit || 0
+  const limit = limits.data[0].liveLocationlimit || 20
+  
+  // NEW: Path stats
+  const pathUsed = limits.data[0].routeLocationlimit || 0
+  const pathLimit = limits.data[0].routeLocationlimit || 20
+  const pathRemaining = pathLimit - pathUsed
+
+  return {
+    used,
+    limit,
+    remaining: limits.data[0].liveLocationlimit,
+    pathUsed,           // NEW
+    pathLimit,          // NEW
+    pathRemaining       // NEW
+  }
+}
 
   // CRUD Operations
   const addStaff = (newStaff) => {
@@ -227,6 +240,39 @@ export function StaffProvider({ children }) {
     return true
   }
 
+  // ADD THIS FUNCTION AFTER decrementLocationRequest:
+
+const decrementPathRequest = () => {
+  console.log("📉 Decrementing path request count", limits)
+  
+  if (!limits) {
+    console.error("Limits not available")
+    return false
+  }
+  
+  let reqcount = limits.data[0].routeLocationlimit;
+  const newUsedCount = reqcount - 1
+
+  updateLimit({
+    id: limits.data[0]._id,
+    updates: {
+      routeLocationlimit: newUsedCount
+    }
+  })
+
+  // Update local state immediately for better UX
+  setLimits({
+    ...limits,
+    data: [{
+      ...limits.data[0],
+      pathRequestsUsed: newUsedCount
+    }]
+  })
+  
+  console.log("✅ Path request count updated:", newUsedCount)
+  return true
+}
+
   const requestLocationUpdate = async (staffId) => {
     if (!staffId) {
       console.error("Cannot request location: Invalid staff ID")
@@ -298,6 +344,42 @@ export function StaffProvider({ children }) {
       throw error
     }
   }
+
+  const fetchPathPoints = (userId, date) => {
+  return new Promise((resolve, reject) => {
+    if (!userId || !date) {
+      reject(new Error("User ID and date are required"))
+      return
+    }
+
+    console.log("📍 Fetching path points for:", userId, date)
+    
+    getPathPoints(
+      { userId, date },
+      {
+        onSuccess: (response) => {
+          console.log("✅ Path points fetched:", response)
+          
+          if (response?.data?.locations && Array.isArray(response.data.locations)) {
+            // Transform API format to component format
+            const formattedCoordinates = response.data.locations.map(location => {
+              const [lng, lat] = location.coordinates.coordinates
+              return { lat, lng }
+            })
+            
+            resolve(formattedCoordinates)
+          } else {
+            reject(new Error("Invalid path points data"))
+          }
+        },
+        onError: (error) => {
+          console.error("❌ Failed to fetch path:", error)
+          reject(error)
+        }
+      }
+    )
+  })
+}
 
   const getLocationHistory = (staffId) => {
     if (!staffId || !staff) return []
@@ -371,7 +453,10 @@ export function StaffProvider({ children }) {
         getCommonLocationStats,
         fetchStaffLocation,
         decrementLocationRequest,
+        decrementPathRequest,
         limits,
+        fetchPathPoints,
+        isPathPointsLoading: isGetPathPointsPending,
         isLoading: isgetAllUserPending || getLimitsPending,
         isError: isgetAllUserError || isLimitError,
         isLocationLoading: isGetLocationByIdPending,

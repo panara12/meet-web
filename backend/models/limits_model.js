@@ -20,9 +20,17 @@ const limitsSchema = new mongoose.Schema({
         type: Number,
         default: 20
     },
+    totalLiveLocationlimit:{
+        type: Number,
+        default: 35
+    },
     routeLocationlimit:{
         type: Number,
         default: 20
+    },
+    totalRouteLocationlimit:{
+        type: Number,
+        default: 35
     }
 })
 

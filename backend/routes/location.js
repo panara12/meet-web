@@ -146,5 +146,42 @@ router.get(
   }
 );
 
+router.post('/pathPoints', user_session_checker('view_location'), async (req, res) => {
+  manualLog('Entered path points route');
+  try {
+    const { userId, date } = req.body;
+    const Location = req.db.model('Location');
+    
+    // Parse dd/mm/yyyy format
+    const [day, month, year] = date.split('/').map(Number);
+    
+    // Create start date (00:00:00.000 UTC)
+    const start = new Date(Date.UTC(year, month - 1, day, 0, 0, 0, 0));
+    console.log('Requested date for path points:', start);
+    
+    // Create end date (23:59:59.999 UTC)
+    const end = new Date(Date.UTC(year, month - 1, day, 23, 59, 59, 999));
+    console.log('End date for path points:', end);
+
+    const locations = await Location.find({
+      userId:userId,
+      createdAt: { $gte: start, $lte: end },
+      isDeleted: false
+    }).sort({ createdAt: 1 });
+    
+    console.log(`Fetched ${locations.length} location points for user ${userId} on date ${date}`);
+
+    res.status(200).json({
+      message: 'Path points retrieved',
+      locations
+    });
+  } catch (error) {
+    console.log('Error fetching path points', error);
+    res.status(500).json({
+      message: 'Failed to fetch path points',
+      error: error.message
+    });
+  }
+});
 
 module.exports = router;
