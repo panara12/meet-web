@@ -1,145 +1,112 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { GoogleMap, useJsApiLoader, Polyline } from '@react-google-maps/api';
+import { GoogleMap, DirectionsRenderer } from '@react-google-maps/api';
+import { useGoogleMaps, mapContainerStyles, simpleMapOptions } from '../utils/googlemaps';
 
-const containerStyle = {
-  width: '100%',
-  height: '400px' // Increased height for better visualization
-};
-
-// --- Your API Key from .env ---
-const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_API_KEY;
-
-
-function RoadsMapComponent({coordinates}) {
-  const { isLoaded } = useJsApiLoader({
-    id: 'google-map-script',
-    googleMapsApiKey: GOOGLE_MAPS_API_KEY
-  });
-  console.log("Path Points:", coordinates);
-  const defaultMapOptions = {
-      zoom: 15, // A good default zoom level for a local path
-      center: coordinates[0] || { lat: 0, lng: 0 } // Center on the first point, or 0,0 if no points
-  };
-  const [snappedPath, setSnappedPath] = useState([]);
+function DirectionsMapComponent({ coordinates }) {
+  // Use the common Google Maps loader
+  const { isLoaded } = useGoogleMaps();
+  
+  const [directionsResponse, setDirectionsResponse] = useState(null);
   const [map, setMap] = useState(null);
+  
+  // Define origin, destination, and waypoints from coordinates
+  const origin = { 
+    lat: coordinates[0]?.lat || 38.8950, 
+    lng: coordinates[0]?.lng || -77.0366 
+  };
+  
+  const destination = { 
+    lat: coordinates[coordinates.length - 1]?.lat || 38.8892, 
+    lng: coordinates[coordinates.length - 1]?.lng || -77.0506 
+  };
+  
+  const waypoints = [];
+  for (let i = 1; i < coordinates.length - 1; i++) {
+    waypoints.push({
+      location: { lat: coordinates[i]?.lat, lng: coordinates[i]?.lng },
+      stopover: true
+    });
+  }
+  
+  // Function to calculate and display the route using Directions API
+  const calculateRoute = useCallback(() => {
+    if (!isLoaded) return;
 
-  // Function to call the Roads API
-  const fetchSnappedPath = useCallback(async () => {
-    if (!GOOGLE_MAPS_API_KEY) {
-      console.error("Google Maps API Key is not set.");
-      return;
-    }
+    const directionsService = new window.google.maps.DirectionsService();
 
-    // Format raw coordinates for the API request
-    const pathString = coordinates.map(coord => `${coord.lat},${coord.lng}`).join('|');
-
-    try {
-      const response = await fetch(
-        `https://roads.googleapis.com/v1/snapToRoads?path=${pathString}&interpolate=true&key=${GOOGLE_MAPS_API_KEY}`
-      );
-      const data = await response.json();
-
-      if (response.ok && data.snappedPoints) {
-        const newSnappedPath = data.snappedPoints.map(point => ({
-          lat: point.location.latitude,
-          lng: point.location.longitude,
-        }));
-        setSnappedPath(newSnappedPath);
-        
-      } else {
-        console.error("Error snapping path:", data.error?.message || "Unknown error");
-        setSnappedPath(coordinates); // Fallback to raw if snapping fails
+    directionsService.route(
+      {
+        origin: origin,
+        destination: destination,
+        waypoints: waypoints,
+        travelMode: window.google.maps.TravelMode.DRIVING,
+        optimizeWaypoints: true,
+      },
+      (result, status) => {
+        if (status === window.google.maps.DirectionsStatus.OK) {
+          setDirectionsResponse(result);
+        } else {
+          console.error(`Directions request failed due to ${status}`);
+        }
       }
-    } catch (error) {
-      console.error("Network error fetching snapped path:", error);
-      setSnappedPath(coordinates); // Fallback to raw on network error
-    }
-  }, []);
+    );
+  }, [isLoaded, origin.lat, origin.lng, destination.lat, destination.lng]);
 
-  // Fetch snapped path when component mounts
+  // Calculate route when component mounts or dependencies change
   useEffect(() => {
-    fetchSnappedPath();
-  }, [fetchSnappedPath]); // Dependency array includes fetchSnappedPath
+    if (isLoaded) {
+      calculateRoute();
+    }
+  }, [isLoaded, calculateRoute]);
 
-  // Callback when the map loads
   const onLoad = useCallback(function callback(map) {
     setMap(map);
-    // You could fit bounds here if you wanted the map to automatically zoom
-    // const bounds = new window.google.maps.LatLngBounds();
-    // rawCoordinates.forEach(coord => bounds.extend(coord));
-    // map.fitBounds(bounds);
-  }, []);
+    // Fit bounds to the route once it's loaded
+    if (directionsResponse && map) {
+      const bounds = new window.google.maps.LatLngBounds();
+      directionsResponse.routes[0].legs.forEach(leg => {
+        leg.steps.forEach(step => {
+          step.lat_lngs.forEach(latlng => {
+            bounds.extend(latlng);
+          });
+        });
+      });
+      map.fitBounds(bounds);
+    }
+  }, [directionsResponse]);
 
-  // Callback when the map unloads
   const onUnmount = useCallback(function callback(map) {
     setMap(null);
   }, []);
 
-  return isLoaded ? (
+  if (!isLoaded) {
+    return <div>Loading Maps...</div>;
+  }
+
+  return (
     <GoogleMap
-      mapContainerStyle={containerStyle}
-      center={defaultMapOptions.center}
-      zoom={defaultMapOptions.zoom}
+      mapContainerStyle={mapContainerStyles.large}
+      center={origin}
+      zoom={15}
       onLoad={onLoad}
       onUnmount={onUnmount}
-      options={{
-        fullscreenControl: false,
-        zoomControl: true,
-        streetViewControl: false,
-        mapTypeControl: false
-      }}
+      options={simpleMapOptions}
     >
-
-
-      <Polyline
-        path={snappedPath.length > 0 ? snappedPath : coordinates}
-        options={{
-          strokeColor: '#2563eb',
-          strokeWeight: 4,
-          strokeOpacity: 0.8,
-        }}
-      />
-
-      {/* Optionally, you can add Markers for the start and end of the path */}
-      {coordinates.length > 0 && (
-          <>
-            <Polyline
-                path={[coordinates[0]]}
-                options={{
-                    icons: [{
-                        icon: {
-                            path: window.google.maps.SymbolPath.CIRCLE,
-                            scale: 8,
-                            fillColor: '#00AA00', // Green start circle
-                            fillOpacity: 1,
-                            strokeWeight: 0
-                        },
-                        offset: '0%'
-                    }]
-                }}
-            />
-            <Polyline
-                path={[coordinates[coordinates.length - 1]]}
-                options={{
-                    icons: [{
-                        icon: {
-                            path: window.google.maps.SymbolPath.CIRCLE,
-                            scale: 8,
-                            fillColor: '#AA0000', // Red end circle
-                            fillOpacity: 1,
-                            strokeWeight: 0
-                        },
-                        offset: '0%'
-                    }]
-                }}
-            />
-          </>
+      {directionsResponse && (
+        <DirectionsRenderer
+          directions={directionsResponse}
+          options={{
+            polylineOptions: {
+              strokeColor: '#0000FF',
+              strokeOpacity: 0.8,
+              strokeWeight: 6,
+            },
+            suppressMarkers: false,
+          }}
+        />
       )}
-
     </GoogleMap>
-  ) : (
-    <div>Loading Maps...</div>
   );
 }
 
-export default React.memo(RoadsMapComponent);
+export default React.memo(DirectionsMapComponent);

@@ -6,7 +6,15 @@ import {store} from './store/index.js';
 import { QueryClientProvider,QueryClient } from '@tanstack/react-query';
 import App from './App.jsx'
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 1,
+      refetchOnWindowFocus: false,
+      experimental_prefetchInRender: true, // ← Add this
+    },
+  },
+})
 
 createRoot(document.getElementById('root')).render(
     <Provider store={store}>

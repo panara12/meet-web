@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
 import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
@@ -8,9 +8,7 @@ import Separator from "./ui/separator";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "./ui/dialog";
 import { ScrollArea } from "./ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
-import { Switch } from "./ui/switch";
 import { Progress } from "./ui/progress";
-import { Textarea } from "./ui/textarea";
 import { Label } from "./ui/label";
 import {
   Search,
@@ -32,18 +30,8 @@ import {
   Navigation,
   Route,
   RefreshCw,
-  History,
-  ToggleLeft,
-  ToggleRight,
   Zap,
-  Map,
   FolderOpen,
-  Upload,
-  FileText,
-  ImageIcon,
-  FilePlus,
-  Download,
-  Trash2,
   ExternalLink,
   Loader2,
   Cable
@@ -59,27 +47,18 @@ import {
 import { toast } from "sonner";
 import { useStaff } from "./StaffContext";
 import { useFileManagement } from "./FileManagementContext";
-import { GoogleMap, useJsApiLoader, Marker } from '@react-google-maps/api';
-import { useCallback } from "react";
-import RoadsMapComponent from "../../component/mappathgenerater.jsx";
-
-const containerStyle = {
-  width: '100%',
-  height: '400px',
-  borderRadius: '0.5rem'
-};
+import { GoogleMap, Marker } from '@react-google-maps/api';
+import DirectionsMapComponent from "../../component/mappathgenerater.jsx";
+import { useGoogleMaps, mapContainerStyles, defaultMapOptions } from '../../utils/googlemaps.jsx';
 
 const GoogleMapViewWithTracking = ({ latitude, longitude, staffName, address, onMapLoad }) => {
   const [map, setMap] = useState(null);
   const [mapLoaded, setMapLoaded] = useState(false);
 
-  console.log("Map coords:", latitude, longitude);
+  // Use the common Google Maps loader
+  const { isLoaded, loadError } = useGoogleMaps();
 
-  // Load Google Maps API
-  const { isLoaded, loadError } = useJsApiLoader({
-    id: 'google-map-script',
-    googleMapsApiKey: import.meta.env.VITE_GOOGLE_API_KEY
-  });
+  console.log("Map coords:", latitude, longitude);
 
   // Null/undefined checks
   if (!latitude || !longitude || isNaN(latitude) || isNaN(longitude)) {
@@ -159,17 +138,12 @@ const GoogleMapViewWithTracking = ({ latitude, longitude, staffName, address, on
   return (
     <div className="relative">
       <GoogleMap
-        mapContainerStyle={containerStyle}
+        mapContainerStyle={mapContainerStyles.default}
         center={center}
         zoom={15}
         onLoad={onLoad}
         onUnmount={onUnmount}
-        options={{
-          zoomControl: true,
-          streetViewControl: true,
-          mapTypeControl: true,
-          fullscreenControl: true,
-        }}
+        options={defaultMapOptions}
       >
         {/* Red marker at the location */}
         <Marker 
@@ -217,14 +191,14 @@ function SalesPanel() {
     clearLocationHistory, 
     toggleLocationTracking,
     getCommonLocationStats,
-    fetchStaffLocation,        // NEW: Fetch location from API
-    decrementLocationRequest,  // NEW: Decrement request count
+    fetchStaffLocation,
+    decrementLocationRequest,
     decrementPathRequest,
     limits,
     isLoading,
     isError,
-    isLocationLoading,         // NEW: Loading state for location fetch
-    fetchPathPoints,           // NEW
+    isLocationLoading,
+    fetchPathPoints,
     isPathPointsLoading  
   } = useStaff();
     
@@ -236,7 +210,6 @@ function SalesPanel() {
   const [showLocationDialog, setShowLocationDialog] = useState(false);
   const [showFilesDialog, setShowFilesDialog] = useState(false);
   const [isUpdatingLocation, setIsUpdatingLocation] = useState(false);
-  const [showPathMap, setShowPathMap] = useState(false);
   const [selectedDay, setSelectedDay] = useState("monday");
   const [fileDescription, setFileDescription] = useState("");
   const [isUploading, setIsUploading] = useState(false);
@@ -255,7 +228,6 @@ function SalesPanel() {
   };
   
   const [selectedDate, setSelectedDate] = useState(getTodayDate());
-
 
   // Safe filtering with null checks
   const filteredStaff = (staff || []).filter(member => {
@@ -310,17 +282,17 @@ function SalesPanel() {
   };
 
   const handleLocationDialogClose = useCallback((open) => {
-  setShowLocationDialog(open);
-  
-  if (!open) {
-    setFetchedLocation(null);
-    setIsMapLoaded(false);
-    setPathPoints([]);              // Reset path
-    setSelectedDate(getTodayDate()); // Reset date
-  }
-}, []);
+    setShowLocationDialog(open);
+    
+    if (!open) {
+      setFetchedLocation(null);
+      setIsMapLoaded(false);
+      setPathPoints([]);
+      setSelectedDate(getTodayDate());
+    }
+  }, []);
 
-const handleMapLoad = useCallback(() => {
+  const handleMapLoad = useCallback(() => {
     console.log("🎯 handleMapLoad called!");
     console.log("Current isMapLoaded state:", isMapLoaded);
     
@@ -330,7 +302,6 @@ const handleMapLoad = useCallback(() => {
       
       console.log("📉 Attempting to decrement location request count...");
       
-      // Decrement the location request count
       const success = decrementLocationRequest();
       
       if (success) {
@@ -360,7 +331,7 @@ const handleMapLoad = useCallback(() => {
     setShowFilesDialog(true);
   };
 
-const handleRequestLocation = useCallback(async () => {
+  const handleRequestLocation = useCallback(async () => {
     if (!selectedStaff) {
       toast.error("No staff member selected");
       return;
@@ -406,61 +377,58 @@ const handleRequestLocation = useCallback(async () => {
     }
   }, [selectedStaff, fetchStaffLocation]);
 
-
-const handleFetchPathPoints = useCallback(async () => {
-  if (!selectedStaff) {
-    toast.error("No staff member selected");
-    return;
-  }
-  
-  const isSalesman = selectedStaff?.role?.toLowerCase() === "salesman" || 
-                     selectedStaff?.role?.toLowerCase() === "sales-man";
-  
-  if (!isSalesman) {
-    toast.error("Path tracking is only available for salesmen");
-    return;
-  }
-  
-  // ⬇️ NEW: Check path request limit
-  const stats = getCommonLocationStats();
-  if (stats.pathRemaining <= 0) {
-    toast.error("Monthly path request limit reached");
-    return;
-  }
-  
-  console.log("🗺️ Fetching path for date:", selectedDate);
-  
-  setIsLoadingPath(true);
-  setPathPoints([]);
-  
-  try {
-    const coordinates = await fetchPathPoints(selectedStaff._id, selectedDate);
-    
-    if (coordinates && coordinates.length > 0) {
-      console.log("✅ Loaded", coordinates.length, "points");
-      setPathPoints(coordinates);
-      
-      // ⬇️ NEW: Decrement path request count after successful fetch
-      const success = decrementPathRequest();
-      if (success) {
-        console.log("✅ Path request count decremented");
-        toast.success(`Path loaded with ${coordinates.length} points`);
-      } else {
-        console.error("❌ Failed to decrement path request count");
-        toast.success(`Path loaded with ${coordinates.length} points (count update failed)`);
-      }
-    } else {
-      toast.info("No path data found for this date");
-      setPathPoints([]);
+  const handleFetchPathPoints = useCallback(async () => {
+    if (!selectedStaff) {
+      toast.error("No staff member selected");
+      return;
     }
-  } catch (error) {
-    console.error("❌ Path fetch error:", error);
-    toast.error(error.message || "Error fetching path");
+    
+    const isSalesman = selectedStaff?.role?.toLowerCase() === "salesman" || 
+                       selectedStaff?.role?.toLowerCase() === "sales-man";
+    
+    if (!isSalesman) {
+      toast.error("Path tracking is only available for salesmen");
+      return;
+    }
+    
+    const stats = getCommonLocationStats();
+    if (stats.pathRemaining <= 0) {
+      toast.error("Monthly path request limit reached");
+      return;
+    }
+    
+    console.log("🗺️ Fetching path for date:", selectedDate);
+    
+    setIsLoadingPath(true);
     setPathPoints([]);
-  } finally {
-    setIsLoadingPath(false);
-  }
-}, [selectedStaff, selectedDate, fetchPathPoints, decrementPathRequest, getCommonLocationStats]);
+    
+    try {
+      const coordinates = await fetchPathPoints(selectedStaff._id, selectedDate);
+      
+      if (coordinates && coordinates.length > 0) {
+        console.log("✅ Loaded", coordinates.length, "points");
+        setPathPoints(coordinates);
+        
+        const success = decrementPathRequest();
+        if (success) {
+          console.log("✅ Path request count decremented");
+          toast.success(`Path loaded with ${coordinates.length} points`);
+        } else {
+          console.error("❌ Failed to decrement path request count");
+          toast.success(`Path loaded with ${coordinates.length} points (count update failed)`);
+        }
+      } else {
+        toast.info("No path data found for this date");
+        setPathPoints([]);
+      }
+    } catch (error) {
+      console.error("❌ Path fetch error:", error);
+      toast.error(error.message || "Error fetching path");
+      setPathPoints([]);
+    } finally {
+      setIsLoadingPath(false);
+    }
+  }, [selectedStaff, selectedDate, fetchPathPoints, decrementPathRequest, getCommonLocationStats]);
 
   const handleClearHistory = (staffId) => {
     if (!staffId) return;
@@ -703,7 +671,7 @@ const handleFetchPathPoints = useCallback(async () => {
         </Card>
       </div>
 
-
+      {/* Staff Cards Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredStaff.map((member) => (
           <Card key={member?._id || Math.random()} className="hover:shadow-lg transition-shadow duration-200">
@@ -808,20 +776,20 @@ const handleFetchPathPoints = useCallback(async () => {
                       <MapPin className="h-3 w-3" />
                       Location
                     </Button>
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        className="flex items-center gap-1"
-                        onClick={() => handleDailyFiles(member)}
-                      >
-                        <FolderOpen className="h-3 w-3" />
-                        Files
-                        {getWeeklyFileCount && getWeeklyFileCount(member?._id) > 0 && (
-                          <Badge variant="secondary" className="ml-1 h-4 px-1 text-xs">
-                            {getWeeklyFileCount(member?._id)}
-                          </Badge>
-                        )}
-                      </Button>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="flex items-center gap-1"
+                      onClick={() => handleDailyFiles(member)}
+                    >
+                      <FolderOpen className="h-3 w-3" />
+                      Files
+                      {getWeeklyFileCount && getWeeklyFileCount(member?._id) > 0 && (
+                        <Badge variant="secondary" className="ml-1 h-4 px-1 text-xs">
+                          {getWeeklyFileCount(member?._id)}
+                        </Badge>
+                      )}
+                    </Button>
                   </>
                 )}
               </div>
@@ -990,233 +958,191 @@ const handleFetchPathPoints = useCallback(async () => {
           {selectedStaff && (
             <ScrollArea className="max-h-[70vh]">
               <Tabs defaultValue="current" className="w-full">
-                <TabsList className="grid w-full grid-cols-4">
+                <TabsList className="grid w-full grid-cols-3">
                   <TabsTrigger value="current">Current Location</TabsTrigger>
                   <TabsTrigger value="path">Path History</TabsTrigger>
                   <TabsTrigger value="usage">Usage Stats</TabsTrigger>
                 </TabsList>
                 
-                <TabsContent value="current" forceMount  className="space-y-4 data-[state=inactive]:hidden">
-  <div className="space-y-4">
-    <div className="flex items-center justify-between">
-      <h3 className="text-lg font-medium">Live Location</h3>
-      <Button 
-        onClick={handleRequestLocation}
-        disabled={
-          isUpdatingLocation || 
-          getRequestsRemaining() <= 0 ||
-          isLocationLoading
-        }
-        className="flex items-center gap-2"
-      >
-        {(isUpdatingLocation || isLocationLoading) ? (
-          <RefreshCw className="h-4 w-4 animate-spin" />
-        ) : (
-          <Zap className="h-4 w-4" />
-        )}
-        {isUpdatingLocation || isLocationLoading ? "Fetching..." : "Get Live Location"}
-      </Button>
-    </div>
-    
-    {/* Show loading state */}
-    {isLocationLoading && (
-      <div className="p-8 border rounded-lg text-center">
-        <Loader2 className="h-12 w-12 text-primary mx-auto mb-2 animate-spin" />
-        <p className="text-muted-foreground">Fetching location from server...</p>
-      </div>
-    )}
-    
-    {/* Show location if it exists */}
-    {!isLocationLoading && fetchedLocation && (
-      <div className="p-4 border rounded-lg bg-muted/50">
-        {/* Google Maps View with tracking */}
-        <GoogleMapViewWithTracking 
-        latitude={fetchedLocation.latitude}
-        longitude={fetchedLocation.longitude}
-        staffName={`${selectedStaff?.firstName || ''} ${selectedStaff?.lastName || ''}`}
-        address={fetchedLocation.address}
-        onMapLoad={handleMapLoad}
-      />
+                <TabsContent value="current" forceMount className="space-y-4 data-[state=inactive]:hidden">
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-lg font-medium">Live Location</h3>
+                      <Button 
+                        onClick={handleRequestLocation}
+                        disabled={
+                          isUpdatingLocation || 
+                          getRequestsRemaining() <= 0 ||
+                          isLocationLoading
+                        }
+                        className="flex items-center gap-2"
+                      >
+                        {(isUpdatingLocation || isLocationLoading) ? (
+                          <RefreshCw className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <Zap className="h-4 w-4" />
+                        )}
+                        {isUpdatingLocation || isLocationLoading ? "Fetching..." : "Get Live Location"}
+                      </Button>
+                    </div>
+                    
+                    {/* Show loading state */}
+                    {isLocationLoading && (
+                      <div className="p-8 border rounded-lg text-center">
+                        <Loader2 className="h-12 w-12 text-primary mx-auto mb-2 animate-spin" />
+                        <p className="text-muted-foreground">Fetching location from server...</p>
+                      </div>
+                    )}
+                    
+                    {/* Show location if it exists */}
+                    {!isLocationLoading && fetchedLocation && (
+                      <div className="p-4 border rounded-lg bg-muted/50">
+                        {/* Google Maps View with tracking */}
+                        <GoogleMapViewWithTracking 
+                          latitude={fetchedLocation.latitude}
+                          longitude={fetchedLocation.longitude}
+                          staffName={`${selectedStaff?.firstName || ''} ${selectedStaff?.lastName || ''}`}
+                          address={fetchedLocation.address}
+                          onMapLoad={handleMapLoad}
+                        />
 
-      {isMapLoaded && (
-        <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
-          <div className="flex items-center gap-2 text-green-800">
-            <CheckCircle2 className="h-4 w-4" />
-            <p className="text-sm font-medium">
-              Location loaded successfully. Request count updated.
-            </p>
-          </div>
-        </div>
-      )}
-        
-        <div className="grid grid-cols-2 gap-4 mt-4">
-          <div>
-            <label className="text-sm font-medium">Address</label>
-            <p className="text-sm text-muted-foreground">
-              {fetchedLocation.address || "Address not available"}
-            </p>
-          </div>
-          <div>
-            <label className="text-sm font-medium">Fetched At</label>
-            <p className="text-sm text-muted-foreground">
-              {formatDate(fetchedLocation.timestamp)}
-            </p>
-          </div>
-          <div>
-            <label className="text-sm font-medium">Coordinates</label>
-            <p className="text-sm text-muted-foreground font-mono">
-              {fetchedLocation.latitude?.toFixed(6) || "N/A"}, 
-              {fetchedLocation.longitude?.toFixed(6) || "N/A"}
-            </p>
-          </div>
-          <div>
-            <label className="text-sm font-medium">Accuracy</label>
-            <p className="text-sm text-muted-foreground">
-              GPS Location
-            </p>
-          </div>
-        </div>
-        
-        {/* Show success message after map loads */}
-        {isMapLoaded && (
-          <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
-            <div className="flex items-center gap-2 text-green-800">
-              <CheckCircle2 className="h-4 w-4" />
-              <p className="text-sm font-medium">
-                Location loaded successfully. Request count updated.
-              </p>
-            </div>
-          </div>
-        )}
-      </div>
-    )}
-    
-    {/* No location available */}
-    {!isLocationLoading && !fetchedLocation && (
-      <div className="p-8 border rounded-lg text-center">
-        <MapPin className="h-12 w-12 text-muted-foreground mx-auto mb-2" />
-        <p className="text-muted-foreground font-medium">No Location Data</p>
-        <p className="text-sm text-muted-foreground mt-1">
-          Click "Get Live Location" to fetch the current position from server
-        </p>
-      </div>
-    )}
-  </div>
-</TabsContent>
+                        {isMapLoaded && (
+                          <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
+                            <div className="flex items-center gap-2 text-green-800">
+                              <CheckCircle2 className="h-4 w-4" />
+                              <p className="text-sm font-medium">
+                                Location loaded successfully. Request count updated.
+                              </p>
+                            </div>
+                          </div>
+                        )}
+                        
+                        <div className="grid grid-cols-2 gap-4 mt-4">
+                          <div>
+                            <label className="text-sm font-medium">Address</label>
+                            <p className="text-sm text-muted-foreground">
+                              {fetchedLocation.address || "Address not available"}
+                            </p>
+                          </div>
+                          <div>
+                            <label className="text-sm font-medium">Fetched At</label>
+                            <p className="text-sm text-muted-foreground">
+                              {formatDate(fetchedLocation.timestamp)}
+                            </p>
+                          </div>
+                          <div>
+                            <label className="text-sm font-medium">Coordinates</label>
+                            <p className="text-sm text-muted-foreground font-mono">
+                              {fetchedLocation.latitude?.toFixed(6) || "N/A"}, 
+                              {fetchedLocation.longitude?.toFixed(6) || "N/A"}
+                            </p>
+                          </div>
+                          <div>
+                            <label className="text-sm font-medium">Accuracy</label>
+                            <p className="text-sm text-muted-foreground">
+                              GPS Location
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                    
+                    {/* No location available */}
+                    {!isLocationLoading && !fetchedLocation && (
+                      <div className="p-8 border rounded-lg text-center">
+                        <MapPin className="h-12 w-12 text-muted-foreground mx-auto mb-2" />
+                        <p className="text-muted-foreground font-medium">No Location Data</p>
+                        <p className="text-sm text-muted-foreground mt-1">
+                          Click "Get Live Location" to fetch the current position from server
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </TabsContent>
 
-<TabsContent value="path" forceMount  className="space-y-4 data-[state=inactive]:hidden">
-  <div className="space-y-4">
-    {/* Header with Controls */}
-    <div className="flex items-center justify-between gap-4">
-      <h3 className="text-lg font-medium">Movement Path</h3>
-      
-      <div className="flex items-center gap-2">
-        {/* Date Input */}
-        <Label htmlFor="path-date" className="text-sm">
-          Date:
-        </Label>
-        <Input
-          id="path-date"
-          type="text"
-          placeholder="dd/mm/yyyy"
-          value={selectedDate}
-          onChange={(e) => setSelectedDate(e.target.value)}
-          className="w-32 text-sm"
-        />
-        
-        {/* Load Path Button */}
-        <Button 
-          onClick={handleFetchPathPoints}
-          disabled={
-            isLoadingPath || 
-            isPathPointsLoading || 
-            getCommonLocationStats().pathRemaining <= 0  // ⬅️ ADD THIS LINE
-          }
-          size="sm"
-        >
-          {(isLoadingPath || isPathPointsLoading) ? (
-            <>
-              <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-              Loading...
-            </>
-          ) : (
-            <>
-              <Route className="h-4 w-4 mr-2" />
-              Load Path
-            </>
-          )}
-        </Button>
-      </div>
-    </div>
-    
-    
-    {/* Loading State */}
-    {(isLoadingPath || isPathPointsLoading) && (
-      <div className="p-8 border rounded-lg text-center">
-        <Loader2 className="h-12 w-12 text-primary mx-auto mb-2 animate-spin" />
-        <p className="text-muted-foreground">Loading path data...</p>
-      </div>
-    )}
-    
-    {/* Path Map */}
-    {!isLoadingPath && !isPathPointsLoading && pathPoints.length > 0 && (
-      <div className="p-4 border rounded-lg bg-muted/50">
-        <div className="mb-4">
-          <p className="text-sm font-medium">Path for {selectedDate}</p>
-          <p className="text-xs text-muted-foreground">
-            {pathPoints.length} location points tracked
-          </p>
-        </div>
-        
-        {/* PASS COORDINATES TO YOUR COMPONENT */}
-        <RoadsMapComponent coordinates={pathPoints} />
-        
-        {/* Coordinates List */}
-        <div className="mt-4 max-h-48 overflow-y-auto">
-          <h4 className="font-medium text-sm mb-2">Location Points:</h4>
-          <div className="space-y-2">
-            {pathPoints.map((point, index) => (
-              <div 
-                key={index} 
-                className="flex items-center justify-between text-xs p-2 bg-white rounded border"
-              >
-                <div className="flex items-center gap-2">
-                  <div className={`w-2 h-2 rounded-full ${
-                    index === 0 ? 'bg-green-500' : 
-                    index === pathPoints.length - 1 ? 'bg-red-500' : 
-                    'bg-blue-500'
-                  }`}></div>
-                  <span className="font-medium">
-                    {index === 0 ? 'Start' : 
-                     index === pathPoints.length - 1 ? 'End' : 
-                     `Point ${index + 1}`}
-                  </span>
-                </div>
-                <span className="text-muted-foreground font-mono">
-                  {point.lat.toFixed(6)}, {point.lng.toFixed(6)}
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-    )}
-    
-    {/* No Data State */}
-    {!isLoadingPath && !isPathPointsLoading && pathPoints.length === 0 && (
-      <div className="p-8 border rounded-lg text-center">
-        <Route className="h-12 w-12 text-muted-foreground mx-auto mb-2" />
-        <p className="text-muted-foreground font-medium">No Path Data</p>
-        <p className="text-sm text-muted-foreground mt-1">
-          Select a date and click "Load Path" to view movement history
-        </p>
-      </div>
-    )}
-  </div>
-</TabsContent>
+                <TabsContent value="path" forceMount className="space-y-4 data-[state=inactive]:hidden">
+                  <div className="space-y-4">
+                    {/* Header with Controls */}
+                    <div className="flex items-center justify-between gap-4">
+                      <h3 className="text-lg font-medium">Movement Path</h3>
+                      
+                      <div className="flex items-center gap-2">
+                        {/* Date Input */}
+                        <Label htmlFor="path-date" className="text-sm">
+                          Date:
+                        </Label>
+                        <Input
+                          id="path-date"
+                          type="text"
+                          placeholder="dd/mm/yyyy"
+                          value={selectedDate}
+                          onChange={(e) => setSelectedDate(e.target.value)}
+                          className="w-32 text-sm"
+                        />
+                        
+                        {/* Load Path Button */}
+                        <Button 
+                          onClick={handleFetchPathPoints}
+                          disabled={
+                            isLoadingPath || 
+                            isPathPointsLoading || 
+                            getCommonLocationStats().pathRemaining <= 0
+                          }
+                          size="sm"
+                        >
+                          {(isLoadingPath || isPathPointsLoading) ? (
+                            <>
+                              <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                              Loading...
+                            </>
+                          ) : (
+                            <>
+                              <Route className="h-4 w-4 mr-2" />
+                              Load Path
+                            </>
+                          )}
+                        </Button>
+                      </div>
+                    </div>
+                    
+                    {/* Loading State */}
+                    {(isLoadingPath || isPathPointsLoading) && (
+                      <div className="p-8 border rounded-lg text-center">
+                        <Loader2 className="h-12 w-12 text-primary mx-auto mb-2 animate-spin" />
+                        <p className="text-muted-foreground">Loading path data...</p>
+                      </div>
+                    )}
+                    
+                    {/* Path Map */}
+                    {!isLoadingPath && !isPathPointsLoading && pathPoints.length > 0 && (
+                      <div className="p-4 border rounded-lg bg-muted/50">
+                        <div className="mb-4">
+                          <p className="text-sm font-medium">Path for {selectedDate}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {pathPoints.length} location points tracked
+                          </p>
+                        </div>
+                        
+                        {/* PASS COORDINATES TO YOUR COMPONENT */}
+                        <DirectionsMapComponent coordinates={pathPoints} />
+                      </div>
+                    )}
+                    
+                    {/* No Data State */}
+                    {!isLoadingPath && !isPathPointsLoading && pathPoints.length === 0 && (
+                      <div className="p-8 border rounded-lg text-center">
+                        <Route className="h-12 w-12 text-muted-foreground mx-auto mb-2" />
+                        <p className="text-muted-foreground font-medium">No Path Data</p>
+                        <p className="text-sm text-muted-foreground mt-1">
+                          Select a date and click "Load Path" to view movement history
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </TabsContent>
                 
                 {/* Add Usage Stats Tab with Common Limits */}
-                <TabsContent value="usage" forceMount  className="space-y-4 data-[state=inactive]:hidden">
+                <TabsContent value="usage" forceMount className="space-y-4 data-[state=inactive]:hidden">
                   <div className="space-y-6">
                     {/* Common Usage Stats */}
                     <div className="p-4 border rounded-lg bg-blue-50">
@@ -1240,7 +1166,7 @@ const handleFetchPathPoints = useCallback(async () => {
                           <span>Shared across all staff</span>
                         </div>
                       </div>
-                      <div className="space-y-3">
+                      <div className="space-y-3 mt-4">
                         <div className="flex justify-between text-sm">
                           <span>Total Path Requests Used</span>
                           <span className="font-medium">
@@ -1257,27 +1183,6 @@ const handleFetchPathPoints = useCallback(async () => {
                         </div>
                       </div>
                     </div>
-                    
-                    {/* Individual User Stats
-                    <div className="p-4 border rounded-lg">
-                      <h4 className="font-medium mb-4">
-                        {selectedStaff?.firstName}'s Location Activity
-                      </h4>
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="p-4 border rounded-lg text-center">
-                          <p className="text-2xl font-bold text-blue-600">
-                            {selectedStaff?.locationTracking?.locationHistory?.length || 0}
-                          </p>
-                          <p className="text-sm text-muted-foreground">Locations Stored</p>
-                        </div>
-                        <div className="p-4 border rounded-lg text-center">
-                          <p className="text-2xl font-bold text-green-600">
-                            {selectedStaff?.locationTracking?.isTrackingEnabled ? "Active" : "Inactive"}
-                          </p>
-                          <p className="text-sm text-muted-foreground">Tracking Status</p>
-                        </div>
-                      </div>
-                    </div> */}
                     
                     {/* Warning if limit is close */}
                     {getCommonLocationStats().remaining <= 5 && getCommonLocationStats().remaining > 0 && (
@@ -1299,7 +1204,7 @@ const handleFetchPathPoints = useCallback(async () => {
           )}
         </DialogContent>
       </Dialog>
-      </div>
+    </div>
   );
 }
 

@@ -37,7 +37,8 @@ const permissions = {
         "get_location",
         "update_limits",
         "get_limits",
-        "view_location"
+        "view_location",
+        "view_payments"
     ],
     "billing":[
         "get_by_id_product",

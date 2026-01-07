@@ -22,31 +22,9 @@ import {
   X
 } from "lucide-react"
 import VoidVortexInbox from './Inbox'
-
-// Mock Data
-const mockStaff = [
-  { id: 1, name: "John Admin", role: "Admin", status: "Active" },
-  { id: 2, name: "Sarah Packager", role: "Packager", status: "Active" },
-  { id: 3, name: "Mike Biller", role: "Biller", status: "Active" },
-  { id: 4, name: "Lisa Sales", role: "Sales-man", status: "Active" },
-  { id: 5, name: "Tom Sales", role: "Sales-man", status: "Active" },
-  { id: 6, name: "Emma Pack", role: "Packager", status: "Inactive" }
-]
-
-const mockProducts = [
-  { id: 1, name: "Product A", price: 100, stockQuantity: 50, lowStockThreshold: 20 },
-  { id: 2, name: "Product B", price: 200, stockQuantity: 15, lowStockThreshold: 20 },
-  { id: 3, name: "Product C", price: 150, stockQuantity: 0, lowStockThreshold: 10 },
-  { id: 4, name: "Product D", price: 300, stockQuantity: 75, lowStockThreshold: 30 },
-  { id: 5, name: "Product E", price: 80, stockQuantity: 5, lowStockThreshold: 15 }
-]
-
-const mockCompanies = [
-  { id: 1, name: "Company A", status: "active" },
-  { id: 2, name: "Company B", status: "active" },
-  { id: 3, name: "Company C", status: "inactive" },
-  { id: 4, name: "Company D", status: "active" }
-]
+import { useStaff } from "./StaffContext";
+import { useInventory, categories } from "./InventoryContext"
+import { useCompany } from "./CompanyContext"
 
 // Simple UI Components
 const Card = ({ children, className = "", onClick }) => (
@@ -215,10 +193,11 @@ const toast = {
 }
 
 export default function Dashboard({ onNavigate }) {
+
   // Using mock data
-  const staff = mockStaff
-  const products = mockProducts
-  const companies = mockCompanies
+  const { staff,limits } = useStaff()
+  const {products} = useInventory()
+  const {companies} = useCompany()
   const unreadCount = 2 // Mock unread count
 
   // Calculate metrics from actual data
@@ -229,11 +208,11 @@ export default function Dashboard({ onNavigate }) {
   const outOfStockProducts = products.filter(p => p.stockQuantity === 0).length
   
   // Staff distribution by role
-  const adminCount = staff.filter(s => s.role === 'Admin' && s.status === 'Active').length
-  const packagerCount = staff.filter(s => s.role === 'Packager' && s.status === 'Active').length
-  const billerCount = staff.filter(s => s.role === 'Biller' && s.status === 'Active').length
-  const salesmanCount = staff.filter(s => s.role === 'Sales-man' && s.status === 'Active').length
-
+  // console.log(limits?.data[0].adminlimit)
+  const adminCount = limits?.data[0].adminlimit
+  const packagerCount = limits?.data[0].packagelimit
+  const billerCount = limits?.data[0].billinglimit
+  const salesmanCount = limits?.data[0].salesmanlimit
   // Total inventory value
   const totalInventoryValue = products.reduce((sum, product) => {
     return sum + (product.price * product.stockQuantity)
@@ -289,7 +268,8 @@ export default function Dashboard({ onNavigate }) {
       icon: UserPlus,
       action: () => onNavigate && onNavigate('staff'),
       color: "bg-blue-500 hover:bg-blue-600",
-      textColor: "text-white"
+      textColor: "text-white",
+      to:"/staff"
     },
     {
       title: "Add Product",
@@ -297,7 +277,8 @@ export default function Dashboard({ onNavigate }) {
       icon: PackagePlus,
       action: () => onNavigate && onNavigate('inventory'),
       color: "bg-green-500 hover:bg-green-600",
-      textColor: "text-white"
+      textColor: "text-white",
+      to:"/inventory"
     },
     {
       title: "Add Company",
@@ -305,7 +286,8 @@ export default function Dashboard({ onNavigate }) {
       icon: Building2,
       action: () => onNavigate && onNavigate('company'),
       color: "bg-purple-500 hover:bg-purple-600",
-      textColor: "text-white"
+      textColor: "text-white",
+      to:"/company"
     },
     {
       title: "Payment Confirmations",
@@ -314,7 +296,8 @@ export default function Dashboard({ onNavigate }) {
       action: () => onNavigate && onNavigate('payments'),
       color: "bg-teal-500 hover:bg-teal-600",
       textColor: "text-white",
-      hasNotification: true
+      hasNotification: true,
+      to:"/payments"
     },
     {
       title: "Contact VoidVortex",
