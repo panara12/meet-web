@@ -1,4 +1,4 @@
-import React, { useState } from "react"
+import React, { useEffect, useState } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card"
 import { Button } from "./ui/button"
 import { Badge } from "./ui/badge"
@@ -17,7 +17,7 @@ import {
   X,
   Eye,
   Clock,
-  DollarSign,
+  IndianRupeeIcon,
   Search,
   RefreshCw,
   CheckCircle,
@@ -33,168 +33,183 @@ import {
   ArrowUpDown,
   RotateCcw
 } from "lucide-react"
+import { useGetAllPayment } from "../../hooks/payment/useGetAllPayment"
+import { useUpdatePaymentStatus } from "../../hooks/payment/useUpdatePaymentStatus"
+import { useSelector } from "react-redux"
 
-const mockPaymentRequests = [
-  {
-    id: "PR-001",
-    salesmanId: "SM-001",
-    salesmanName: "John Smith",
-    salesmanEmail: "john.smith@company.com",
-    clientName: "Acme Corporation",
-    clientId: "CL-001",
-    amount: 2500.00,
-    currency: "USD",
-    paymentMethod: "Bank Transfer",
-    transactionId: "TXN-789123",
-    description: "Payment for Order #ORD-1234 - Office supplies bulk order",
-    requestDate: "2024-09-11T09:15:00Z",
-    dueDate: "2024-09-18T17:00:00Z",
-    status: "pending",
-    notes: "Client confirmed payment via phone. Bank receipt attached.",
-    statusHistory: [
-      {
-        status: "pending",
-        timestamp: "2024-09-11T09:15:00Z",
-        adminId: "ADM-001",
-        adminName: "System",
-        notes: "Payment request submitted"
-      }
-    ]
-  },
-  {
-    id: "PR-002",
-    salesmanId: "SM-002",
-    salesmanName: "Sarah Johnson",
-    salesmanEmail: "sarah.johnson@company.com",
-    clientName: "Tech Solutions Inc",
-    clientId: "CL-002",
-    amount: 1850.75,
-    currency: "USD",
-    paymentMethod: "Credit Card",
-    transactionId: "CC-456789",
-    description: "Monthly service payment - Technical consulting",
-    requestDate: "2024-09-11T11:30:00Z",
-    dueDate: "2024-09-15T12:00:00Z",
-    status: "approved",
-    notes: "Regular monthly payment. Card ending in 4567 was used.",
-    statusHistory: [
-      {
-        status: "pending",
-        timestamp: "2024-09-11T11:30:00Z",
-        adminId: "ADM-001",
-        adminName: "System",
-        notes: "Payment request submitted"
-      },
-      {
-        status: "approved",
-        timestamp: "2024-09-11T14:22:00Z",
-        adminId: "ADM-002",
-        adminName: "Admin User",
-        notes: "Verified payment details and approved"
-      }
-    ]
-  },
-  {
-    id: "PR-003",
-    salesmanId: "SM-003",
-    salesmanName: "Mike Wilson",
-    salesmanEmail: "mike.wilson@company.com",
-    clientName: "Global Enterprises",
-    clientId: "CL-003",
-    amount: 4200.00,
-    currency: "USD",
-    paymentMethod: "Wire Transfer",
-    description: "Equipment purchase - Industrial machinery",
-    requestDate: "2024-09-10T14:45:00Z",
-    dueDate: "2024-09-20T16:00:00Z",
-    status: "rejected",
-    notes: "Large equipment order. Requires additional verification.",
-    statusHistory: [
-      {
-        status: "pending",
-        timestamp: "2024-09-10T14:45:00Z",
-        adminId: "ADM-001",
-        adminName: "System",
-        notes: "Payment request submitted"
-      },
-      {
-        status: "approved",
-        timestamp: "2024-09-10T16:20:00Z",
-        adminId: "ADM-002",
-        adminName: "Admin User",
-        notes: "Initial approval pending verification"
-      },
-      {
-        status: "rejected",
-        timestamp: "2024-09-11T09:45:00Z",
-        adminId: "ADM-003",
-        adminName: "Senior Admin",
-        notes: "Insufficient documentation provided"
-      }
-    ]
-  },
-  {
-    id: "PR-004",
-    salesmanId: "SM-001",
-    salesmanName: "John Smith",
-    salesmanEmail: "john.smith@company.com",
-    clientName: "Retail Chain LLC",
-    clientId: "CL-004",
-    amount: 750.25,
-    currency: "USD",
-    paymentMethod: "Check",
-    description: "Product delivery payment - Retail inventory",
-    requestDate: "2024-09-09T16:20:00Z",
-    dueDate: "2024-09-16T15:00:00Z",
-    status: "approved",
-    notes: "Check deposited successfully. Payment confirmed.",
-    statusHistory: [
-      {
-        status: "pending",
-        timestamp: "2024-09-09T16:20:00Z",
-        adminId: "ADM-001",
-        adminName: "System",
-        notes: "Payment request submitted"
-      },
-      {
-        status: "approved",
-        timestamp: "2024-09-09T18:15:00Z",
-        adminId: "ADM-002",
-        adminName: "Admin User",
-        notes: "Check verified and approved"
-      }
-    ]
-  },
-  {
-    id: "PR-005",
-    salesmanId: "SM-004",
-    salesmanName: "Emily Davis",
-    salesmanEmail: "emily.davis@company.com",
-    clientName: "Manufacturing Corp",
-    clientId: "CL-005",
-    amount: 3200.50,
-    currency: "USD",
-    paymentMethod: "Bank Transfer",
-    transactionId: "TXN-456789",
-    description: "Raw materials payment - Q3 supply order",
-    requestDate: "2024-09-11T14:20:00Z",
-    dueDate: "2024-09-18T16:00:00Z",
-    status: "pending",
-    notes: "Urgent payment required for production schedule.",
-    statusHistory: [
-      {
-        status: "pending",
-        timestamp: "2024-09-11T14:20:00Z",
-        adminId: "ADM-001",
-        adminName: "System",
-        notes: "Payment request submitted"
-      }
-    ]
-  }
-]
+// const mockPaymentRequests = [
+//   {
+//     id: "PR-001",
+//     salesmanId: "SM-001",
+//     salesmanName: "John Smith",
+//     salesmanEmail: "john.smith@company.com",
+//     clientName: "Acme Corporation",
+//     clientId: "CL-001",
+//     amount: 2500.00,
+//     currency: "USD",
+//     payment_type: "Bank Transfer",
+//     transactionId: "TXN-789123",
+//     description: "Payment for Order #ORD-1234 - Office supplies bulk order",
+//     requestDate: "2024-09-11T09:15:00Z",
+//     dueDate: "2024-09-18T17:00:00Z",
+//     status: "pending",
+//     notes: "Client confirmed payment via phone. Bank receipt attached.",
+//     statusHistory: [
+//       {
+//         status: "pending",
+//         timestamp: "2024-09-11T09:15:00Z",
+//         adminId: "ADM-001",
+//         adminName: "System",
+//         notes: "Payment request submitted"
+//       }
+//     ]
+//   },
+//   {
+//     id: "PR-002",
+//     salesmanId: "SM-002",
+//     salesmanName: "Sarah Johnson",
+//     salesmanEmail: "sarah.johnson@company.com",
+//     clientName: "Tech Solutions Inc",
+//     clientId: "CL-002",
+//     amount: 1850.75,
+//     currency: "USD",
+//     payment_type: "Credit Card",
+//     transactionId: "CC-456789",
+//     description: "Monthly service payment - Technical consulting",
+//     requestDate: "2024-09-11T11:30:00Z",
+//     dueDate: "2024-09-15T12:00:00Z",
+//     status: "approved",
+//     notes: "Regular monthly payment. Card ending in 4567 was used.",
+//     statusHistory: [
+//       {
+//         status: "pending",
+//         timestamp: "2024-09-11T11:30:00Z",
+//         adminId: "ADM-001",
+//         adminName: "System",
+//         notes: "Payment request submitted"
+//       },
+//       {
+//         status: "approved",
+//         timestamp: "2024-09-11T14:22:00Z",
+//         adminId: "ADM-002",
+//         adminName: "Admin User",
+//         notes: "Verified payment details and approved"
+//       }
+//     ]
+//   },
+//   {
+//     id: "PR-003",
+//     salesmanId: "SM-003",
+//     salesmanName: "Mike Wilson",
+//     salesmanEmail: "mike.wilson@company.com",
+//     clientName: "Global Enterprises",
+//     clientId: "CL-003",
+//     amount: 4200.00,
+//     currency: "USD",
+//     payment_type: "Wire Transfer",
+//     description: "Equipment purchase - Industrial machinery",
+//     requestDate: "2024-09-10T14:45:00Z",
+//     dueDate: "2024-09-20T16:00:00Z",
+//     status: "rejected",
+//     notes: "Large equipment order. Requires additional verification.",
+//     statusHistory: [
+//       {
+//         status: "pending",
+//         timestamp: "2024-09-10T14:45:00Z",
+//         adminId: "ADM-001",
+//         adminName: "System",
+//         notes: "Payment request submitted"
+//       },
+//       {
+//         status: "approved",
+//         timestamp: "2024-09-10T16:20:00Z",
+//         adminId: "ADM-002",
+//         adminName: "Admin User",
+//         notes: "Initial approval pending verification"
+//       },
+//       {
+//         status: "rejected",
+//         timestamp: "2024-09-11T09:45:00Z",
+//         adminId: "ADM-003",
+//         adminName: "Senior Admin",
+//         notes: "Insufficient documentation provided"
+//       }
+//     ]
+//   },
+//   {
+//     id: "PR-004",
+//     salesmanId: "SM-001",
+//     salesmanName: "John Smith",
+//     salesmanEmail: "john.smith@company.com",
+//     clientName: "Retail Chain LLC",
+//     clientId: "CL-004",
+//     amount: 750.25,
+//     currency: "USD",
+//     payment_type: "Check",
+//     description: "Product delivery payment - Retail inventory",
+//     requestDate: "2024-09-09T16:20:00Z",
+//     dueDate: "2024-09-16T15:00:00Z",
+//     status: "approved",
+//     notes: "Check deposited successfully. Payment confirmed.",
+//     statusHistory: [
+//       {
+//         status: "pending",
+//         timestamp: "2024-09-09T16:20:00Z",
+//         adminId: "ADM-001",
+//         adminName: "System",
+//         notes: "Payment request submitted"
+//       },
+//       {
+//         status: "approved",
+//         timestamp: "2024-09-09T18:15:00Z",
+//         adminId: "ADM-002",
+//         adminName: "Admin User",
+//         notes: "Check verified and approved"
+//       }
+//     ]
+//   },
+//   {
+//     id: "PR-005",
+//     salesmanId: "SM-004",
+//     salesmanName: "Emily Davis",
+//     salesmanEmail: "emily.davis@company.com",
+//     clientName: "Manufacturing Corp",
+//     clientId: "CL-005",
+//     amount: 3200.50,
+//     currency: "USD",
+//     payment_type: "Bank Transfer",
+//     transactionId: "TXN-456789",
+//     description: "Raw materials payment - Q3 supply order",
+//     requestDate: "2024-09-11T14:20:00Z",
+//     dueDate: "2024-09-18T16:00:00Z",
+//     status: "pending",
+//     notes: "Urgent payment required for production schedule.",
+//     statusHistory: [
+//       {
+//         status: "pending",
+//         timestamp: "2024-09-11T14:20:00Z",
+//         adminId: "ADM-001",
+//         adminName: "System",
+//         notes: "Payment request submitted"
+//       }
+//     ]
+//   }
+// ]
 
-export function Payments() {
-  const [paymentRequests, setPaymentRequests] = useState(mockPaymentRequests)
+function Payments() {
+  // const [paymentRequests, setPaymentRequests] = useState([])
+  const { data: getAllPayment, isLoading: isPaymentLoading, isError: isPaymentError,error:paymentError } = useGetAllPayment()
+  const {mutate: updatePaymentStatus,isLoading:isUpdatePaymentLoading,isError:isUpdatePaymentError,error:updatePaymentError} = useUpdatePaymentStatus()
+  // useEffect(() => {
+  //   console.log("getAllPayment",getAllPayment.data.payments)
+  //   if (isPaymentLoading) {
+  //     setPaymentRequests(getAllPayment.data.payments)
+  //   }
+  // }, [])
+  // console.log("paymentRequests",getAllPayment,isPaymentLoading)
+
+  const userInfo = useSelector(state => state.app.userInfo) 
+  console.log("userInfo in payment page",userInfo)
   const [selectedRequest, setSelectedRequest] = useState(null)
   const [showDetailsDialog, setShowDetailsDialog] = useState(false)
   const [filterStatus, setFilterStatus] = useState("all")
@@ -204,45 +219,49 @@ export function Payments() {
   const [sortBy, setSortBy] = useState("date")
   const [sortOrder, setSortOrder] = useState("desc")
 
+  // ✅ Use data directly from React Query
+  const paymentRequests = getAllPayment?.data?.payments || []
+  console.log("paymentRequests data",getAllPayment?.data?.payments)
+
+  // ✅ Show loading state
+  if (isPaymentLoading) {
+    return <div>Loading payments...</div>
+  }
+
+  // ✅ Show error state
+  if (isPaymentError) {
+    return <div>Error loading payments: {paymentError?.message}</div>
+  }
+
   const handleStatusChange = (requestId, newStatus, notes) => {
-    setPaymentRequests(prev =>
-      prev.map(request => {
-        if (request.id === requestId) {
-          const newHistoryEntry = {
-            status: newStatus,
-            timestamp: new Date().toISOString(),
-            adminId: "ADM-002",
-            adminName: "Current Admin",
-            notes: notes || `Status changed to ${newStatus}`
-          }
 
-          return {
-            ...request,
-            status: newStatus,
-            statusHistory: [...request.statusHistory, newHistoryEntry]
-          }
-        }
-        return request
-      })
-    )
-
+    const payload = {
+      paymentId: requestId,
+      status: {
+        status: newStatus,
+        date: Date.now(),
+        adminId: userInfo.tenant_user_id,
+        notes:notes || `Status changed to ${newStatus}`
+      }
+    }
+    console.log("payload",payload)
     const statusMessages = {
       approved: "Payment request approved successfully!",
       rejected: "Payment request rejected",
       pending: "Payment request returned to pending status"
     }
-
+    updatePaymentStatus(payload)
     toast.success(statusMessages[newStatus])
     setShowDetailsDialog(false)
     setAdminNotes("")
   }
 
   const handleBulkStatusChange = (newStatus) => {
-    const eligibleRequests = paymentRequests.filter(req => req.status !== newStatus)
+    const eligibleRequests = paymentRequests.filter(req => req.status[req.status.length - 1].status !== newStatus)
 
     setPaymentRequests(prev =>
       prev.map(request => {
-        if (request.status !== newStatus) {
+        if (request.status[request.status.length - 1].status !== newStatus) {
           const newHistoryEntry = {
             status: newStatus,
             timestamp: new Date().toISOString(),
@@ -265,20 +284,24 @@ export function Payments() {
   }
 
   // Get unique salesmen for filter dropdown
+ 
   const uniqueSalesmen = Array.from(
-    new Map(paymentRequests.map(req => [req.salesmanId, { id: req.salesmanId, name: req.salesmanName }])).values()
+    new Map(paymentRequests.map(req => [req.payment_salesman._id, { id: req.payment_salesman._id, name: req.payment_salesman.firstName }])).values()
   )
+  // console.log("uniqueSalesmen",uniqueSalesmen)
 
-  // Filter and sort requests
-  const filteredAndSortedRequests = paymentRequests
-    .filter(request => {
-      const matchesStatus = filterStatus === "all" || request.status === filterStatus
-      const matchesSalesman = filterSalesman === "all" || request.salesmanId === filterSalesman
+
+  // // Filter and sort requests
+  // console.log("vari",paymentRequests)
+  const filteredAndSortedRequests = paymentRequests.filter(request => {
+      // console.log('filtering request',request.payment_salesman._id ,"===", filterSalesman)
+      const matchesStatus = filterStatus === "all" || request.status[request.status.length - 1].status === filterStatus
+      const matchesSalesman = filterSalesman === "all" || request.payment_salesman._id === filterSalesman
       const matchesSearch =
-        request.salesmanName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        request.clientName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        request.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        request.description.toLowerCase().includes(searchTerm.toLowerCase())
+        request.payment_salesman.firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        request.payment_client?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        request._id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        request.notes.toLowerCase().includes(searchTerm.toLowerCase())
       return matchesStatus && matchesSalesman && matchesSearch
     })
     .sort((a, b) => {
@@ -289,10 +312,10 @@ export function Payments() {
           comparison = new Date(a.requestDate).getTime() - new Date(b.requestDate).getTime()
           break
         case "amount":
-          comparison = a.amount - b.amount
+          comparison = a.payment_amount - b.payment_amount
           break
         case "status":
-          comparison = a.status.localeCompare(b.status)
+          comparison = a.status[a.status.length - 1].status.localeCompare(b.status[b.status.length - 1].status)
           break
       }
 
@@ -300,10 +323,11 @@ export function Payments() {
     })
 
   const getStatusColor = (status) => {
+    console.log("status icon",status)
     switch (status) {
-      case "pending": return "bg-amber-primary text-white"
-      case "approved": return "bg-green-primary text-white"
-      case "rejected": return "bg-red-primary text-white"
+      case "pending": return "bg-[#FE9A00] text-white"
+      case "approved": return "bg-[#00A63E] text-white"
+      case "rejected": return "bg-[#FB2C36] text-white"
       default: return "bg-gray-500 text-white"
     }
   }
@@ -317,17 +341,17 @@ export function Payments() {
     }
   }
 
-  const pendingCount = paymentRequests.filter(req => req.status === "pending").length
-  const approvedCount = paymentRequests.filter(req => req.status === "approved").length
-  const rejectedCount = paymentRequests.filter(req => req.status === "rejected").length
+  const pendingCount = paymentRequests.filter(req => req.status[req.status.length - 1].status === "pending").length
+  const approvedCount = paymentRequests.filter(req => req.status[req.status.length - 1].status === "approved").length
+  const rejectedCount = paymentRequests.filter(req => req.status[req.status.length - 1].status === "rejected").length
   const totalAmount = paymentRequests
-    .filter(req => req.status === "pending")
-    .reduce((sum, req) => sum + req.amount, 0)
+    .filter(req => req.status[req.status.length - 1].status === "pending")
+    .reduce((sum, req) => sum + req.payment_amount, 0)
 
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
-      currency: 'USD',
+      currency: 'INR',
       minimumFractionDigits: 2,
     }).format(amount)
   }
@@ -467,7 +491,7 @@ export function Payments() {
                 <p className="text-responsive-lg font-semibold">{formatCurrency(totalAmount)}</p>
               </div>
               <div className="p-2 bg-blue-light rounded-lg">
-                <DollarSign className="icon-responsive-base text-blue-primary" />
+                <IndianRupeeIcon className="icon-responsive-base text-blue-primary" />
               </div>
             </div>
           </CardContent>
@@ -536,7 +560,7 @@ export function Payments() {
                         <div className="flex items-center gap-2">
                           <Avatar className="h-4 w-4">
                             <AvatarFallback className="text-xs">
-                              {salesman.name.split(' ').map(n => n[0]).join('')}
+                              {salesman.name[0]}
                             </AvatarFallback>
                           </Avatar>
                           {salesman.name}
@@ -564,7 +588,7 @@ export function Payments() {
                       </SelectItem>
                       <SelectItem value="amount">
                         <div className="flex items-center gap-2">
-                          <DollarSign className="h-3 w-3" />
+                          <IndianRupeeIcon className="h-3 w-3" />
                           Amount
                         </div>
                       </SelectItem>
@@ -623,13 +647,13 @@ export function Payments() {
               </TableHeader>
               <TableBody>
                 {filteredAndSortedRequests.map((request) => (
-                  <TableRow key={request.id} className="hover:bg-muted/50">
+                  <TableRow key={request._id} className="hover:bg-muted/50">
                     <TableCell>
                       <div className="space-y-1">
-                        <p className="text-responsive-xs font-medium">{request.id}</p>
-                        <p className="text-xs text-muted-foreground">{request.paymentMethod}</p>
+                        <p className="text-responsive-xs font-medium">{request._id}</p>
+                        <p className="text-xs text-muted-foreground">{request.payment_type}</p>
                         <p className="text-xs text-muted-foreground sm:hidden">
-                          {request.salesmanName}
+                          {request.payment_salesman.firstName}
                         </p>
                       </div>
                     </TableCell>
@@ -638,38 +662,39 @@ export function Payments() {
                         <Avatar className="h-8 w-8">
                           <AvatarImage src="" />
                           <AvatarFallback className="text-xs">
-                            {request.salesmanName.split(' ').map(n => n[0]).join('')}
+                            {request.payment_salesman.firstName[0]}
                           </AvatarFallback>
                         </Avatar>
                         <div className="space-y-1 min-w-0">
-                          <p className="text-responsive-xs font-medium truncate">{request.salesmanName}</p>
-                          <p className="text-xs text-muted-foreground truncate">{request.salesmanEmail}</p>
+                          <p className="text-responsive-xs font-medium truncate">{request.payment_salesman.firstName}</p>
+                          <p className="text-xs text-muted-foreground truncate">{request.payment_salesman.email}</p>
                         </div>
                       </div>
                     </TableCell>
                     <TableCell>
                       <div className="space-y-1">
-                        <p className="text-responsive-xs font-medium">{request.clientName}</p>
-                        <p className="text-xs text-muted-foreground">{request.clientId}</p>
+                        <p className="text-responsive-xs font-medium">{request?.payment_client?.name}</p>
+                        <p className="text-xs text-muted-foreground">{request?.payment_client?._id}</p>
                       </div>
                     </TableCell>
                     <TableCell>
                       <div className="space-y-1">
                         <p className="text-responsive-xs font-semibold">
-                          {formatCurrency(request.amount)}
+                          {formatCurrency(request.payment_amount)}
                         </p>
-                        <p className="text-xs text-muted-foreground">{request.currency}</p>
+                        <p className="text-xs text-muted-foreground">INR</p>
                       </div>
                     </TableCell>
                     <TableCell>
-                      <Badge className={`text-xs flex items-center gap-1 w-fit ${getStatusColor(request.status)}`}>
-                        {getStatusIcon(request.status)}
-                        {request.status}
+                      <Badge className={`text-xs flex items-center gap-1 w-fit ${getStatusColor(request.status[request.status.length - 1].status)}`}>
+                        {getStatusIcon(request.status[request.status.length - 1].status)}
+                        {request.status[request.status.length - 1].status}
+                        {console.log("request.status",getStatusColor(request.status[request.status.length - 1].status))}
                       </Badge>
                     </TableCell>
                     <TableCell className="hidden lg:table-cell">
                       <p className="text-responsive-xs">
-                        {formatDate(request.requestDate)}
+                        {formatDate(request.status[request.status.length - 1].date)}
                       </p>
                     </TableCell>
                     <TableCell>
@@ -681,7 +706,7 @@ export function Payments() {
                             setShowDetailsDialog(open)
                             if (open) setSelectedRequest(request)
                           }}
-                        >
+                         className="">
                           <DialogTrigger asChild>
                             <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
                               <Eye className="h-3 w-3" />
@@ -718,12 +743,12 @@ export function Payments() {
                                       <div className="flex items-center gap-2 mt-1">
                                         <Avatar className="h-6 w-6">
                                           <AvatarFallback className="text-xs">
-                                            {selectedRequest.salesmanName.split(' ').map(n => n[0]).join('')}
+                                            {selectedRequest.payment_client.name[0]}
                                           </AvatarFallback>
                                         </Avatar>
                                         <div>
-                                          <p className="text-responsive-xs font-medium">{selectedRequest.salesmanName}</p>
-                                          <p className="text-xs text-muted-foreground">{selectedRequest.salesmanEmail}</p>
+                                          <p className="text-responsive-xs font-medium">{selectedRequest.payment_salesman.firstName}</p>
+                                          <p className="text-xs text-muted-foreground">{selectedRequest.payment_salesman.email}</p>
                                         </div>
                                       </div>
                                     </div>
@@ -732,8 +757,8 @@ export function Payments() {
                                         <Building className="h-3 w-3" />
                                         Client
                                       </Label>
-                                      <p className="text-responsive-sm font-medium">{selectedRequest.clientName}</p>
-                                      <p className="text-xs text-muted-foreground">{selectedRequest.clientId}</p>
+                                      <p className="text-responsive-sm font-medium">{selectedRequest.payment_client.name}</p>
+                                      <p className="text-xs text-muted-foreground">{selectedRequest.payment_client._id}</p>
                                     </div>
                                   </div>
 
@@ -741,24 +766,24 @@ export function Payments() {
                                     <div>
                                       <Label className="text-responsive-xs">Amount</Label>
                                       <p className="text-responsive-lg font-semibold text-green-primary">
-                                        {formatCurrency(selectedRequest.amount)}
+                                        {formatCurrency(selectedRequest.payment_amount)}
                                       </p>
                                     </div>
                                     <div>
                                       <Label className="text-responsive-xs">Payment Method</Label>
-                                      <p className="text-responsive-sm">{selectedRequest.paymentMethod}</p>
+                                      <p className="text-responsive-sm">{selectedRequest.payment_type}</p>
                                     </div>
                                     {selectedRequest.transactionId && (
                                       <div>
                                         <Label className="text-responsive-xs">Transaction ID</Label>
-                                        <p className="text-responsive-sm font-mono">{selectedRequest.transactionId}</p>
+                                        <p className="text-responsive-sm font-mono">{selectedRequest?.transactionId}</p>
                                       </div>
                                     )}
                                     <div>
                                       <Label className="text-responsive-xs">Current Status</Label>
-                                      <Badge className={`text-xs flex items-center gap-1 w-fit mt-1 ${getStatusColor(selectedRequest.status)}`}>
-                                        {getStatusIcon(selectedRequest.status)}
-                                        {selectedRequest.status}
+                                      <Badge className={`text-xs flex items-center gap-1 w-fit mt-1 ${getStatusColor(selectedRequest.status[selectedRequest.status.length - 1].status)}`}>
+                                        {getStatusIcon(selectedRequest.status[selectedRequest.status.length - 1].status)}
+                                        {selectedRequest.status[selectedRequest.status.length - 1].status}
                                       </Badge>
                                     </div>
                                   </div>
@@ -771,7 +796,7 @@ export function Payments() {
                                     Status History
                                   </Label>
                                   <div className="space-y-2 max-h-32 overflow-y-auto">
-                                    {selectedRequest.statusHistory.map((history, index) => (
+                                    {selectedRequest.status.map((history, index) => (
                                       <div key={index} className="flex items-start gap-3 p-2 bg-muted rounded-lg">
                                         <Badge className={`text-xs flex items-center gap-1 ${getStatusColor(history.status)}`}>
                                           {getStatusIcon(history.status)}
@@ -779,7 +804,7 @@ export function Payments() {
                                         </Badge>
                                         <div className="flex-1 min-w-0">
                                           <p className="text-xs">
-                                            <span className="font-medium">{history.adminName}</span> - {formatDate(history.timestamp)}
+                                            <span className="font-medium">{history.adminName}</span> - {formatDate(history.date)}
                                           </p>
                                           {history.notes && (
                                             <p className="text-xs text-muted-foreground mt-1">{history.notes}</p>
@@ -817,13 +842,13 @@ export function Payments() {
                                         <AlertDialogHeader>
                                           <AlertDialogTitle>Approve Payment Request</AlertDialogTitle>
                                           <AlertDialogDescription>
-                                            Are you sure you want to approve this payment request for {formatCurrency(selectedRequest.amount)}?
+                                            Are you sure you want to approve this payment request for {formatCurrency(selectedRequest.payment_amount)}?
                                           </AlertDialogDescription>
                                         </AlertDialogHeader>
                                         <AlertDialogFooter>
                                           <AlertDialogCancel>Cancel</AlertDialogCancel>
                                           <AlertDialogAction
-                                            onClick={() => handleStatusChange(selectedRequest.id, "approved", adminNotes)}
+                                            onClick={() => handleStatusChange(selectedRequest._id, "approved", adminNotes)}
                                             className="bg-green-primary hover:bg-green-600"
                                           >
                                             Approve
@@ -851,7 +876,7 @@ export function Payments() {
                                         <AlertDialogFooter>
                                           <AlertDialogCancel>Cancel</AlertDialogCancel>
                                           <AlertDialogAction
-                                            onClick={() => handleStatusChange(selectedRequest.id, "rejected", adminNotes)}
+                                            onClick={() => handleStatusChange(selectedRequest._id, "rejected", adminNotes)}
                                             className="bg-red-primary hover:bg-red-600"
                                           >
                                             Reject
@@ -879,7 +904,7 @@ export function Payments() {
                                         <AlertDialogFooter>
                                           <AlertDialogCancel>Cancel</AlertDialogCancel>
                                           <AlertDialogAction
-                                            onClick={() => handleStatusChange(selectedRequest.id, "pending", adminNotes)}
+                                            onClick={() => handleStatusChange(selectedRequest._id, "pending", adminNotes)}
                                           >
                                             Return to Pending
                                           </AlertDialogAction>
@@ -905,13 +930,13 @@ export function Payments() {
                               <AlertDialogHeader>
                                 <AlertDialogTitle>Quick Approve</AlertDialogTitle>
                                 <AlertDialogDescription>
-                                  Approve payment request {request.id} for {formatCurrency(request.amount)}?
+                                  Approve payment request {request.id} for {formatCurrency(request.payment_amount)}?
                                 </AlertDialogDescription>
                               </AlertDialogHeader>
                               <AlertDialogFooter>
                                 <AlertDialogCancel>Cancel</AlertDialogCancel>
                                 <AlertDialogAction
-                                  onClick={() => handleStatusChange(request.id, "approved")}
+                                  onClick={() => handleStatusChange(request._id, "approved")}
                                   className="bg-green-primary hover:bg-green-600"
                                 >
                                   Approve
@@ -932,13 +957,13 @@ export function Payments() {
                               <AlertDialogHeader>
                                 <AlertDialogTitle>Quick Reject</AlertDialogTitle>
                                 <AlertDialogDescription>
-                                  Reject payment request {request.id} for {formatCurrency(request.amount)}?
+                                  Reject payment request {request.id} for {formatCurrency(request.payment_amount)}?
                                 </AlertDialogDescription>
                               </AlertDialogHeader>
                               <AlertDialogFooter>
                                 <AlertDialogCancel>Cancel</AlertDialogCancel>
                                 <AlertDialogAction
-                                  onClick={() => handleStatusChange(request.id, "rejected")}
+                                  onClick={() => handleStatusChange(request._id, "rejected")}
                                   className="bg-red-primary hover:bg-red-600"
                                 >
                                   Reject
@@ -965,7 +990,7 @@ export function Payments() {
                               <AlertDialogFooter>
                                 <AlertDialogCancel>Cancel</AlertDialogCancel>
                                 <AlertDialogAction
-                                  onClick={() => handleStatusChange(request.id, "pending")}
+                                  onClick={() => handleStatusChange(request._id, "pending")}
                                 >
                                   Return to Pending
                                 </AlertDialogAction>

@@ -11,7 +11,7 @@ import { Textarea } from "./ui/textarea"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs"
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "./ui/alert-dialog"
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar"
-import { Search, Plus, Eye, Edit, Trash2, Mail, Phone, MapPin, Calendar, DollarSign, Shield, Clock, Users, TrendingUp, UserCheck, Briefcase, Activity, Filter, Upload, FileText, CreditCard, Car } from "lucide-react"
+import { Search, Plus, Eye, Edit, Trash2, Mail, Phone, MapPin, Calendar, Shield, Clock, Users, TrendingUp, UserCheck, Briefcase, Activity, Filter, Upload, FileText, CreditCard, Car, IndianRupeeIcon } from "lucide-react"
 import { toast } from "sonner"
 
 import { StaffProvider,useStaff } from "./StaffContext"
@@ -474,10 +474,10 @@ function StaffAccount() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Monthly Payroll</CardTitle>
-            <DollarSign className="h-4 w-4 text-green-500" />
+            <IndianRupeeIcon className="h-4 w-4 text-green-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">${Math.round(totalSalaryExpense / 12).toLocaleString()}</div>
+            <div className="text-2xl font-bold flex items-center"><IndianRupeeIcon className="h-4 w-4 text-black" />{Math.round(totalSalaryExpense / 12).toLocaleString()}</div>
             <p className="text-xs text-muted-foreground">Active employees only</p>
           </CardContent>
         </Card>

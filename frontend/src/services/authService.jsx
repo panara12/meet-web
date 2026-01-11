@@ -8,7 +8,8 @@ const authServices = {
         return res.data.user;
     },
     verifyOtp:(payload)=> apiHelper.post('/auth/checkotp',{email:payload.userEmail,otp:payload.otp}),
-    resetPassword:(payload)=> apiHelper.post('/auth/resetpassword',{email:payload.userEmail,password:payload.newPassword})
+    resetPassword:(payload)=> apiHelper.post('/auth/resetpassword',{email:payload.userEmail,password:payload.newPassword}),
+    logout:()=> apiHelper.get('/auth/logout'),
 }
 
 export default authServices;

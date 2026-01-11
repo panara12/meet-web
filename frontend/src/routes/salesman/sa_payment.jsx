@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import dayjs from "dayjs";
-import { CreditCard, Search, DollarSign, MessageSquare } from 'lucide-react';
+import { CreditCard, Search, IndianRupeeIcon, MessageSquare } from 'lucide-react';
 import { useGetAllSeller } from '../../hooks/seller/useGetAllSeller';
 import { useEffect } from 'react';
 import { useAddPayment } from '../../hooks/payment/useAddPayment';
@@ -12,6 +12,7 @@ export default function PaymentUpdate() {
   const [paymentAmount, setPaymentAmount] = useState("");
   const [paymentType, setPaymentType] = useState("");
   const [paymentDate, setPaymentDate] = useState(new Date().toISOString().split('T')[0]);
+  const [paymentNote, setPaymentNote] = useState("");
   const [clientSearchQuery, setClientSearchQuery] = useState("");
   const [showClientDropdown, setShowClientDropdown] = useState(false);
   const [toast, setToast] = useState({ show: false, message: '', type: 'success' });
@@ -25,6 +26,7 @@ export default function PaymentUpdate() {
   isPending: isSalesmanByIdPending,
   isError: isSalesmanByIdError,
   error: salesmanByIdError,} = useGetUserById(id)
+  // console.log("salesman by id",salesmanById.data.user)
   const [seller, setSeller] = useState([]);
 
   useEffect(() => {
@@ -41,10 +43,10 @@ export default function PaymentUpdate() {
   };
 
   // Filter clients based on search query
-  const filteredClients = seller.filter(client =>
-    client.name.toLowerCase()?.includes(clientSearchQuery.toLowerCase()) ||
-    client.phone.toString()?.includes(clientSearchQuery) ||
-    client.email.toLowerCase()?.includes(clientSearchQuery)
+  const filteredClients = seller.filter(client => 
+    client.name?.toLowerCase()?.includes(clientSearchQuery?.toLowerCase()) ||
+    client.phone?.toString()?.includes(clientSearchQuery) ||
+    client.email?.toLowerCase()?.includes(clientSearchQuery)
   );
 
   const handleClientSearchChange = (value) => {
@@ -77,14 +79,20 @@ export default function PaymentUpdate() {
     }
 
     const client = seller.find(c => c._id === selectedClient);
+    console.log("client filterred",client)
     const payload = {
       payment_client:client._id,
+      payment_salesman:salesmanById?.data.user._id,
       payment_amount:amount,
       payment_type:paymentType,
       payment_date:dayjs(paymentDate).format("DD-MM-YYYY"),
-      order_with_payment:false
+      order_with_payment:false,
+      status:{
+        status:"pending",
+        adminId:null,
+        notes:paymentNote}
     }
-    // console.log(payload);
+    console.log(payload);
     addPayment(payload)
     const paymentId = generatePaymentId();
     
@@ -105,8 +113,8 @@ export default function PaymentUpdate() {
 })}
 
 👤 *SALES REPRESENTATIVE*
-• Name: ${salesmanById?.user.user_data.salesman_name}
-• Phone: ${salesmanById?.user.user_data.salesman_mobile}
+• Name: ${salesmanById?.data.user.firstName} ${salesmanById?.data.user.lastName}
+• Phone: ${salesmanById?.data.user.phone}
 
 💰 *PAYMENT DETAILS*
 • Amount Received: $${amount.toFixed(2)}
@@ -122,11 +130,11 @@ For any queries regarding this transaction, please contact your distributor’s 
 
 
     // Success messages
-    showToast(`Payment of $${amount.toFixed(2)} recorded for ${client?.company_name}`);
+    showToast(`Payment of $${amount.toFixed(2)} recorded for ${client?.name}`);
     showToast("Payment information sent to admin panel");
     
     // Send payment details to WhatsApp
-    const whatsappUrl = `https://wa.me/${client?.phone_number}?text=${encodeURIComponent(paymentDetails)}`;
+    const whatsappUrl = `https://wa.me/${client?.phone}?text=${encodeURIComponent(paymentDetails)}`;
     window.open(whatsappUrl, '_blank');
     showToast(`Payment confirmation sent to ${client?.company_name} via WhatsApp`);
 
@@ -134,6 +142,7 @@ For any queries regarding this transaction, please contact your distributor’s 
     setSelectedClient("");
     setPaymentAmount("");
     setPaymentType("");
+    setPaymentNote("");
     setPaymentDate(new Date().toISOString().split('T')[0]);
     setClientSearchQuery("");
   };
@@ -165,7 +174,7 @@ For any queries regarding this transaction, please contact your distributor’s 
         <div className="bg-white rounded-lg border border-gray-200 p-8">
           {/* Section Header */}
           <div className="flex items-center gap-2 mb-8">
-            <DollarSign className="h-5 w-5 text-gray-600" />
+            <IndianRupeeIcon className="h-5 w-5 text-gray-600" />
             <h2 className="text-lg font-medium text-gray-900">Record New Payment</h2>
           </div>
 
@@ -223,14 +232,14 @@ For any queries regarding this transaction, please contact your distributor’s 
                   <div className="flex items-center gap-3 flex-wrap sm:flex-nowrap">
                     <div className="h-10 w-10 rounded-full bg-[#1E3986]/10 flex items-center justify-center">
                       <span className="text-sm font-medium text-[#1E3986]">
-                        {selectedClientData.company_name.split(' ').map(n => n[0]).join('')}
+                        {selectedClientData.name.split(' ').map(n => n[0]).join('')}
                       </span>
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="font-medium text-gray-900 truncate">{selectedClientData.company_name}</p>
+                      <p className="font-medium text-gray-900 truncate">{selectedClientData.name}</p>
                       <div className="flex flex-col sm:flex-row sm:items-center sm:gap-4 mt-1 text-sm text-gray-500 truncate">
-                        <p className="truncate">{selectedClientData.phone_number}</p>
-                        <p className="truncate">{selectedClientData.primary_email}</p>
+                        <p className="truncate">{selectedClientData.phone}</p>
+                        <p className="truncate">{selectedClientData.email}</p>
                       </div>
                     </div>
                   </div>
@@ -244,7 +253,7 @@ For any queries regarding this transaction, please contact your distributor’s 
                 Payment Amount <span className="text-red-500">*</span>
               </label>
               <div className="relative">
-                <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <IndianRupeeIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                 <input
                   type="number"
                   step="0.01"
@@ -283,6 +292,20 @@ For any queries regarding this transaction, please contact your distributor’s 
                 type="date"
                 value={paymentDate}
                 onChange={(e) => setPaymentDate(e.target.value)}
+                className="w-full px-3 py-3 text-sm border border-gray-300 rounded-lg bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#1E3986] focus:border-transparent"
+              />
+            </div>
+
+            {/* Payment Note */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Payment Note <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                value={paymentNote}
+                onChange={(e) => setPaymentNote(e.target.value)}
+                placeholder="Enter payment note"
                 className="w-full px-3 py-3 text-sm border border-gray-300 rounded-lg bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#1E3986] focus:border-transparent"
               />
             </div>

@@ -1,7 +1,8 @@
 const logger = require('./logger');
 
 const manualLog = (message) => {
-  logger.log({ level: 'info', message: `[MANUAL] ${message}` });
+  // Use logger.info() instead of logger.log()
+  logger.info(`[MANUAL] ${message}`);
 };
 
 module.exports = manualLog;

@@ -5,9 +5,13 @@ import { useLocation, useNavigate } from "react-router-dom";
 
 export function LoadingPage() {
   const [progress, setProgress] = useState(0);
-  const useInfo = useSelector((state)=>state.app.userInfo)
-  const navigate = useNavigate()
+  const userInfo = useSelector((state) => state.app.userInfo);
+  const navigate = useNavigate();
+  const location = useLocation();
   const [loadingText, setLoadingText] = useState("Initializing");
+
+  // ✅ Prefer location state, fallback to Redux
+  const userRole = location.state?.userRole || userInfo?.user_role;
 
   const messages = [
     "Initializing",
@@ -19,23 +23,30 @@ export function LoadingPage() {
   ];
 
   useEffect(() => {
+    // ✅ If no user role available, redirect to login
+    if (!userRole) {
+      console.log("No user role found, redirecting to login");
+      navigate("/login", { replace: true });
+      return;
+    }
+
     const interval = setInterval(() => {
       setProgress((prev) => {
         const newProgress = prev + Math.random() * 15;
         const clampedProgress = Math.min(newProgress, 100);
         
-        // Update loading text based on progress
         const messageIndex = Math.floor((clampedProgress / 100) * (messages.length - 1));
         setLoadingText(messages[messageIndex]);
         
         if (clampedProgress >= 100) {
           clearInterval(interval);
           setTimeout(() => {
-            if (useInfo.user_role === "salesman") navigate("/salesman/dashboard");
-            else if (useInfo.user_role === "packaging") navigate("/packaging/dashboard");
-            else if (useInfo.user_role === "billing") navigate("/billing/dashboard");
-            else navigate("/distributer/dashboard");
-          }, 500); // small delay for smoothness
+            // ✅ Use userRole from closure
+            if (userRole === "salesman") navigate("/salesman/dashboard", { replace: true });
+            else if (userRole === "packaging") navigate("/packaging/dashboard", { replace: true });
+            else if (userRole === "billing") navigate("/billing/dashboard", { replace: true });
+            else navigate("/distributer/dashboard", { replace: true });
+          }, 500);
         }
         
         return clampedProgress;
@@ -43,7 +54,7 @@ export function LoadingPage() {
     }, 400);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [userRole, navigate]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-100 flex items-center justify-center overflow-hidden">

@@ -38,7 +38,8 @@ const permissions = {
         "update_limits",
         "get_limits",
         "view_location",
-        "view_payments"
+        "view_payments",
+        "update_payment_status"
     ],
     "billing":[
         "get_by_id_product",

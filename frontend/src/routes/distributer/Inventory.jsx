@@ -21,7 +21,7 @@ import {
   AlertTriangle,
   TrendingUp,
   TrendingDown,
-  DollarSign,
+  IndianRupeeIcon,
   BarChart3,
   Grid3X3,
   List,
@@ -564,7 +564,7 @@ function Inventory() {
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
-      currency: 'USD'
+      currency: 'INR'
     }).format(amount)
   }
 
@@ -1388,7 +1388,7 @@ function Inventory() {
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium flex items-center gap-2">
-              <DollarSign className="h-4 w-4" />
+              <IndianRupeeIcon className="h-4 w-4" />
               Total Value
             </CardTitle>
           </CardHeader>

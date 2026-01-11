@@ -23,7 +23,7 @@ import {
   User,
   Hash,
   Calendar,
-  DollarSign,
+  IndianRupeeIcon,
   Search,
   Filter
 } from 'lucide-react';

@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import { Textarea } from "./ui/textarea"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs"
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "./ui/alert-dialog"
-import { Search, Plus, Eye, Edit, Trash2, Mail, Phone, MapPin, Building2, Calendar, DollarSign, Package, ArrowUpDown, Star, Clock, TrendingUp, FileText, Users, Loader2 } from "lucide-react"
+import { Search, Plus, Eye, Edit, Trash2, Mail, Phone, MapPin, Building2, Calendar, IndianRupeeIcon, Package, ArrowUpDown, Star, Clock, TrendingUp, FileText, Users, Loader2 } from "lucide-react"
 import { toast } from "sonner"
 import { useGetAllSeller } from "../../hooks/seller/useGetAllSeller"
 import { useUpdateSeller } from "../../hooks/seller/useUpdateSeller"
@@ -355,10 +355,10 @@ function ClientList() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
-            <DollarSign className="h-4 w-4 text-green-500" />
+            <IndianRupeeIcon className="h-4 w-4 text-green-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">${totalRevenue.toLocaleString()}</div>
+            <div className="text-2xl font-bold flex items-center"><IndianRupeeIcon className="h-4 w-4 text-black" />{totalRevenue.toLocaleString()}</div>
             <p className="text-xs text-muted-foreground">Lifetime client value</p>
           </CardContent>
         </Card>
@@ -525,7 +525,7 @@ function ClientList() {
                           )}
                         </TableCell>
                         <TableCell>{client.totalOrders}</TableCell>
-                        <TableCell>${client.totalSpent.toLocaleString()}</TableCell>
+                        <TableCell className="flex items-center"><IndianRupeeIcon className="h-4 w-4 text-black" />{client.totalSpent.toLocaleString()}</TableCell>
                         <TableCell>
                           <span className={client.lastOrder === "Never" ? "text-muted-foreground" : ""}>
                             {client.lastOrder}
@@ -649,7 +649,7 @@ function ClientList() {
                                             </div>
                                             <div>
                                               <p className="text-sm text-muted-foreground">Total Revenue</p>
-                                              <p className="text-2xl font-bold">${selectedClient.totalSpent.toLocaleString()}</p>
+                                              <p className="text-2xl font-bold"><IndianRupeeIcon className="h-4 w-4 text-black" />{selectedClient.totalSpent.toLocaleString()}</p>
                                             </div>
                                             <div>
                                               <p className="text-sm text-muted-foreground">Last Order</p>

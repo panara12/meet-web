@@ -4,7 +4,7 @@ import {
   TrendingDown, 
   Package, 
   Users, 
-  DollarSign, 
+  IndianRupeeIcon, 
   ShoppingCart,
   Building2,
   UserPlus,
@@ -321,7 +321,7 @@ export default function Dashboard({ onNavigate }) {
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
-      currency: 'USD',
+      currency: 'INR',
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
     }).format(amount)
@@ -425,7 +425,7 @@ export default function Dashboard({ onNavigate }) {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Inventory Value</CardTitle>
-              <DollarSign className="h-4 w-4 text-gray-600" />
+              <IndianRupeeIcon className="h-4 w-4 text-gray-600" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{formatCurrency(totalInventoryValue)}</div>

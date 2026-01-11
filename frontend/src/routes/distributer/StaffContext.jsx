@@ -75,7 +75,7 @@ export function StaffProvider({ children }) {
   const { mutate: updateLimit, isPending: isUpdateLimitPending, isError: isUpdateLimitError, error: updateLimitError } = useUpdateLimit()
   const { mutate: getLocationById, isPending: isGetLocationByIdPending, isError: isGetLocationByIdError, error: getLocationByIdError } = useGetLocationById()
   const { mutate: getPathPoints, isPending: isGetPathPointsPending, isError: isGetPathPointsError, error: getPathPointsError } = useGetpathPoints()
-
+  
   // Load users from API
   useEffect(() => {
     if (getAllUser?.data?.user) {

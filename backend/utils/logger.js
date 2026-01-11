@@ -1,34 +1,70 @@
 const { createLogger, format, transports } = require('winston');
 require('winston-daily-rotate-file');
 const path = require('path');
+const fs = require('fs');
 
-const logDirectory = path.resolve(__dirname, '../../logs/backend');
+const logDirectory = path.resolve(__dirname, '../logs/backend');
 
+// Ensure log directory exists
+if (!fs.existsSync(logDirectory)) {
+  fs.mkdirSync(logDirectory, { recursive: true });
+}
 
 // Common format for all logs
 const logFormat = format.printf(({ timestamp, level, message }) => {
   return `${timestamp} | ${level.toUpperCase()} | ${message}`;
 });
 
-const dailyRotateFileTransport = new transports.DailyRotateFile({
-  filename: path.join(logDirectory, 'app-%DATE%.log'),
+// Daily rotate transport for error logs
+const errorRotateTransport = new transports.DailyRotateFile({
+  filename: path.join(logDirectory, 'errors-%DATE%.log'),
+  datePattern: 'YYYY-MM-DD',
+  level: 'error',
+  maxSize: '20m',
+  maxFiles: '14d',
+  zippedArchive: true,
+});
+
+// Daily rotate transport for combined logs
+const combinedRotateTransport = new transports.DailyRotateFile({
+  filename: path.join(logDirectory, 'combined-%DATE%.log'),
   datePattern: 'YYYY-MM-DD',
   maxSize: '20m',
-  maxFiles: '5d', // keep logs for 5 days
+  maxFiles: '7d',
+  zippedArchive: true,
+});
+
+// Daily rotate transport for tracker logs
+const trackerRotateTransport = new transports.DailyRotateFile({
+  filename: path.join(logDirectory, 'tracker-%DATE%.log'),
+  datePattern: 'YYYY-MM-DD',
+  level: 'info',
+  maxSize: '20m',
+  maxFiles: '7d',
+  zippedArchive: true,
 });
 
 const logger = createLogger({
   level: 'info',
   format: format.combine(
-    format.timestamp(),
-    format.simple()
+    format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
+    logFormat
   ),
   transports: [
-    new transports.Console(),
-    new transports.File({ filename: path.resolve(__dirname, '../../logs/backend/errors.log'), level: 'error' }),
-    new transports.File({ filename: path.resolve(__dirname, '../../logs/backend/combined.log') }),
-    new transports.File({ filename: path.join(__dirname, '../logs/backend/tracker.log'), level: 'info' })
+    new transports.Console({
+      format: format.combine(
+        format.colorize(),
+        format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
+        logFormat
+      )
+    }),
+    errorRotateTransport,
+    combinedRotateTransport,
+    trackerRotateTransport
   ]
 });
+
+// Log transport initialization
+logger.info('Logger initialized with daily rotation');
 
 module.exports = logger;

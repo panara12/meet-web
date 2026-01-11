@@ -1,10 +1,13 @@
 import { useState } from "react";
 import { Menu, LogOut } from "lucide-react";
+import { useLogout } from "../../hooks/auth/useLogOut";
 
 export default function Header({sidebarOpen,setSidebarOpen}) {
 
+  const {mutate:logout} = useLogout();
+
   const handleLogout = () => {
-    alert("Logged out successfully!");
+    logout();
   };
 
   return (
