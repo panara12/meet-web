@@ -117,7 +117,7 @@ export function SettingsPanel() {
     <div className="space-y-4 sm:space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div className="space-y-1">
+        <div className="space-y-1 ml-10">
           <h2 className="text-xl sm:text-2xl">System Settings</h2>
           <p className="text-sm sm:text-base text-muted-foreground">Configure your order management system preferences</p>
         </div>

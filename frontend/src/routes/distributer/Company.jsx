@@ -289,13 +289,13 @@ function Company() {
   return (
     <div className="w-full">
       <div className="ml-8 lg:hidden">
-        <h1 className="text-xl">Company</h1>
+        <h1 className="text-xl">Company Management</h1>
       </div>
       <div className="space-y-6">
         {/* Header */}
         <div className="flex flex-col space-y-4 sm:space-y-0 sm:flex-row sm:items-center sm:justify-between">
           <div className="min-w-0 flex-1">
-            <h1 className="text-2xl lg:text-3xl">Company Management</h1>
+            <h1 className="text-xl max-[1024px]:hidden">Company Management</h1>
             <p className="text-muted-foreground text-sm sm:text-base">
               Manage companies and their product associations
             </p>

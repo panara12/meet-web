@@ -332,7 +332,7 @@ function ClientList() {
         {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
-            <h2>Client Management</h2>
+            <h2 className="max-[1024px]:hidden text-xl">Client Management</h2>
             <p className="text-muted-foreground">Manage your client relationships, contacts, and business partnerships</p>
           </div>
           <Button onClick={openAddDialog}>

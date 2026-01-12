@@ -647,13 +647,13 @@ function Inventory() {
   return (
     <div className="w-full">
       <div className="ml-8 lg:hidden">
-        <h1 className="text-xl">Inventory</h1>
+        <h1 className="text-xl">Inventory Management</h1>
       </div>
       <div className="space-y-6">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1>Inventory Management</h1>
+            <h1 className="text-xl max-[1024px]:hidden">Inventory Management</h1>
             <p className="text-muted-foreground">
               Manage your product catalog with Amazon-style inventory tracking
             </p>

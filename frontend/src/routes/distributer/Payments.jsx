@@ -369,13 +369,13 @@ function Payments() {
   return (
     <div className="w-full">
       <div className="ml-8 lg:hidden">
-        <h1 className="text-xl">Payments</h1>
+        <h1 className="text-xl">Payments Confirmations</h1>
       </div>
       <div className="space-y-4 sm:space-y-6">
         {/* Header */}
         <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
           <div className="space-y-1">
-            <h2 className="text-responsive-xl">Payment Confirmations</h2>
+            <h2 className="text-xl max-[1024px]:hidden">Payment Confirmations</h2>
             <p className="text-responsive-xs text-muted-foreground">
               Review and manage payment updates from sales team with reversible actions
             </p>

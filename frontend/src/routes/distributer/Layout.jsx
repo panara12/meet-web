@@ -13,13 +13,14 @@ export default function Layout({ title, items, activeId, onSelect, onLogout, chi
   const [sidebarOpen, setSidebarOpen] = React.useState(false)
 
   return (
-    <div className="flex min-h-screen w-full bg-gray-50">
+    <div className="flex h-screen w-full bg-gray-50 overflow-hidden">
       {/* Mobile Menu Button */}
       <button
         onClick={() => setSidebarOpen(!sidebarOpen)}
-        className="lg:hidden fixed top-2 left-2 z-50 p-2 rounded-md text-black bg-transparent"
+        className="lg:hidden fixed top-2 left-2 z-50 p-2 rounded-md bg-white shadow-lg"
+        style={{ color: THEME.primary }}
       >
-        <Menu size={24} />
+        <Menu size={20} />
       </button>
 
       {/* Overlay for mobile */}
@@ -34,20 +35,20 @@ export default function Layout({ title, items, activeId, onSelect, onLogout, chi
       <aside
         className={`
           fixed lg:static inset-y-0 left-0 z-40
-          w-64 flex flex-col
+          w-64 h-screen flex flex-col
           transform transition-transform duration-300 ease-in-out
           ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
         `}
         style={{ backgroundColor: THEME.primary }}
       >
-        {/* Header */}
-        <div className="p-6 border-b border-white border-opacity-20">
-          <h1 className="ml-10 text-xl font-bold" style={{ color: THEME.primaryText }}>
+        {/* Header - Fixed */}
+        <div className="flex-shrink-0 p-6 border-b border-white border-opacity-20">
+          <h1 className="text-xl font-bold" style={{ color: THEME.primaryText }}>
             {title}
           </h1>
         </div>
 
-        {/* Navigation Items */}
+        {/* Navigation Items - Scrollable */}
         <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
           {items.map((item) => {
             const Icon = item.icon
@@ -83,9 +84,9 @@ export default function Layout({ title, items, activeId, onSelect, onLogout, chi
           })}
         </nav>
 
-        {/* Logout Button */}
+        {/* Logout Button - Fixed at bottom */}
         {onLogout && (
-          <div className="p-4 border-t border-white border-opacity-20">
+          <div className="flex-shrink-0 p-4 border-t border-white border-opacity-20">
             <button
               onClick={onLogout}
               className="w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 text-left"
@@ -104,11 +105,10 @@ export default function Layout({ title, items, activeId, onSelect, onLogout, chi
         )}
       </aside>
 
-
-        {/* Main Content */}
-        <main className="flex-1 p-3 sm:p-4 lg:p-6 overflow-auto lg:ml-0">
-          {children}
-        </main>
+      {/* Main Content - Scrollable */}
+      <main className="flex-1 h-screen overflow-y-auto p-3 sm:p-4 lg:p-6">
+        {children}
+      </main>
     </div>
   )
 }

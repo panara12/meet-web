@@ -438,13 +438,13 @@ function StaffAccount() {
   return (
     <div className="w-full">
       <div className="ml-8 lg:hidden">
-        <h1 className="text-xl">Employee Accounts</h1>
+        <h1 className="text-xl">Staff Account Management</h1>
       </div>
       <div className="space-y-6">
         {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
-            <h2>Staff Account Management</h2>
+            <h2 className="max-[1024px]:hidden text-xl">Staff Account Management</h2>
             <p className="text-muted-foreground">Manage employee records, roles, and employment details</p>
           </div>
           <div className="flex flex-col items-end gap-1">

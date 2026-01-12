@@ -569,13 +569,13 @@ function SalesPanel() {
   return (
     <div className="w-full">
       <div className="ml-8 lg:hidden">
-        <h1 className="text-xl">Employee Management</h1>
+        <h1 className="text-xl">Staff Panel</h1>
       </div>
       <div className="space-y-6">
         {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
-            <h2>Staff Panel</h2>
+            <h2 className="max-[1024px]:hidden text-xl">Staff Panel</h2>
             <p className="text-muted-foreground">Manage and monitor all staff members with quick access to their information</p>
           </div>
           <div className="grid grid-rows-2 space-y-2">
