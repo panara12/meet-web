@@ -1,6 +1,5 @@
 import {Route,Routes,BrowserRouter} from 'react-router-dom'
 import './App.css'
-import OutletSetup from './component/Outlet'
 import Login from './routes/auth/Login'
 import Distributer_router from './routes/distributer/distributer_router'
 import Seller_router from './routes/seller/seller_router'
@@ -29,12 +28,10 @@ function App() {
           <Route path="/login" element={<Login/>}></Route>
           <Route path="/" element={<Login/>}></Route>
           <Route element={<ProtectedRoute/>}>
-            <Route element={<OutletSetup/>}>
               <Route path='/distributer/*' element={<Distributer_router />}></Route>
               <Route path='/seller/*' element={<Seller_router />}></Route>
               <Route path='/billing/*'  element={<Billing_router />}></Route>
               <Route path='/packaging/*' element={<Packaging_router />}></Route>
-            </Route>
             <Route element={<SalesmanOutlet />}>
               <Route path='/salesman/*' element={<Salesman_router />}></Route>
             </Route>

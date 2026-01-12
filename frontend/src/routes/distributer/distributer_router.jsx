@@ -1,6 +1,19 @@
 import React from "react"
 import { Routes, Route, Navigate, useLocation, useNavigate } from "react-router-dom"
+import {
+  LayoutDashboard,
+  Users,
+  UserCheck,
+  UsersRound,
+  Package,
+  Receipt,
+  Settings,
+  Warehouse,
+  Building2,
+  CreditCard
+} from "lucide-react"
 
+import Layout from "./Layout"
 import Dashboard from "./Dashboard.jsx"
 import ClientList from "./ClientList.jsx"
 import SalesPanel from "./SalesPanel.jsx"
@@ -11,36 +24,93 @@ import Packaging from "./Packaging.jsx"
 import Billing from "./Billing.jsx"
 import Payments from "./Payments.jsx"
 import SettingsPanel from "./Settings.jsx"
-import { InventoryProvider } from "./InventoryContext";
+
+import { InventoryProvider } from "./InventoryContext"
 import { CompanyProvider } from "./CompanyContext.jsx"
 import { StaffProvider } from "./StaffContext"
 import { FileManagementProvider } from "./FileManagementContext.jsx"
 import { SettingsProvider } from "./SettingsContext.jsx"
+import { useLogout } from "../../hooks/auth/useLogOut.jsx"
 
-export default function Distributer_router() {
+const navigationItems = [
+  { id: "dashboard", label: "Dashboard", icon: LayoutDashboard, path: "/distributer/dashboard" },
+  { id: "clients", label: "Client List", icon: Users, path: "/distributer/clients" },
+  { id: "sales", label: "Staff Panel", icon: UserCheck, path: "/distributer/sales" },
+  { id: "staff", label: "Staff Account", icon: UsersRound, path: "/distributer/staff" },
+  { id: "inventory", label: "Inventory", icon: Warehouse, path: "/distributer/inventory" },
+  { id: "company", label: "Company", icon: Building2, path: "/distributer/company" },
+  { id: "packaging", label: "Packaging", icon: Package, path: "/distributer/packaging" },
+  { id: "billing", label: "Billing", icon: Receipt, path: "/distributer/billing" },
+  { id: "payments", label: "Payment Confirmations", icon: CreditCard, path: "/distributer/payments" },
+  { id: "settings", label: "Settings", icon: Settings, path: "/distributer/settings" }
+]
+
+function LayoutWrapper({ children }) {
+  const location = useLocation()
+  const navigate = useNavigate()
+  const {mutate:logout} = useLogout();
+
+  // Find active item based on current route
+  const activeItem = navigationItems.find(item => 
+    location.pathname === item.path
+  ) || navigationItems[0]
+
+  const handleSelect = (id) => {
+    const item = navigationItems.find(n => n.id === id)
+    if (item) {
+      navigate(item.path)
+    }
+  }
+
+  const handleLogout = () => {
+    
+    logout();
+    console.log("Logout clicked")
+    // Clear any stored tokens/data
+    localStorage.removeItem('token') // adjust based on your auth implementation
+    // Redirect to login page
+    window.location.href = '/login' // or use navigate('/login') if login is in the same router
+  }
 
   return (
+    <Layout
+      title={activeItem.label}
+      items={navigationItems}
+      activeId={activeItem.id}
+      onSelect={handleSelect}
+      onLogout={handleLogout}
+    >
+      {children}
+    </Layout>
+  )
+}
+
+export default function Distributer_router() {
+  return (
     <SettingsProvider>
-    <StaffProvider>
-    <FileManagementProvider>
-    <CompanyProvider>
-      <InventoryProvider>
-        <Routes>        
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/clients" element={<ClientList />} />
-          <Route path="/sales" element={<SalesPanel />} />
-          <Route path="/staff" element={<StaffAccount />} />
-          <Route path="/inventory" element={<Inventory />}/>
-          <Route path="/company" element={<Company />} />
-          <Route path="/packaging" element={<Packaging />} />
-          <Route path="/billing" element={<Billing />} />
-          <Route path="/payments" element={<Payments />} />
-          <Route path="/settings" element={<SettingsPanel />} />
-        </Routes>
-      </InventoryProvider>
-    </CompanyProvider>
-    </FileManagementProvider>
-    </StaffProvider>
+      <StaffProvider>
+        <FileManagementProvider>
+          <CompanyProvider>
+            <InventoryProvider>
+              <LayoutWrapper>
+                <Routes>
+                  <Route path="/" element={<Navigate to="/dashboard" replace />} />
+                  <Route path="/dashboard" element={<Dashboard />} />
+                  <Route path="/clients" element={<ClientList />} />
+                  <Route path="/sales" element={<SalesPanel />} />
+                  <Route path="/staff" element={<StaffAccount />} />
+                  <Route path="/inventory" element={<Inventory />} />
+                  <Route path="/company" element={<Company />} />
+                  <Route path="/packaging" element={<Packaging />} />
+                  <Route path="/billing" element={<Billing />} />
+                  <Route path="/payments" element={<Payments />} />
+                  <Route path="/settings" element={<SettingsPanel />} />
+                </Routes>
+              </LayoutWrapper>
+            </InventoryProvider>
+          </CompanyProvider>
+        </FileManagementProvider>
+      </StaffProvider>
     </SettingsProvider>
   )
 }

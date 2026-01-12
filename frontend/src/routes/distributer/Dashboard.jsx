@@ -25,6 +25,7 @@ import VoidVortexInbox from './Inbox'
 import { useStaff } from "./StaffContext";
 import { useInventory, categories } from "./InventoryContext"
 import { useCompany } from "./CompanyContext"
+import { div } from "framer-motion/client";
 
 // Simple UI Components
 const Card = ({ children, className = "", onClick }) => (
@@ -328,376 +329,381 @@ export default function Dashboard({ onNavigate }) {
   }
 
   return (
-    <div className="space-y-6 p-4">
-      {/* Welcome Section */}
-      <div className="flex flex-col space-y-2">
-        <h1 className="text-2xl lg:text-3xl font-bold">Welcome to OrderFlow</h1>
-        <p className="text-gray-600">
-          Here's an overview of your business operations and quick actions to get things done.
-        </p>
+    <div className="w-full">
+      <div className="ml-8 lg:hidden">
+        <h1 className="text-xl">Dashboard</h1>
       </div>
-
-      {/* Quick Actions */}
-      <div className="space-y-4">
-        <h2 className="text-xl font-semibold">Quick Actions</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {quickActions.map((action, index) => {
-            const Icon = action.icon
-            return (
-              <Card 
-                key={index} 
-                className="cursor-pointer hover:shadow-lg transition-all duration-200 hover:scale-[1.02] border-2 hover:border-blue-200 relative"
-                onClick={action.action}
-              >
-                <CardContent className="p-4">
-                  <div className="flex items-center gap-3">
-                    <div className={`p-3 rounded-lg ${action.color} relative flex-shrink-0`}>
-                      <Icon className={`h-5 w-5 ${action.textColor}`} />
-                      {action.hasNotification && (
-                        <div className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full"></div>
-                      )}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-medium truncate">{action.title}</h3>
-                      <p className="text-sm text-gray-600 truncate">{action.description}</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            )
-          })}
+      <div className="space-y-4 p-4">
+        {/* Welcome Section */}
+        <div className="flex flex-col space-y-2">
+          <h1 className="text-2xl lg:text-3xl font-bold">Welcome to OrderFlow</h1>
+          <p className="text-gray-600">
+            Here's an overview of your business operations and quick actions to get things done.
+          </p>
         </div>
-      </div>
 
-      {/* Key Metrics */}
-      <div className="space-y-4">
-        <h2 className="text-xl font-semibold">System Overview</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Active Staff</CardTitle>
-              <Users className="h-4 w-4 text-gray-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{activeStaff}</div>
-              <p className="text-xs text-gray-600">
-                <span className="text-green-600">●</span> {staff.length} total members
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Products</CardTitle>
-              <Package className="h-4 w-4 text-gray-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{totalProducts}</div>
-              <p className="text-xs text-gray-600">
-                {lowStockProducts > 0 ? (
-                  <span className="text-amber-600">
-                    <AlertTriangle className="inline h-3 w-3 mr-1" />
-                    {lowStockProducts} low stock
-                  </span>
-                ) : (
-                  <span className="text-green-600">
-                    <CheckCircle className="inline h-3 w-3 mr-1" />
-                    Stock levels healthy
-                  </span>
-                )}
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Active Companies</CardTitle>
-              <Building2 className="h-4 w-4 text-gray-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{activeCompanies}</div>
-              <p className="text-xs text-gray-600">
-                <span className="text-blue-600">●</span> {companies.length} total companies
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Inventory Value</CardTitle>
-              <IndianRupeeIcon className="h-4 w-4 text-gray-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{formatCurrency(totalInventoryValue)}</div>
-              <p className="text-xs text-gray-600">
-                {outOfStockProducts > 0 ? (
-                  <span className="text-red-600">
-                    {outOfStockProducts} out of stock
-                  </span>
-                ) : (
-                  <span className="text-green-600">All items in stock</span>
-                )}
-              </p>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
-
-      {/* Staff Distribution */}
-      <div className="space-y-4">
-        <h2 className="text-xl font-semibold">Staff Distribution</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-center">Administrators</CardTitle>
-            </CardHeader>
-            <CardContent className="text-center">
-              <div className="text-2xl font-bold text-blue-600">{adminCount}</div>
-              <p className="text-xs text-gray-600">Max: 1</p>
-              <Badge variant={adminCount === 1 ? "default" : adminCount > 1 ? "destructive" : "secondary"} className="mt-2">
-                {adminCount === 1 ? "Optimal" : adminCount > 1 ? "Over Limit" : "Understaffed"}
-              </Badge>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-center">Packagers</CardTitle>
-            </CardHeader>
-            <CardContent className="text-center">
-              <div className="text-2xl font-bold text-green-600">{packagerCount}</div>
-              <p className="text-xs text-gray-600">Max: 2</p>
-              <Badge variant={packagerCount <= 2 ? "default" : "destructive"} className="mt-2">
-                {packagerCount <= 2 ? "Within Limit" : "Over Limit"}
-              </Badge>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-center">Billers</CardTitle>
-            </CardHeader>
-            <CardContent className="text-center">
-              <div className="text-2xl font-bold text-purple-600">{billerCount}</div>
-              <p className="text-xs text-gray-600">Max: 1</p>
-              <Badge variant={billerCount === 1 ? "default" : billerCount > 1 ? "destructive" : "secondary"} className="mt-2">
-                {billerCount === 1 ? "Optimal" : billerCount > 1 ? "Over Limit" : "Understaffed"}
-              </Badge>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-center">Sales Staff</CardTitle>
-            </CardHeader>
-            <CardContent className="text-center">
-              <div className="text-2xl font-bold text-orange-600">{salesmanCount}</div>
-              <p className="text-xs text-gray-600">Max: 4</p>
-              <Badge variant={salesmanCount <= 4 ? "default" : "destructive"} className="mt-2">
-                {salesmanCount <= 4 ? "Within Limit" : "Over Limit"}
-              </Badge>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
-
-      {/* System Status */}
-      <div className="space-y-4">
-        <h2 className="text-xl font-semibold">System Status</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">System Health</CardTitle>
-              <Activity className="h-4 w-4 text-green-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center space-x-2">
-                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                <span className="text-sm font-medium">All Systems Operational</span>
-              </div>
-              <p className="text-xs text-gray-600 mt-2">
-                Last updated: {new Date().toLocaleDateString()}
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Data Sync</CardTitle>
-              <Clock className="h-4 w-4 text-blue-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center space-x-2">
-                <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                <span className="text-sm font-medium">Synchronized</span>
-              </div>
-              <p className="text-xs text-gray-600 mt-2">
-                Last sync: {new Date().toLocaleTimeString()}
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Alerts</CardTitle>
-              <AlertTriangle className={`h-4 w-4 ${lowStockProducts > 0 ? 'text-amber-600' : 'text-green-600'}`} />
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center space-x-2">
-                <div className={`w-2 h-2 rounded-full ${lowStockProducts > 0 ? 'bg-amber-500' : 'bg-green-500'}`}></div>
-                <span className="text-sm font-medium">
-                  {lowStockProducts > 0 ? `${lowStockProducts} Alert${lowStockProducts > 1 ? 's' : ''}` : 'No Alerts'}
-                </span>
-              </div>
-              <p className="text-xs text-gray-600 mt-2">
-                {lowStockProducts > 0 ? 'Low stock items need attention' : 'All systems normal'}
-              </p>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
-
-      {/* Footer */}
-      <div className="pt-6 border-t">
-        <p className="text-sm text-gray-600 text-center">
-          OrderFlow Admin Panel - Streamlining your business operations
-        </p>
-      </div>
-
-      {/* Contact VoidVortex Tech Dialog */}
-      <Dialog open={showContactDialog} onOpenChange={setShowContactDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <MessageSquare className="h-5 w-5 text-orange-500" />
-              Contact VoidVortex Tech
-            </DialogTitle>
-            <DialogDescription>
-              Have questions about features, updates, or need technical support? Send us a message and we'll get back to you within 24-48 hours.
-            </DialogDescription>
-          </DialogHeader>
-          
-          <div className="space-y-4 pt-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="contact-name">Full Name *</Label>
-                <Input
-                  id="contact-name"
-                  placeholder="Your full name"
-                  value={contactFormData.name}
-                  onChange={(e) => setContactFormData({...contactFormData, name: e.target.value})}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="contact-email">Email Address *</Label>
-                <Input
-                  id="contact-email"
-                  type="email"
-                  placeholder="your@email.com"
-                  value={contactFormData.email}
-                  onChange={(e) => setContactFormData({...contactFormData, email: e.target.value})}
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="contact-category">Category</Label>
-                <Select 
-                  value={contactFormData.category} 
-                  onValueChange={(value) => setContactFormData({...contactFormData, category: value})}
+        {/* Quick Actions */}
+        <div className="space-y-4">
+          <h2 className="text-xl font-semibold">Quick Actions</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {quickActions.map((action, index) => {
+              const Icon = action.icon
+              return (
+                <Card 
+                  key={index} 
+                  className="cursor-pointer hover:shadow-lg transition-all duration-200 hover:scale-[1.02] border-2 hover:border-blue-200 relative"
+                  onClick={action.action}
                 >
-                  <SelectItem value="feature-request">Feature Request</SelectItem>
-                  <SelectItem value="bug-report">Bug Report</SelectItem>
-                  <SelectItem value="technical-support">Technical Support</SelectItem>
-                  <SelectItem value="system-update">System Update Inquiry</SelectItem>
-                  <SelectItem value="integration">Integration Request</SelectItem>
-                  <SelectItem value="feedback">General Feedback</SelectItem>
-                  <SelectItem value="other">Other</SelectItem>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="contact-priority">Priority Level</Label>
-                <Select 
-                  value={contactFormData.priority} 
-                  onValueChange={(value) => setContactFormData({...contactFormData, priority: value})}
-                >
-                  <SelectItem value="low">Low - General inquiry</SelectItem>
-                  <SelectItem value="medium">Medium - Standard request</SelectItem>
-                  <SelectItem value="high">High - Urgent issue</SelectItem>
-                  <SelectItem value="critical">Critical - System down</SelectItem>
-                </Select>
-              </div>
-            </div>
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-3">
+                      <div className={`p-3 rounded-lg ${action.color} relative flex-shrink-0`}>
+                        <Icon className={`h-5 w-5 ${action.textColor}`} />
+                        {action.hasNotification && (
+                          <div className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full"></div>
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-medium truncate">{action.title}</h3>
+                        <p className="text-sm text-gray-600 truncate">{action.description}</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              )
+            })}
+          </div>
+        </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="contact-subject">Subject *</Label>
-              <Input
-                id="contact-subject"
-                placeholder="Brief summary of your inquiry"
-                value={contactFormData.subject}
-                onChange={(e) => setContactFormData({...contactFormData, subject: e.target.value})}
-              />
-            </div>
+        {/* Key Metrics */}
+        <div className="space-y-4">
+          <h2 className="text-xl font-semibold">System Overview</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Active Staff</CardTitle>
+                <Users className="h-4 w-4 text-gray-600" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{activeStaff}</div>
+                <p className="text-xs text-gray-600">
+                  <span className="text-green-600">●</span> {staff.length} total members
+                </p>
+              </CardContent>
+            </Card>
 
-            <div className="space-y-2">
-              <Label htmlFor="contact-message">Message *</Label>
-              <Textarea
-                id="contact-message"
-                placeholder="Please provide detailed information about your request, including any specific features you'd like to see, issues you're experiencing, or questions you have about upcoming updates..."
-                rows={6}
-                value={contactFormData.message}
-                onChange={(e) => setContactFormData({...contactFormData, message: e.target.value})}
-              />
-            </div>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Total Products</CardTitle>
+                <Package className="h-4 w-4 text-gray-600" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{totalProducts}</div>
+                <p className="text-xs text-gray-600">
+                  {lowStockProducts > 0 ? (
+                    <span className="text-amber-600">
+                      <AlertTriangle className="inline h-3 w-3 mr-1" />
+                      {lowStockProducts} low stock
+                    </span>
+                  ) : (
+                    <span className="text-green-600">
+                      <CheckCircle className="inline h-3 w-3 mr-1" />
+                      Stock levels healthy
+                    </span>
+                  )}
+                </p>
+              </CardContent>
+            </Card>
 
-            <div className="bg-blue-50 p-4 rounded-lg">
-              <div className="flex items-start gap-2">
-                <Mail className="h-5 w-5 text-blue-600 mt-0.5" />
-                <div className="text-sm">
-                  <p className="font-medium text-blue-800 mb-1">Contact Information</p>
-                  <p className="text-blue-700">
-                    <strong>Company:</strong> VoidVortex Technologies<br/>
-                    <strong>Support Email:</strong> support@voidvortex.tech<br/>
-                    <strong>Response Time:</strong> 24-48 hours<br/>
-                    <strong>Business Hours:</strong> Mon-Fri 9AM-6PM EST
-                  </p>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Active Companies</CardTitle>
+                <Building2 className="h-4 w-4 text-gray-600" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{activeCompanies}</div>
+                <p className="text-xs text-gray-600">
+                  <span className="text-blue-600">●</span> {companies.length} total companies
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Inventory Value</CardTitle>
+                <IndianRupeeIcon className="h-4 w-4 text-gray-600" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{formatCurrency(totalInventoryValue)}</div>
+                <p className="text-xs text-gray-600">
+                  {outOfStockProducts > 0 ? (
+                    <span className="text-red-600">
+                      {outOfStockProducts} out of stock
+                    </span>
+                  ) : (
+                    <span className="text-green-600">All items in stock</span>
+                  )}
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+
+        {/* Staff Distribution */}
+        <div className="space-y-4">
+          <h2 className="text-xl font-semibold">Staff Distribution</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm font-medium text-center">Administrators</CardTitle>
+              </CardHeader>
+              <CardContent className="text-center">
+                <div className="text-2xl font-bold text-blue-600">{adminCount}</div>
+                <p className="text-xs text-gray-600">Max: 1</p>
+                <Badge variant={adminCount === 1 ? "default" : adminCount > 1 ? "destructive" : "secondary"} className="mt-2">
+                  {adminCount === 1 ? "Optimal" : adminCount > 1 ? "Over Limit" : "Understaffed"}
+                </Badge>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm font-medium text-center">Packagers</CardTitle>
+              </CardHeader>
+              <CardContent className="text-center">
+                <div className="text-2xl font-bold text-green-600">{packagerCount}</div>
+                <p className="text-xs text-gray-600">Max: 2</p>
+                <Badge variant={packagerCount <= 2 ? "default" : "destructive"} className="mt-2">
+                  {packagerCount <= 2 ? "Within Limit" : "Over Limit"}
+                </Badge>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm font-medium text-center">Billers</CardTitle>
+              </CardHeader>
+              <CardContent className="text-center">
+                <div className="text-2xl font-bold text-purple-600">{billerCount}</div>
+                <p className="text-xs text-gray-600">Max: 1</p>
+                <Badge variant={billerCount === 1 ? "default" : billerCount > 1 ? "destructive" : "secondary"} className="mt-2">
+                  {billerCount === 1 ? "Optimal" : billerCount > 1 ? "Over Limit" : "Understaffed"}
+                </Badge>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm font-medium text-center">Sales Staff</CardTitle>
+              </CardHeader>
+              <CardContent className="text-center">
+                <div className="text-2xl font-bold text-orange-600">{salesmanCount}</div>
+                <p className="text-xs text-gray-600">Max: 4</p>
+                <Badge variant={salesmanCount <= 4 ? "default" : "destructive"} className="mt-2">
+                  {salesmanCount <= 4 ? "Within Limit" : "Over Limit"}
+                </Badge>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+
+        {/* System Status */}
+        <div className="space-y-4">
+          <h2 className="text-xl font-semibold">System Status</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">System Health</CardTitle>
+                <Activity className="h-4 w-4 text-green-600" />
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-center space-x-2">
+                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                  <span className="text-sm font-medium">All Systems Operational</span>
+                </div>
+                <p className="text-xs text-gray-600 mt-2">
+                  Last updated: {new Date().toLocaleDateString()}
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Data Sync</CardTitle>
+                <Clock className="h-4 w-4 text-blue-600" />
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-center space-x-2">
+                  <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                  <span className="text-sm font-medium">Synchronized</span>
+                </div>
+                <p className="text-xs text-gray-600 mt-2">
+                  Last sync: {new Date().toLocaleTimeString()}
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Alerts</CardTitle>
+                <AlertTriangle className={`h-4 w-4 ${lowStockProducts > 0 ? 'text-amber-600' : 'text-green-600'}`} />
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-center space-x-2">
+                  <div className={`w-2 h-2 rounded-full ${lowStockProducts > 0 ? 'bg-amber-500' : 'bg-green-500'}`}></div>
+                  <span className="text-sm font-medium">
+                    {lowStockProducts > 0 ? `${lowStockProducts} Alert${lowStockProducts > 1 ? 's' : ''}` : 'No Alerts'}
+                  </span>
+                </div>
+                <p className="text-xs text-gray-600 mt-2">
+                  {lowStockProducts > 0 ? 'Low stock items need attention' : 'All systems normal'}
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div className="pt-6 border-t">
+          <p className="text-sm text-gray-600 text-center">
+            OrderFlow Admin Panel - Streamlining your business operations
+          </p>
+        </div>
+
+        {/* Contact VoidVortex Tech Dialog */}
+        <Dialog open={showContactDialog} onOpenChange={setShowContactDialog}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <MessageSquare className="h-5 w-5 text-orange-500" />
+                Contact VoidVortex Tech
+              </DialogTitle>
+              <DialogDescription>
+                Have questions about features, updates, or need technical support? Send us a message and we'll get back to you within 24-48 hours.
+              </DialogDescription>
+            </DialogHeader>
+            
+            <div className="space-y-4 pt-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="contact-name">Full Name *</Label>
+                  <Input
+                    id="contact-name"
+                    placeholder="Your full name"
+                    value={contactFormData.name}
+                    onChange={(e) => setContactFormData({...contactFormData, name: e.target.value})}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="contact-email">Email Address *</Label>
+                  <Input
+                    id="contact-email"
+                    type="email"
+                    placeholder="your@email.com"
+                    value={contactFormData.email}
+                    onChange={(e) => setContactFormData({...contactFormData, email: e.target.value})}
+                  />
                 </div>
               </div>
-            </div>
 
-            <div className="flex flex-col sm:flex-row gap-3 pt-4">
-              <Button 
-                onClick={handleContactSubmit} 
-                disabled={isSubmittingMessage}
-                className="flex-1"
-              >
-                {isSubmittingMessage ? (
-                  <>
-                    <div className="h-4 w-4 mr-2 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
-                    Sending Message...
-                  </>
-                ) : (
-                  <>
-                    <Send className="h-4 w-4 mr-2" />
-                    Send Message
-                  </>
-                )}
-              </Button>
-              <Button 
-                variant="outline" 
-                onClick={() => setShowContactDialog(false)}
-                disabled={isSubmittingMessage}
-              >
-                Cancel
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="contact-category">Category</Label>
+                  <Select 
+                    value={contactFormData.category} 
+                    onValueChange={(value) => setContactFormData({...contactFormData, category: value})}
+                  >
+                    <SelectItem value="feature-request">Feature Request</SelectItem>
+                    <SelectItem value="bug-report">Bug Report</SelectItem>
+                    <SelectItem value="technical-support">Technical Support</SelectItem>
+                    <SelectItem value="system-update">System Update Inquiry</SelectItem>
+                    <SelectItem value="integration">Integration Request</SelectItem>
+                    <SelectItem value="feedback">General Feedback</SelectItem>
+                    <SelectItem value="other">Other</SelectItem>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="contact-priority">Priority Level</Label>
+                  <Select 
+                    value={contactFormData.priority} 
+                    onValueChange={(value) => setContactFormData({...contactFormData, priority: value})}
+                  >
+                    <SelectItem value="low">Low - General inquiry</SelectItem>
+                    <SelectItem value="medium">Medium - Standard request</SelectItem>
+                    <SelectItem value="high">High - Urgent issue</SelectItem>
+                    <SelectItem value="critical">Critical - System down</SelectItem>
+                  </Select>
+                </div>
+              </div>
 
-      {/* VoidVortex Inbox */}
-      <VoidVortexInbox isOpen={showInbox} onClose={() => setShowInbox(false)} />
+              <div className="space-y-2">
+                <Label htmlFor="contact-subject">Subject *</Label>
+                <Input
+                  id="contact-subject"
+                  placeholder="Brief summary of your inquiry"
+                  value={contactFormData.subject}
+                  onChange={(e) => setContactFormData({...contactFormData, subject: e.target.value})}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="contact-message">Message *</Label>
+                <Textarea
+                  id="contact-message"
+                  placeholder="Please provide detailed information about your request, including any specific features you'd like to see, issues you're experiencing, or questions you have about upcoming updates..."
+                  rows={6}
+                  value={contactFormData.message}
+                  onChange={(e) => setContactFormData({...contactFormData, message: e.target.value})}
+                />
+              </div>
+
+              <div className="bg-blue-50 p-4 rounded-lg">
+                <div className="flex items-start gap-2">
+                  <Mail className="h-5 w-5 text-blue-600 mt-0.5" />
+                  <div className="text-sm">
+                    <p className="font-medium text-blue-800 mb-1">Contact Information</p>
+                    <p className="text-blue-700">
+                      <strong>Company:</strong> VoidVortex Technologies<br/>
+                      <strong>Support Email:</strong> support@voidvortex.tech<br/>
+                      <strong>Response Time:</strong> 24-48 hours<br/>
+                      <strong>Business Hours:</strong> Mon-Fri 9AM-6PM EST
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex flex-col sm:flex-row gap-3 pt-4">
+                <Button 
+                  onClick={handleContactSubmit} 
+                  disabled={isSubmittingMessage}
+                  className="flex-1"
+                >
+                  {isSubmittingMessage ? (
+                    <>
+                      <div className="h-4 w-4 mr-2 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
+                      Sending Message...
+                    </>
+                  ) : (
+                    <>
+                      <Send className="h-4 w-4 mr-2" />
+                      Send Message
+                    </>
+                  )}
+                </Button>
+                <Button 
+                  variant="outline" 
+                  onClick={() => setShowContactDialog(false)}
+                  disabled={isSubmittingMessage}
+                >
+                  Cancel
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* VoidVortex Inbox */}
+        <VoidVortexInbox isOpen={showInbox} onClose={() => setShowInbox(false)} />
+      </div>
     </div>
   )
 }
