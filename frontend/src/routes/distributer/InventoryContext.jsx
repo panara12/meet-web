@@ -10,117 +10,151 @@ import { useUpdateCategory } from "../../hooks/category/useUpdateCategory";
 
 const InventoryContext = createContext(undefined);
 
-// Initial mock data
-let categories = [];
-const initialProducts = [];
-
 export function InventoryProvider({ children }) {
-  const [category,setCategories] = useState();
-  const [products, setProducts] = useState(initialProducts);
-  const {data:categoriesAll,isPending:iscategoriesAllPending,isError:isErrorAllCategories,error:errorAllCategories} = useGetAllCategory()
+  const [categories, setCategories] = useState([]);
+  const [products, setProducts] = useState([]);
+  
+  // Pagination & Filter States
+  const [currentPage, setCurrentPage] = useState(1);
+  const [limit, setLimit] = useState(10);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalRecords, setTotalRecords] = useState(0);
+  
+  // Search & Filter States
+  const [searchTerm, setSearchTerm] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState(undefined);
+  const [categoryFilter, setCategoryFilter] = useState(undefined);
+  const [companyFilter, setCompanyFilter] = useState(undefined);
+  
+  // Sort States
+  const [sortField, setSortField] = useState("name");
+  const [sortDirection, setSortDirection] = useState("asc");
+
+  // Debounce search
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchTerm);
+      setCurrentPage(1); // Reset to first page on search
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
+
+  // Get Products with pagination and filters
   const { 
-  data: getProductList, 
-  isPending: productListPending, 
-  isError: isProductListError, 
-  error: productListError 
-} = useGetAllProduct({});
+    data: getProductList, 
+    isPending: productListPending, 
+    isError: isProductListError, 
+    error: productListError 
+  } = useGetAllProduct({
+    page: currentPage,
+    limit: limit,
+    search: debouncedSearch,
+    status: statusFilter,
+    category: categoryFilter,
+    companyId: companyFilter,
+    sortField: sortField,
+    sortDirection: sortDirection
+  });
 
-useEffect(() => {
-  if (getProductList?.product) {
-    // console.log("Fetched Product List:", getProductList);
-    setProducts(getProductList.product);
-    setCategories(categoriesAll)
-    categories = categoriesAll?.category || [];
-  }
-}, [getProductList, categoriesAll]);
-// console.log("Fetched Products:", getProductList);
-//     console.log("Fetched category List:", categoriesAll);
+  const { data: categoriesAll } = useGetAllCategory();
 
+  // Update products and categories when data changes
+  useEffect(() => {
+    if (categoriesAll?.category) {
+      setCategories(categoriesAll.category);
+    }
+  }, [categoriesAll]);
 
+  useEffect(() => {
+    if (getProductList?.product) {
+      setProducts(getProductList.product);
+      
+      if (getProductList.pagination) {
+        setTotalPages(getProductList.pagination.totalPages);
+        setTotalRecords(getProductList.pagination.totalProducts);
+      }
+    }
+  }, [getProductList]);
 
-const { 
-  data: getAllProductCountByCompany, 
-  isPending: productCountPending, 
-  isError: isProductCountError, 
-  error: productCountError 
-} = useGetAllProductCountByCompany();
+  // Product Count by Company
+  const { 
+    data: getAllProductCountByCompany 
+  } = useGetAllProductCountByCompany();
 
+  // Category Mutations
+  const { 
+    mutate: addCtegory, 
+    isPending: isaddCtegoryPending 
+  } = useAddCategory({
+    onSuccess: () => {
+      setCurrentPage(1);
+    }
+  });
 
+  const { 
+    mutate: updateCategoryFn, 
+    isPending: isupdateCategoryPending 
+  } = useUpdateCategory({});
 
-const { 
-  mutate: addCtegory, 
-  isPending: isaddCtegoryPending, 
-  isError: isaddCtegoryError, 
-  error: addCtegoryError 
-} = useAddCategory({});
+  const { 
+    mutate: deleteCategoryFn, 
+    isPending: isDeleteCategoryFnPending 
+  } = useDeleteCategory({});
 
-const { 
-  mutate: updateCategoryFn, 
-  isPending: isupdateCategoryPending, 
-  isError: isupdateCategoryError, 
-  error: updateCategoryError 
-} = useUpdateCategory({});
+  // Product Mutations
+  const { 
+    mutate: addProductFn, 
+    isPending: isAddProductFnPending 
+  } = useAddProduct({
+    onSuccess: () => {
+      setCurrentPage(1);
+    }
+  });
 
-const { 
-  mutate: deleteCategoryFn, 
-  isPending: isDeleteCategoryFnPending, 
-  isError: isDeleteCategoryFnError, 
-  error: deleteCategoryFnError 
-} = useDeleteCategory({});
+  const { 
+    mutate: updateProductFn, 
+    isPending: isUpdateProductFnPending 
+  } = useUpdateProduct({});
 
-const { 
-  mutate: addProductFn, 
-  isPending: isAddProductFnPending, 
-  isError: isAddProductFnError, 
-  error: addProductFnError 
-} = useAddProduct({});
+  const { 
+    mutate: deleteProductFn, 
+    isPending: isDeleteProductFnPending 
+  } = useDeleteProduct({});
 
-const { 
-  mutate: updateProductFn, 
-  isPending: isUpdateProductFnPending, 
-  isError: isUpdateProductFnError, 
-  error: updateProductFnError 
-} = useUpdateProduct({});
-
-const { 
-  mutate: deleteProductFn, 
-  isPending: isDeleteProductFnPending, 
-  isError: isDeleteProductFnError, 
-  error: deleteProductFnError 
-} = useDeleteProduct({});
-
+  // Category Methods
   const addCategory = (formDataToSend) => {
-    addCtegory(formDataToSend)
+    addCtegory(formDataToSend);
   };
 
-  const updateCategory = ({id, formDataToSend}) => {
-    // console.log("Calling updateCategoryFn with:", {id, formDataToSend});
-    updateCategoryFn({id, formDataToSend})
+  const updateCategory = ({ id, categoryData }) => {
+    updateCategoryFn({ id, categoryData });
     return true;
   };
 
   const deleteCategory = (id) => {
-    deleteCategoryFn({id})
+    deleteCategoryFn({ id });
     return true;
   };
 
+  // Product Methods
   const addProduct = (formDataToSend) => {
-    addProductFn(formDataToSend)
+    addProductFn(formDataToSend);
   };
 
-  const updateProduct = ({id, formDataToSend}) => {
-    // console.log("Calling updateProductFn with:", {id, formDataToSend});
-    updateProductFn({id, formDataToSend})
+  const updateProduct = ({ id, formDataToSend }) => {
+    updateProductFn({ id, formDataToSend });
     return true;
   };
 
   const deleteProduct = (id) => {
-    deleteProductFn({id})
+    deleteProductFn({ id });
     return true;
   };
 
   const deleteProductsByCompany = (companyId) => {
-    let deletedCount = getAllProductCountByCompany({id:companyId})?.data?.count || 0;
+    let deletedCount = getAllProductCountByCompany?.data?.count || 0;
     return deletedCount;
   };
 
@@ -150,7 +184,7 @@ const {
 
   const getInventoryStats = () => {
     const stats = {
-      totalProducts: products.length,
+      totalProducts: totalRecords,
       lowStockProducts: 0,
       outOfStockProducts: 0,
       totalValue: 0,
@@ -159,37 +193,25 @@ const {
     };
 
     products.forEach((product) => {
-      // Stock status
       if (product.stockQuantity === 0) {
         stats.outOfStockProducts++;
       } else if (product.stockQuantity <= product.lowStockThreshold) {
         stats.lowStockProducts++;
       }
 
-      // Total value
       stats.totalValue += product.price * product.stockQuantity;
 
-      // Active products
       if (product.status === "active") {
         stats.activeProducts++;
       }
-
     });
 
     return stats;
   };
 
   const searchProducts = (query) => {
-    const lowercaseQuery = query.toLowerCase();
-    return products.filter(
-      (product) =>
-        product.name.toLowerCase().includes(lowercaseQuery) ||
-        product.sku.toLowerCase().includes(lowercaseQuery) ||
-        product.description.toLowerCase().includes(lowercaseQuery) ||
-        product.brand.toLowerCase().includes(lowercaseQuery) ||
-        product.category.toLowerCase().includes(lowercaseQuery) ||
-        product.tags.some((tag) => tag.toLowerCase().includes(lowercaseQuery))
-    );
+    // Search is now handled by backend
+    return products;
   };
 
   const getProductsByCategory = (category) => {
@@ -212,6 +234,7 @@ const {
     <InventoryContext.Provider
       value={{
         products,
+        categories,
         addCategory,
         updateCategory,
         deleteCategory,
@@ -227,6 +250,27 @@ const {
         getProductsByCategory,
         getLowStockProducts,
         getOutOfStockProducts,
+
+        // Pagination and search state
+        currentPage,
+        setCurrentPage,
+        limit,
+        setLimit,
+        searchTerm,
+        setSearchTerm,
+        statusFilter,
+        setStatusFilter,
+        categoryFilter,
+        setCategoryFilter,
+        companyFilter,
+        setCompanyFilter,
+        sortField,
+        setSortField,
+        sortDirection,
+        setSortDirection,
+        totalPages,
+        totalRecords,
+        isLoading: productListPending,
       }}
     >
       {children}
@@ -241,6 +285,3 @@ export const useInventory = () => {
   }
   return context;
 };
-
-// Export categories for use in components
-export { categories };

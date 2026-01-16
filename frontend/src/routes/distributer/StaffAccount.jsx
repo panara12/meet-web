@@ -11,7 +11,7 @@ import { Textarea } from "./ui/textarea"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs"
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "./ui/alert-dialog"
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar"
-import { Search, Plus, Eye, Edit, Trash2, Mail, Phone, MapPin, Calendar, Shield, Clock, Users, TrendingUp, UserCheck, Briefcase, Activity, Filter, Upload, FileText, CreditCard, Car, IndianRupeeIcon } from "lucide-react"
+import { Search, Plus, Eye, Edit, Trash2, Mail, Phone, MapPin, Calendar, Shield, Clock, Users, TrendingUp, UserCheck, Briefcase, Activity, Filter, Upload, FileText, CreditCard, Car, IndianRupeeIcon,ChevronLeft, ChevronRight, RefreshCw } from "lucide-react"
 import { toast } from "sonner"
 
 import { StaffProvider,useStaff } from "./StaffContext"
@@ -62,17 +62,35 @@ const statuses = ["Active", "Inactive", "On Leave", "Terminated"]
 const workHourTypes = ["Full-time", "Part-time", "Contract", "Freelance"]
 
 function StaffAccount() {
-  const { staff, addStaff, updateStaff, deleteStaff, getRoleCount,limits } = useStaff()
-  const [searchTerm, setSearchTerm] = useState("")
-  const [roleFilter, setRoleFilter] = useState("all")
-  const [departmentFilter, setDepartmentFilter] = useState("all")
-  const [statusFilter, setStatusFilter] = useState("all")
+  const { staff, 
+  addStaff, 
+  updateStaff, 
+  deleteStaff, 
+  getRoleCount, 
+  limits,
+  currentPage,
+  setCurrentPage,
+  pagelimit,
+  setLimit,
+  searchTerm,
+  setSearchTerm,
+  statusFilter,
+  setStatusFilter,
+  departmentFilter,
+  setDepartmentFilter,
+  roleFilter,
+  setRoleFilter,
+  sortField,
+  setSortField,
+  sortDirection,
+  setSortDirection,
+  totalPages,
+  totalRecords,
+  isLoading } = useStaff()
   const [selectedStaff, setSelectedStaff] = useState(null)
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
   const [editingStaff, setEditingStaff] = useState(null)
-  const [sortField, setSortField] = useState('firstName')
-  const [sortDirection, setSortDirection] = useState('asc')
   const [formData, setFormData] = useState(defaultFormData)
   const [documentFiles, setDocumentFiles] = useState({})
 
@@ -111,38 +129,6 @@ function StaffAccount() {
     return false;
   }, [staff, limits, getRoleCount, roleLimits]);
 
-  const filteredAndSortedStaff = useMemo(() => {
-    return staff
-      .filter(member => {
-        const matchesSearch = 
-          member.firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          member.lastName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          member.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          member.employeeId.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          member.role.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          member.department.toLowerCase().includes(searchTerm.toLowerCase())
-        
-        const matchesRole = roleFilter === "all" || member.role === roleFilter
-        const matchesDepartment = departmentFilter === "all" || member.department === departmentFilter
-        const matchesStatus = statusFilter === "all" || member.status === statusFilter
-        
-        return matchesSearch && matchesRole && matchesDepartment && matchesStatus
-      })
-      .sort((a, b) => {
-        let aVal = a[sortField]
-        let bVal = b[sortField]
-        
-        if (sortField === 'hireDate') {
-          aVal = new Date(aVal)
-          bVal = new Date(bVal)
-        }
-        
-        if (aVal < bVal) return sortDirection === 'asc' ? -1 : 1
-        if (aVal > bVal) return sortDirection === 'asc' ? 1 : -1
-        return 0
-      })
-  }, [staff, searchTerm, roleFilter, departmentFilter, statusFilter, sortField, sortDirection])
-  console.log("Filtered and Sorted Staff:", filteredAndSortedStaff)
 
   const handleSort = useCallback((field) => {
     if (sortField === field) {
@@ -151,7 +137,8 @@ function StaffAccount() {
       setSortField(field)
       setSortDirection('asc')
     }
-  }, [sortField, sortDirection])
+    setCurrentPage(1)
+  }, [sortField, sortDirection, setSortField, setSortDirection, setCurrentPage])
 
   const resetForm = useCallback(() => {
     setFormData(defaultFormData)
@@ -577,7 +564,13 @@ function StaffAccount() {
                   />
                 </div>
                 <div className="flex flex-col sm:flex-row gap-4">
-                  <Select value={roleFilter} onValueChange={setRoleFilter}>
+                  <Select 
+                    value={roleFilter || "all"} 
+                    onValueChange={(value) => {
+                      setRoleFilter(value === "all" ? undefined : value)
+                      setCurrentPage(1)
+                    }}
+                    >
                     <SelectTrigger className="w-full sm:w-[150px]">
                       <SelectValue placeholder="All Roles" />
                     </SelectTrigger>
@@ -588,7 +581,14 @@ function StaffAccount() {
                       ))}
                     </SelectContent>
                   </Select>
-                  <Select value={departmentFilter} onValueChange={setDepartmentFilter}>
+
+                  <Select 
+                    value={departmentFilter || "all"} 
+                    onValueChange={(value) => {
+                      setDepartmentFilter(value === "all" ? undefined : value)
+                      setCurrentPage(1)
+                    }}
+                  >
                     <SelectTrigger className="w-full sm:w-[150px]">
                       <SelectValue placeholder="All Departments" />
                     </SelectTrigger>
@@ -599,7 +599,15 @@ function StaffAccount() {
                       ))}
                     </SelectContent>
                   </Select>
-                  <Select value={statusFilter} onValueChange={setStatusFilter}>
+
+
+                  <Select 
+                    value={statusFilter || "all"} 
+                    onValueChange={(value) => {
+                      setStatusFilter(value === "all" ? undefined : value)
+                      setCurrentPage(1)
+                    }}
+                    >
                     <SelectTrigger className="w-full sm:w-[150px]">
                       <SelectValue placeholder="All Status" />
                     </SelectTrigger>
@@ -617,7 +625,7 @@ function StaffAccount() {
             {/* Staff Table */}
             <Card>
               <CardHeader>
-                <CardTitle>Employee Directory ({filteredAndSortedStaff.length})</CardTitle>
+                <CardTitle>Employee Directory ({totalRecords})</CardTitle>
                 <CardDescription>Complete staff roster with roles, departments, and employment details</CardDescription>
               </CardHeader>
               <CardContent>
@@ -668,7 +676,20 @@ function StaffAccount() {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {filteredAndSortedStaff.map((member) => (
+                      {isLoading ? (
+                        <TableRow>
+                          <TableCell colSpan={7} className="text-center py-8">
+                            <RefreshCw className="h-8 w-8 animate-spin text-primary mx-auto" />
+                          </TableCell>
+                        </TableRow>
+                      ) : staff.length === 0 ? (
+                        <TableRow>
+                          <TableCell colSpan={7} className="text-center py-8">
+                            <p className="text-muted-foreground">No staff members found</p>
+                          </TableCell>
+                        </TableRow>
+                      ) : (
+                      staff.map((member) => (
                         console.log("Rendering member:", member),
                           <TableRow key={member._id}>
                             <TableCell>
@@ -967,11 +988,90 @@ function StaffAccount() {
                               </div>
                             </TableCell>
                           </TableRow>
-                      ))}
+                      )))}
                     </TableBody>
                     </Table>
                   </div>
                 </div>
+                 {!isLoading && staff.length > 0 && (
+                    <div className="mt-4 pt-4 border-t">
+                      <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+                        <div className="text-sm text-muted-foreground">
+                          Showing {((currentPage - 1) * pagelimit) + 1} to {Math.min(currentPage * pagelimit, totalRecords)} of {totalRecords} staff members
+                        </div>
+                        
+                        <div className="flex items-center gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                            disabled={currentPage === 1}
+                          >
+                            <ChevronLeft className="h-4 w-4" />
+                            Previous
+                          </Button>
+                          
+                          <div className="flex items-center gap-1">
+                            {[...Array(Math.min(5, totalPages))].map((_, idx) => {
+                              let pageNum;
+                              if (totalPages <= 5) {
+                                pageNum = idx + 1;
+                              } else if (currentPage <= 3) {
+                                pageNum = idx + 1;
+                              } else if (currentPage >= totalPages - 2) {
+                                pageNum = totalPages - 4 + idx;
+                              } else {
+                                pageNum = currentPage - 2 + idx;
+                              }
+                              
+                              return (
+                                <Button
+                                  key={pageNum}
+                                  variant={currentPage === pageNum ? "default" : "outline"}
+                                  size="sm"
+                                  onClick={() => setCurrentPage(pageNum)}
+                                  className="w-10"
+                                >
+                                  {pageNum}
+                                </Button>
+                              );
+                            })}
+                          </div>
+                          
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                            disabled={currentPage === totalPages}
+                          >
+                            Next
+                            <ChevronRight className="h-4 w-4" />
+                          </Button>
+                        </div>
+                        
+                        <div className="flex items-center gap-2">
+                          <Label className="text-sm">Per page:</Label>
+                          <Select 
+                            value={pagelimit.toString()} 
+                            onValueChange={(val) => {
+                              setLimit(parseInt(val));
+                              setCurrentPage(1);
+                            }}
+                          >
+                            <SelectTrigger className="w-[100px]">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="5">5</SelectItem>
+                              <SelectItem value="10">10</SelectItem>
+                              <SelectItem value="25">25</SelectItem>
+                              <SelectItem value="50">50</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+                    </div>
+                  )}
               </CardContent>
             </Card>
           </TabsContent>

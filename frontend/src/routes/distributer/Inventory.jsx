@@ -32,9 +32,11 @@ import {
   Truck,
   ImagePlus,
   X as XIcon,
-  Upload
+  Upload,
+  ChevronLeft, 
+  ChevronRight
 } from "lucide-react"
-import { useInventory, categories } from "./InventoryContext"
+import { useInventory } from "./InventoryContext"
 import { useCompany } from "./CompanyContext"
 import { toast } from "./ui/sonner"
 
@@ -53,18 +55,32 @@ function Inventory() {
     getInventoryStats,
     searchProducts,
     getLowStockProducts,
-    getOutOfStockProducts
+    getOutOfStockProducts,
+    currentPage,
+    setCurrentPage,
+    limit,
+    setLimit,
+    searchTerm,
+    setSearchTerm,
+    statusFilter,
+    setStatusFilter,
+    categoryFilter,
+    setCategoryFilter,
+    companyFilter,
+    setCompanyFilter,
+    sortField,
+    setSortField,
+    sortDirection,
+    setSortDirection,
+    totalPages,
+    totalRecords,
+    isLoading
   } = useInventory()
   // console.log("products", products)
+
   const { companies, incrementProductsCount, decrementProductsCount } = useCompany()
-  
-  const [searchTerm, setSearchTerm] = useState("")
-  const [selectedCategory, setSelectedCategory] = useState("all")
-  const [selectedCompany, setSelectedCompany] = useState("all")
-  const [selectedStatus, setSelectedStatus] = useState("all")
+
   const [viewMode, setViewMode] = useState("table")
-  const [sortField, setSortField] = useState("created")
-  const [sortOrder, setSortOrder] = useState("desc")
   const [commonColors, setCommonColors] = useState("")
   const [isCommonColorSelected, setIsCommonColorSelected] = useState(false)
   
@@ -82,6 +98,10 @@ function Inventory() {
   const [showCategoryDialog, setShowCategoryDialog] = useState(false)
   const [selectedDiaCategory, setSelectedDiaCategory] = useState(null)
   const [isSubmittingCategory, setIsSubmittingCategory] = useState(false)
+
+  // Get categories from context
+  const categories = useInventory().categories || []
+  console.log("categories in inventory:", useInventory())
 
   // Form states
   const [formData, setFormData] = useState({
@@ -134,9 +154,11 @@ function Inventory() {
   
   const [dragActive, setDragActive] = useState(false)
 
+  
   const stats = getInventoryStats()
   const lowStockProducts = getLowStockProducts()
   const outOfStockProducts = getOutOfStockProducts()
+
 
   //preview url for the inputed imgs
   const handleImageChange = (e) => {
@@ -156,55 +178,6 @@ function Inventory() {
       }
     });
   };
-
-  // Filter and sort products
-  const filteredAndSortedProducts = useMemo(() => {
-    let filtered = products
-
-    // Apply search
-    if (searchTerm) {
-      filtered = searchProducts(searchTerm)
-    }
-
-    // Apply filters
-    if (selectedCategory !== "all") {
-      filtered = filtered.filter(p => p.category === selectedCategory)
-    }
-    if (selectedCompany !== "all") {
-      filtered = filtered.filter(p => p.companyId === selectedCompany)
-    }
-    if (selectedStatus !== "all") {
-      filtered = filtered.filter(p => p.status === selectedStatus)
-    }
-
-    // Apply sorting
-    filtered.sort((a, b) => {
-      let aValue = a[sortField]
-      let bValue = b[sortField]
-
-      if (sortField === "created" || sortField === "updated") {
-        aValue = new Date(aValue).getTime()
-        bValue = new Date(bValue).getTime()
-      } else if (sortField === "price") {
-        aValue = a.price
-        bValue = b.price
-      } else if (sortField === "stock") {
-        aValue = a.stockQuantity
-        bValue = b.stockQuantity
-      } else {
-        aValue = aValue?.toString().toLowerCase() || ""
-        bValue = bValue?.toString().toLowerCase() || ""
-      }
-
-      if (sortOrder === "asc") {
-        return aValue > bValue ? 1 : -1
-      } else {
-        return aValue < bValue ? 1 : -1
-      }
-    })
-
-    return filtered
-  }, [products, searchTerm, selectedCategory, selectedCompany, selectedStatus, sortField, sortOrder])
 
   const resetCategoryForm = ()=>{
     setCategoryFormData({
@@ -1463,31 +1436,49 @@ function Inventory() {
           </div>
 
           <div className="flex gap-2">
-            <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+            <Select 
+              value={categoryFilter || "all"} 
+              onValueChange={(value) => {
+                setCategoryFilter(value === "all" ? undefined : value);
+                setCurrentPage(1);
+              }}
+            >
               <SelectTrigger className="w-[150px]">
                 <SelectValue placeholder="Category" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Categories</SelectItem>
-                {categories.length>0 && categories.map(category => (
+                {categories.length > 0 && categories.map(category => (
                   <SelectItem key={category._id} value={category.name}>{category.name}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
 
-            <Select value={selectedCompany} onValueChange={setSelectedCompany}>
-              <SelectTrigger className="w-[150px]">
-                <SelectValue placeholder="Company" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Companies</SelectItem>
-                {companies.map(company => (
-                  <SelectItem key={company._id} value={company._id}>{company.name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+              <Select 
+                value={companyFilter || "all"} 
+                onValueChange={(value) => {
+                  setCompanyFilter(value === "all" ? undefined : value);
+                  setCurrentPage(1);
+                }}
+              >
+                <SelectTrigger className="w-[150px]">
+                  <SelectValue placeholder="Company" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Companies</SelectItem>
+                  {companies.map(company => (
+                    <SelectItem key={company._id} value={company._id}>{company.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
 
-            <Select value={selectedStatus} onValueChange={setSelectedStatus}>
+            <Select 
+              value={statusFilter || "all"} 
+              onValueChange={(value) => {
+                setStatusFilter(value === "all" ? undefined : value);
+                setCurrentPage(1);
+              }}
+            >
               <SelectTrigger className="w-[120px]">
                 <SelectValue placeholder="Status" />
               </SelectTrigger>
@@ -1518,210 +1509,221 @@ function Inventory() {
           </div>
         </div>
 
+        {isLoading && (
+          <div className="flex justify-center items-center py-12">
+            <RefreshCw className="h-8 w-8 animate-spin text-primary" />
+          </div>
+        )}
+
+
         {/* Products Display */}
-        {viewMode === "table" ? (
-          <Card>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead 
-                    className="cursor-pointer"
-                    onClick={() => {
-                      if (sortField === "name") {
-                        setSortOrder(sortOrder === "asc" ? "desc" : "asc")
-                      } else {
-                        setSortField("name")
-                        setSortOrder("asc")
-                      }
-                    }}
-                  >
-                    Product {sortField === "name" && (sortOrder === "asc" ? "↑" : "↓")}
-                  </TableHead>
-                  <TableHead>Company</TableHead>
-                  <TableHead>Category</TableHead>
-                  <TableHead 
-                    className="cursor-pointer"
-                    onClick={() => {
-                      if (sortField === "price") {
-                        setSortOrder(sortOrder === "asc" ? "desc" : "asc")
-                      } else {
-                        setSortField("price")
-                        setSortOrder("desc")
-                      }
-                    }}
-                  >
-                    Price {sortField === "price" && (sortOrder === "asc" ? "↑" : "↓")}
-                  </TableHead>
-                  <TableHead 
-                    className="cursor-pointer"
-                    onClick={() => {
-                      if (sortField === "stock") {
-                        setSortOrder(sortOrder === "asc" ? "desc" : "asc")
-                      } else {
-                        setSortField("stock")
-                        setSortOrder("desc")
-                      }
-                    }}
-                  >
-                    Stock {sortField === "stock" && (sortOrder === "asc" ? "↑" : "↓")}
-                  </TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredAndSortedProducts.map((product) => {
+        {!isLoading && (
+          <>
+            {viewMode === "table" ? (
+              <Card>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead 
+                        className="cursor-pointer"
+                        onClick={() => {
+                          if (sortField === "name") {
+                            setSortDirection(sortDirection === "asc" ? "desc" : "asc")
+                          } else {
+                            setSortField("name")
+                            setSortDirection("asc")
+                          }
+                          }}
+                      >
+                        Product {sortField === "name" && (sortDirection  === "asc" ? "↑" : "↓")}
+                      </TableHead>
+                      <TableHead>Company</TableHead>
+                      <TableHead>Category</TableHead>
+                      <TableHead 
+                        className="cursor-pointer"
+                        onClick={() => {
+                          if (sortField === "price") {
+                            setSortOrder(sortOrder === "asc" ? "desc" : "asc")
+                          } else {
+                            setSortField("price")
+                            setSortOrder("desc")
+                          }
+                        }}
+                      >
+                        Price {sortField === "price" && (sortOrder === "asc" ? "↑" : "↓")}
+                      </TableHead>
+                      <TableHead 
+                        className="cursor-pointer"
+                        onClick={() => {
+                          if (sortField === "stock") {
+                            setSortOrder(sortOrder === "asc" ? "desc" : "asc")
+                          } else {
+                            setSortField("stock")
+                            setSortOrder("desc")
+                          }
+                        }}
+                      >
+                        Stock {sortField === "stock" && (sortOrder === "asc" ? "↑" : "↓")}
+                      </TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {products.map((product) => {
+                      const stockStatus = getStockStatus(product)
+                      return (
+                        <TableRow key={product._id}>
+                          <TableCell>
+                            <div>
+                              <div className="font-medium">{product.name}</div>
+                              <div className="text-sm text-muted-foreground">{product.sku}</div>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-2">
+                              <Building2 className="h-4 w-4 text-muted-foreground" />
+                              {product.companyName}
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant="outline">{product.category}</Badge>
+                          </TableCell>
+                          <TableCell>{formatCurrency(product.price)}</TableCell>
+                          <TableCell>
+                            <Badge variant={stockStatus.variant}>
+                              {product.stockQuantity} units
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <Badge 
+                              variant={product.status === "active" ? "default" : 
+                                      product.status === "inactive" ? "secondary" : "destructive"}
+                            >
+                              {product.status}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex gap-1">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => openProductDialog(product)}
+                              >
+                                <Eye className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => openEditDialog(product)}
+                              >
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => openDeleteDialog(product)}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      )
+                    })}
+                  </TableBody>
+                </Table>
+              </Card>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                {products.map((product) => {
                   const stockStatus = getStockStatus(product)
                   return (
-                    <TableRow key={product._id}>
-                      <TableCell>
-                        <div>
-                          <div className="font-medium">{product.name}</div>
-                          <div className="text-sm text-muted-foreground">{product.sku}</div>
+                    <Card key={product._id} className="hover:shadow-lg transition-shadow">
+                      <CardHeader className="pb-3">
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1 min-w-0">
+                            <CardTitle className="text-base truncate">{product.name}</CardTitle>
+                            <p className="text-sm text-muted-foreground">{product.sku}</p>
+                          </div>
+                          <Badge 
+                            variant={product.status === "active" ? "default" : 
+                                    product.status === "inactive" ? "secondary" : "destructive"}
+                            className="ml-2"
+                          >
+                            {product.status}
+                          </Badge>
                         </div>
-                      </TableCell>
-                      <TableCell>
+                      </CardHeader>
+                      <CardContent className="space-y-3">
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                          <Building2 className="h-4 w-4" />
+                          <span className="truncate">{product.companyName}</span>
+                        </div>
+                        
                         <div className="flex items-center gap-2">
-                          <Building2 className="h-4 w-4 text-muted-foreground" />
-                          {product.companyName}
+                          <Tag className="h-4 w-4 text-muted-foreground" />
+                          <Badge variant="outline">{product.category}</Badge>
                         </div>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant="outline">{product.category}</Badge>
-                      </TableCell>
-                      <TableCell>{formatCurrency(product.price)}</TableCell>
-                      <TableCell>
-                        <Badge variant={stockStatus.variant}>
-                          {product.stockQuantity} units
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <Badge 
-                          variant={product.status === "active" ? "default" : 
-                                  product.status === "inactive" ? "secondary" : "destructive"}
-                        >
-                          {product.status}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
+
+                        <div className="flex items-center justify-between">
+                          <div className="text-lg font-semibold">{formatCurrency(product.price)}</div>
+                          <Badge variant={stockStatus.variant}>
+                            {product.stockQuantity} units
+                          </Badge>
+                        </div>
+
+                        {product.description && (
+                          <p className="text-sm text-muted-foreground line-clamp-2">
+                            {product.description}
+                          </p>
+                        )}
+
                         <div className="flex gap-1">
                           <Button
-                            variant="ghost"
+                            variant="outline"
                             size="sm"
                             onClick={() => openProductDialog(product)}
+                            className="flex-1"
                           >
-                            <Eye className="h-4 w-4" />
+                            <Eye className="h-4 w-4 mr-1" />
+                            View
                           </Button>
                           <Button
-                            variant="ghost"
+                            variant="outline"
                             size="sm"
                             onClick={() => openEditDialog(product)}
                           >
                             <Edit className="h-4 w-4" />
                           </Button>
                           <Button
-                            variant="ghost"
+                            variant="outline"
                             size="sm"
                             onClick={() => openDeleteDialog(product)}
                           >
                             <Trash2 className="h-4 w-4" />
                           </Button>
                         </div>
-                      </TableCell>
-                    </TableRow>
+                      </CardContent>
+                    </Card>
                   )
                 })}
-              </TableBody>
-            </Table>
-          </Card>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {filteredAndSortedProducts.map((product) => {
-              const stockStatus = getStockStatus(product)
-              return (
-                <Card key={product._id} className="hover:shadow-lg transition-shadow">
-                  <CardHeader className="pb-3">
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1 min-w-0">
-                        <CardTitle className="text-base truncate">{product.name}</CardTitle>
-                        <p className="text-sm text-muted-foreground">{product.sku}</p>
-                      </div>
-                      <Badge 
-                        variant={product.status === "active" ? "default" : 
-                                product.status === "inactive" ? "secondary" : "destructive"}
-                        className="ml-2"
-                      >
-                        {product.status}
-                      </Badge>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <Building2 className="h-4 w-4" />
-                      <span className="truncate">{product.companyName}</span>
-                    </div>
-                    
-                    <div className="flex items-center gap-2">
-                      <Tag className="h-4 w-4 text-muted-foreground" />
-                      <Badge variant="outline">{product.category}</Badge>
-                    </div>
-
-                    <div className="flex items-center justify-between">
-                      <div className="text-lg font-semibold">{formatCurrency(product.price)}</div>
-                      <Badge variant={stockStatus.variant}>
-                        {product.stockQuantity} units
-                      </Badge>
-                    </div>
-
-                    {product.description && (
-                      <p className="text-sm text-muted-foreground line-clamp-2">
-                        {product.description}
-                      </p>
-                    )}
-
-                    <div className="flex gap-1">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => openProductDialog(product)}
-                        className="flex-1"
-                      >
-                        <Eye className="h-4 w-4 mr-1" />
-                        View
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => openEditDialog(product)}
-                      >
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => openDeleteDialog(product)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              )
-            })}
-          </div>
+              </div>
+            )}
+          </>
         )}
 
-        {filteredAndSortedProducts.length === 0 && (
+        {!isLoading && products.length === 0 && (
           <Card className="p-8">
             <div className="text-center">
               <Package className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
               <h3 className="text-lg font-medium mb-2">No Products Found</h3>
               <p className="text-muted-foreground mb-4">
-                {searchTerm || selectedCategory !== "all" || selectedCompany !== "all" || selectedStatus !== "all" ? 
+                {searchTerm || categoryFilter || companyFilter || statusFilter ? 
                   "No products match your current filters." : 
                   "Get started by adding your first product."}
               </p>
-              {!searchTerm && selectedCategory === "all" && selectedCompany === "all" && selectedStatus === "all" && (
+              {!searchTerm && !categoryFilter && !companyFilter && !statusFilter && (
                 <Button onClick={() => setShowAddDialog(true)}>
                   <Plus className="h-4 w-4 mr-2" />
                   Add Product
@@ -1730,6 +1732,7 @@ function Inventory() {
             </div>
           </Card>
         )}
+
 
         {/* Product Details Dialog */}
         <Dialog open={showProductDialog} onOpenChange={setShowProductDialog}>
@@ -2475,6 +2478,82 @@ function Inventory() {
           </AlertDialogContent>
         </AlertDialog>
       </div>
+      {!isLoading && products.length > 0 && (
+        <Card className="p-4">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="text-sm text-muted-foreground">
+              Showing {((currentPage - 1) * limit) + 1} to {Math.min(currentPage * limit, totalRecords)} of {totalRecords} products
+            </div>
+            
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                disabled={currentPage === 1}
+              >
+                <ChevronLeft className="h-4 w-4" />
+                Previous
+              </Button>
+              
+              <div className="flex items-center gap-1">
+                {[...Array(Math.min(5, totalPages))].map((_, idx) => {
+                  let pageNum;
+                  if (totalPages <= 5) {
+                    pageNum = idx + 1;
+                  } else if (currentPage <= 3) {
+                    pageNum = idx + 1;
+                  } else if (currentPage >= totalPages - 2) {
+                    pageNum = totalPages - 4 + idx;
+                  } else {
+                    pageNum = currentPage - 2 + idx;
+                  }
+                  
+                  return (
+                    <Button
+                      key={pageNum}
+                      variant={currentPage === pageNum ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setCurrentPage(pageNum)}
+                      className="w-10"
+                    >
+                      {pageNum}
+                    </Button>
+                  );
+                })}
+              </div>
+              
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                disabled={currentPage === totalPages}
+              >
+                Next
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
+            
+            <div className="flex items-center gap-2">
+              <Label>Per page:</Label>
+              <Select value={limit.toString()} onValueChange={(val) => {
+                setLimit(parseInt(val));
+                setCurrentPage(1);
+              }}>
+                <SelectTrigger className="w-[100px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="5">5</SelectItem>
+                  <SelectItem value="10">10</SelectItem>
+                  <SelectItem value="25">25</SelectItem>
+                  <SelectItem value="50">50</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        </Card>
+      )}
     </div>
   )
 }

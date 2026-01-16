@@ -95,6 +95,7 @@ router.post('/adduser', user_session_checker('add_user'), upload.fields([
       user_email: email,
       tenant_user_id: new_user._id,
       user_password: hashedPassword,
+      user_mobile: phone,
       user_username: username,
       user_tenant: req.session.user.tenant,
       user_role: role
@@ -210,13 +211,67 @@ router.post('/updateuser/:id', user_session_checker('edit_user'), async (req, re
 router.get('/getalluser', user_session_checker('get_all_user'), async (req, res) => {
   manualLog('entered in get all user route');
   try {
-    const User = req.db.model('User');
-    const user_data = await User.find({ isDeleted: false });
+    const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 10;
+        const search = req.query.search || '';
+        const status = req.query.status;
+        const department = req.query.department;
+        const role = req.query.role;
+        const sortField = req.query.sortField || 'name';
+        const sortDirection = req.query.sortDirection === 'desc' ? -1 : 1;
 
+        const filter = {};
+        
+        // Search filter (search in multiple fields)
+        if (search) {
+            filter.$or = [
+                { firstName: { $regex: search, $options: 'i' } },
+                { lastName: { $regex: search, $options: 'i' } },
+                { email: { $regex: search, $options: 'i' } },
+                { username: { $regex: search, $options: 'i' } }
+            ];
+        }
+        // Status filter
+        if (status) {
+            filter.status = status;
+        }
+
+        // Department filter
+        if (department) {
+            filter.department = department;
+        }
+        if (role) {
+            filter.role = role;
+        }
+
+        // Calculate skip value for pagination
+        const skip = (page - 1) * limit;
+
+        // Build sort object
+        const sort = {};
+        sort[sortField] = sortDirection;
+
+        // Get total count for pagination
+        const User = req.db.model('User');
+        const totalRecords = await User.countDocuments({isDeleted: false,...filter});
+        const totalPages = Math.ceil(totalRecords / limit);
+
+
+    const user_data = await User.find({ isDeleted: false, ...filter }).skip(skip).limit(limit).sort(sort);
     manualLog('All users fetched successfully');
     res.status(200).json({
       message: 'All users retrieved',
-      user: user_data
+      user: {
+        data:user_data,
+        pagination: {
+          currentPage: page,
+          totalPages: totalPages,
+          totalRecords: totalRecords,
+          limit: limit,
+          hasNextPage: page < totalPages,
+          hasPrevPage: page > 1
+        }
+      }
     });
   } catch (error) {
     console.log('Failed to fetch users', error);

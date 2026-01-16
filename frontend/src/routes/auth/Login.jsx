@@ -33,19 +33,19 @@ function Login() {
       name: 'Packing Department',
       icon: <Package className="w-5 h-5 text-blue-500" />,
       color: 'border-blue-200 bg-blue-50'
-    },
-    {
-      id: 'billing-department',
-      name: 'Billing Department',
-      icon: <CreditCard className="w-5 h-5 text-purple-500" />,
-      color: 'border-purple-200 bg-purple-50'
-    },
-    {
-      id: 'vendor',
-      name: 'Vendor',
-      icon: <Truck className="w-5 h-5 text-orange-500" />,
-      color: 'border-orange-200 bg-orange-50'
     }
+    // {
+    //   id: 'billing-department',
+    //   name: 'Billing Department',
+    //   icon: <CreditCard className="w-5 h-5 text-purple-500" />,
+    //   color: 'border-purple-200 bg-purple-50'
+    // },
+    // {
+    //   id: 'vendor',
+    //   name: 'Vendor',
+    //   icon: <Truck className="w-5 h-5 text-orange-500" />,
+    //   color: 'border-orange-200 bg-orange-50'
+    // }
   ];
 
   const handleRoleSelect = (role) => {

@@ -24,7 +24,9 @@ import {
   Users,
   RefreshCw,
   CreditCard,
-  Landmark
+  Landmark,
+  ChevronLeft, 
+  ChevronRight
 } from "lucide-react"
 import { useCompany } from "./CompanyContext"
 import { useInventory } from "./InventoryContext"
@@ -47,9 +49,30 @@ const industries = [
 ]
 
 function Company() {
-  const { companies, addCompany, updateCompany, deleteCompany, resetProductsCount } = useCompany()
+  const { 
+    companies, 
+    addCompany, 
+    updateCompany, 
+    deleteCompany, 
+    resetProductsCount,
+    currentPage,
+    setCurrentPage,
+    limit,
+    setLimit,
+    searchTerm,
+    setSearchTerm,
+    statusFilter,
+    setStatusFilter,
+    sortField,
+    setSortField,
+    sortDirection,
+    setSortDirection,
+    totalPages,
+    totalRecords,
+    isLoading
+  } = useCompany()
+  
   const { deleteProductsByCompany, getProductsByCompany, addProduct } = useInventory()
-  const [searchTerm, setSearchTerm] = useState("")
   const [showAddDialog, setShowAddDialog] = useState(false)
   const [showEditDialog, setShowEditDialog] = useState(false)
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
@@ -130,12 +153,6 @@ function Company() {
       lowStockThreshold: ""
     })
   }
-
-  const filteredCompanies = companies.filter(company =>
-    company.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    company.industry.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    company.email.toLowerCase().includes(searchTerm.toLowerCase())
-  )
 
   const handleAddCompany = async () => {
     if (!formData.name.trim() || !formData.industry) {
@@ -582,6 +599,66 @@ function Company() {
           />
         </div>
 
+        {/* Add Status Filter */}
+        <div className="flex flex-wrap gap-4 items-center">
+          <div className="flex items-center gap-2">
+            <Label>Status:</Label>
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="w-[150px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All</SelectItem>
+                <SelectItem value="active">Active</SelectItem>
+                <SelectItem value="inactive">Inactive</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <Label>Sort by:</Label>
+            <Select value={sortField} onValueChange={setSortField}>
+              <SelectTrigger className="w-[150px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="name">Name</SelectItem>
+                <SelectItem value="industry">Industry</SelectItem>
+                <SelectItem value="establishedDate">Established Date</SelectItem>
+                <SelectItem value="createdAt">Created Date</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <Label>Order:</Label>
+            <Select value={sortDirection} onValueChange={setSortDirection}>
+              <SelectTrigger className="w-[120px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="asc">Ascending</SelectItem>
+                <SelectItem value="desc">Descending</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <Label>Per page:</Label>
+            <Select value={limit.toString()} onValueChange={(val) => setLimit(parseInt(val))}>
+              <SelectTrigger className="w-[100px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="5">5</SelectItem>
+                <SelectItem value="10">10</SelectItem>
+                <SelectItem value="25">25</SelectItem>
+                <SelectItem value="50">50</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+
         {/* Stats */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <Card>
@@ -589,7 +666,7 @@ function Company() {
               <CardTitle className="text-sm font-medium">Total Companies</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{companies.length}</div>
+              <div className="text-2xl font-bold">{totalRecords}</div>
             </CardContent>
           </Card>
           <Card>
@@ -624,9 +701,17 @@ function Company() {
           </Card>
         </div>
 
+        {/* Loading state */}
+        {isLoading && (
+          <div className="flex justify-center items-center py-12">
+            <RefreshCw className="h-8 w-8 animate-spin text-primary" />
+          </div>
+        )}
+
         {/* Company Cards */}
+        {!isLoading && (
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
-          {filteredCompanies.map((company) => (
+          {companies.map((company) =>  (
             <Card key={company._id} className="hover:shadow-lg transition-all duration-200 hover:scale-[1.02]">
               <CardHeader className="pb-3">
                 <div className="flex items-start justify-between gap-2">
@@ -714,8 +799,9 @@ function Company() {
             </Card>
           ))}
         </div>
+        )}
 
-        {filteredCompanies.length === 0 && (
+        {!isLoading && companies.length === 0 && (
           <Card className="p-8">
             <div className="text-center">
               <Building2 className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
@@ -732,6 +818,64 @@ function Company() {
             </div>
           </Card>
         )}
+        {!isLoading && companies.length > 0 && (
+        <Card className="p-4">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="text-sm text-muted-foreground">
+              Showing {((currentPage - 1) * limit) + 1} to {Math.min(currentPage * limit, totalRecords)} of {totalRecords} companies
+            </div>
+            
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                disabled={currentPage === 1}
+              >
+                <ChevronLeft className="h-4 w-4" />
+                Previous
+              </Button>
+              
+              <div className="flex items-center gap-1">
+                {[...Array(Math.min(5, totalPages))].map((_, idx) => {
+                  let pageNum;
+                  if (totalPages <= 5) {
+                    pageNum = idx + 1;
+                  } else if (currentPage <= 3) {
+                    pageNum = idx + 1;
+                  } else if (currentPage >= totalPages - 2) {
+                    pageNum = totalPages - 4 + idx;
+                  } else {
+                    pageNum = currentPage - 2 + idx;
+                  }
+                  
+                  return (
+                    <Button
+                      key={pageNum}
+                      variant={currentPage === pageNum ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setCurrentPage(pageNum)}
+                      className="w-10"
+                    >
+                      {pageNum}
+                    </Button>
+                  );
+                })}
+              </div>
+              
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                disabled={currentPage === totalPages}
+              >
+                Next
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        </Card>
+      )}
 
         {/* Company Actions Dialog */}
         <Dialog open={showActionsDialog} onOpenChange={setShowActionsDialog}>

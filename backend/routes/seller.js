@@ -1,5 +1,4 @@
 const express = require('express')
-const Seller = require('../models/seller_model');
 const bcrypt = require('bcrypt');
 const user_session_checker = require('../middleware/user_session');
 const Tenent_user_master = require("../models/tenent_user_model");
@@ -114,22 +113,84 @@ router.post('/updateseller/:id',user_session_checker("edit_seller"),async(req,re
     }
 })
 
-router.get('/allseller',user_session_checker("get_all_seller"),async(req,res)=>{
-    manualLog('entered in get all seller route')
+router.get('/allseller', user_session_checker("get_all_seller"), async (req, res) => {
     try {
-        const SellerModel = req.db.model("Seller");
-        const seller_data = await SellerModel.find();
-        manualLog(`get all seller  successfully`)
+        const Seller = req.db.model('Seller'); // or 'Company' based on your model name
+        
+        // Extract query parameters
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 10;
+        const search = req.query.search || '';
+        const status = req.query.status;
+        const priority = req.query.priority;
+        const sortField = req.query.sortField || 'name';
+        const sortDirection = req.query.sortDirection === 'desc' ? -1 : 1;
+
+        // Build filter object
+        const filter = {};
+        
+        // Search filter (search in multiple fields)
+        if (search) {
+            filter.$or = [
+                { name: { $regex: search, $options: 'i' } },
+                { email: { $regex: search, $options: 'i' } },
+                { contactPerson: { $regex: search, $options: 'i' } },
+                { industry: { $regex: search, $options: 'i' } }
+            ];
+        }
+
+        // Status filter
+        if (status) {
+            filter.status = status;
+        }
+
+        // Priority filter
+        if (priority) {
+            filter.priority = priority;
+        }
+
+        // Calculate skip value for pagination
+        const skip = (page - 1) * limit;
+
+        // Build sort object
+        const sort = {};
+        sort[sortField] = sortDirection;
+
+        // Get total count for pagination
+        const totalRecords = await Seller.countDocuments(filter);
+        const totalPages = Math.ceil(totalRecords / limit);
+
+        // Fetch paginated and filtered data
+        const seller_data = await Seller.find(filter)
+            .sort(sort)
+            .skip(skip)
+            .limit(limit)
+            .lean(); // Use lean() for better performance
+
         res.status(200).json({
-            message:"got all the sellers",
-            seller:{seller_data}
-        })
+            message: "Get all sellers successfully",
+            seller: {
+                data: seller_data,
+                pagination: {
+                    currentPage: page,
+                    totalPages: totalPages,
+                    totalRecords: totalRecords,
+                    limit: limit,
+                    hasNextPage: page < totalPages,
+                    hasPrevPage: page > 1
+                }
+            }
+        });
+        
     } catch (error) {
-        console.log("seller data not fetched");
-        manualLog(`there is error in get all seller :: ${JSON.stringify(error)}`)
-        res.status(500).json({message:"seller data is not fetched"})
+        console.log("Error in seller getall route:", error);
+        manualLog(`error in seller getall :: ${error}`);
+        res.status(500).json({ 
+            message: "Error in getall seller",
+            error: error.message 
+        });
     }
-})
+});
 
 router.get('/getseller/:id',user_session_checker("get_by_id_seller"),async(req,res)=>{
     manualLog('entered in get seller by id route')

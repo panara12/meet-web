@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import { Textarea } from "./ui/textarea"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs"
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "./ui/alert-dialog"
-import { Search, Plus, Eye, Edit, Trash2, Mail, Phone, MapPin, Building2, Calendar, IndianRupeeIcon, Package, ArrowUpDown, Star, Clock, TrendingUp, FileText, Users, Loader2 } from "lucide-react"
+import { Search, Plus, Eye, Edit, Trash2, Mail, Phone, MapPin, Building2, Calendar, IndianRupeeIcon, Package, ArrowUpDown, Star, Clock, TrendingUp, FileText, Users, Loader2, ChevronLeft, ChevronRight } from "lucide-react"
 import { toast } from "sonner"
 import { useGetAllSeller } from "../../hooks/seller/useGetAllSeller"
 import { useUpdateSeller } from "../../hooks/seller/useUpdateSeller"
@@ -62,15 +62,30 @@ function ClientList() {
   const [clients, setClients] = useState([]);
   const [handleError,setHandleError] = useState(false);
   const [errorMsg,setErrorMsg] = useState(null);
-  const {data:getSellerList, isPending:SellerisPending, isError:SellerisError, error:SellerError} = useGetAllSeller();
-  useEffect(()=>{
-    console.log("Seller List Updated",getSellerList);
-    if(getSellerList?.seller){
-      console.log(getSellerList.seller.seller_data);
-      setClients(getSellerList.seller.seller_data)
-    }
-  },[getSellerList])
-
+  const [currentPage, setCurrentPage] = useState(1);
+  const [limit, setLimit] = useState(10);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalClients, setTotalClients] = useState(0);
+  
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [priorityFilter, setPriorityFilter] = useState("all");
+  const [selectedClient, setSelectedClient] = useState(null);
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [editingClient, setEditingClient] = useState(null);
+  const [sortField, setSortField] = useState('name');
+  const [sortDirection, setSortDirection] = useState('asc');
+  const [formData, setFormData] = useState(defaultFormData);
+  const [debouncedSearch, setDebouncedSearch] = useState("");const { data: getSellerList, isPending: SellerisPending, isError: SellerisError, error: SellerError } = useGetAllSeller({
+    page: currentPage,
+    limit: limit,
+    search: debouncedSearch,
+    status: statusFilter !== "all" ? statusFilter : undefined,
+    priority: priorityFilter !== "all" ? priorityFilter : undefined,
+    sortField: sortField,
+    sortDirection: sortDirection
+  });
   
   const {mutate:addSeller, isPending:addSellerisPending, isError:addSellerisError, error:addSellerError} = useAddSeller({
     onSuccess: () => {
@@ -93,57 +108,38 @@ function ClientList() {
   });
   const {mutate:deleteSellerList, isPending:deleteSellerisPending, isError:deleteSellerisError, error:deleteSellerError} = useDeleteSeller();
 
-  const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
-  const [priorityFilter, setPriorityFilter] = useState("all");
-  const [selectedClient, setSelectedClient] = useState(null);
-  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [editingClient, setEditingClient] = useState(null);
-  const [sortField, setSortField] = useState('name');
-  const [sortDirection, setSortDirection] = useState('asc');
-  const [formData, setFormData] = useState(defaultFormData);
 
-    const filteredAndSortedClients = useMemo(() => {
-      if(clients.length == 0){
-        return clients
-      }
-      return clients
-        .filter(client => {
-          const matchesSearch =
-            client?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            client?.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            client?._id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            (client.contactPerson?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false) ||
-            (client.industry?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false) ||
-            (client.tags?.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase())) ?? false);
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchTerm);
+      setCurrentPage(1); // Reset to first page on search
+    }, 500);
 
-          const matchesStatus = statusFilter === "all" || client.status === statusFilter;
-          const matchesPriority = priorityFilter === "all" || client.priority === priorityFilter;
+    return () => clearTimeout(timer);
+    }, [searchTerm]);
 
-          return matchesSearch && matchesStatus && matchesPriority;
-        })
-        .sort((a, b) => {
-          let aVal = a[sortField] ?? "";
-          let bVal = b[sortField] ?? "";
 
-          if (sortField === 'lastOrder' || sortField === 'joinDate') {
-            aVal = new Date(aVal);
-            bVal = new Date(bVal);
-          }
+  useEffect(() => {
+    console.log("Seller List Updated", getSellerList);
+    if (getSellerList?.seller) {
+      setClients(getSellerList.seller.data || []);
+      setTotalPages(getSellerList.seller.pagination?.totalPages || 1);
+      setTotalClients(getSellerList.seller.pagination?.totalRecords || 0);
+    }
+  }, [getSellerList]);
 
-          if (sortField === 'priority') {
-            const priorityOrder = { 'High': 3, 'Medium': 2, 'Low': 1 };
-            aVal = priorityOrder[a.priority] ?? 0;
-            bVal = priorityOrder[b.priority] ?? 0;
-          }
+  
 
-          if (aVal < bVal) return sortDirection === 'asc' ? -1 : 1;
-          if (aVal > bVal) return sortDirection === 'asc' ? 1 : -1;
-          return 0;
-        });
-    }, [clients, searchTerm, statusFilter, priorityFilter, sortField, sortDirection]);
 
+    const handleStatusFilterChange = (value) => {
+      setStatusFilter(value);
+      setCurrentPage(1); // Reset to first page
+    };
+
+    const handlePriorityFilterChange = (value) => {
+      setPriorityFilter(value);
+      setCurrentPage(1); // Reset to first page
+    };
 
   const handleSort = useCallback((field) => {
     if (sortField === field) {
@@ -152,7 +148,42 @@ function ClientList() {
       setSortField(field);
       setSortDirection('asc');
     }
+    setCurrentPage(1); // Reset to first page
   }, [sortField, sortDirection]);
+
+  // Add these new functions before the return statement
+  const handlePreviousPage = () => {
+    setCurrentPage(prev => Math.max(prev - 1, 1));
+  };
+
+  const handleNextPage = () => {
+    setCurrentPage(prev => Math.min(prev + 1, totalPages));
+  };
+
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+  };
+
+  const handleLimitChange = (value) => {
+    setLimit(parseInt(value));
+    setCurrentPage(1);
+  };
+
+  const getPageNumbers = () => {
+    const pages = [];
+    const maxPagesToShow = 5;
+    let startPage = Math.max(1, currentPage - Math.floor(maxPagesToShow / 2));
+    let endPage = Math.min(totalPages, startPage + maxPagesToShow - 1);
+
+    if (endPage - startPage < maxPagesToShow - 1) {
+      startPage = Math.max(1, endPage - maxPagesToShow + 1);
+    }
+
+    for (let i = startPage; i <= endPage; i++) {
+      pages.push(i);
+    }
+    return pages;
+  };
 
   const resetForm = useCallback(() => {
     setFormData(defaultFormData);
@@ -308,19 +339,18 @@ function ClientList() {
   }, []);
 
   // Calculated stats
-  const totalClients = clients.length;
   const activeClients = clients.filter(c => c.status === "Active" || c.status === "VIP").length;
   const vipClients = clients.filter(c => c.status === "VIP").length;
-  const totalRevenue = clients.reduce((sum, client) => sum + client.totalSpent, 0);
-  const totalOrders = clients.reduce((sum, client) => sum + client.totalOrders, 0);
+  const totalRevenue = clients.reduce((sum, client) => sum + (client.totalSpent || 0), 0);
+  const totalOrders = clients.reduce((sum, client) => sum + (client.totalOrders || 0), 0);
   const highPriorityClients = clients.filter(c => c.priority === "High").length;
 
-  const topClients = clients
-    .sort((a, b) => b.totalSpent - a.totalSpent)
+  const topClients = [...clients]
+    .sort((a, b) => (b.totalSpent || 0) - (a.totalSpent || 0))
     .slice(0, 5);
 
-  const recentClients = clients
-    .sort((a, b) => new Date(b.joinDate).getTime() - new Date(a.joinDate).getTime())
+  const recentClients = [...clients]
+    .sort((a, b) => new Date(b.joinDate || 0).getTime() - new Date(a.joinDate || 0).getTime())
     .slice(0, 5);
 
   return (
@@ -398,7 +428,7 @@ function ClientList() {
                   className="pl-9"
                 />
               </div>
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <Select value={statusFilter} onValueChange={handleStatusFilterChange}>
                 <SelectTrigger className="w-[180px]">
                   <SelectValue placeholder="Filter by status" />
                 </SelectTrigger>
@@ -410,7 +440,7 @@ function ClientList() {
                   <SelectItem value="Pending">Pending</SelectItem>
                 </SelectContent>
               </Select>
-              <Select value={priorityFilter} onValueChange={setPriorityFilter}>
+              <Select value={priorityFilter} onValueChange={handlePriorityFilterChange}>
                 <SelectTrigger className="w-[180px]">
                   <SelectValue placeholder="Filter by priority" />
                 </SelectTrigger>
@@ -426,13 +456,22 @@ function ClientList() {
             {/* Clients Table */}
             <Card>
               <CardHeader>
-                <CardTitle>Client Directory ({filteredAndSortedClients.length})</CardTitle>
-                <CardDescription>Complete overview of your business relationships and partnerships</CardDescription>
+                <CardTitle>Client Directory ({totalClients})</CardTitle>
+                <CardDescription>
+                  Complete overview of your business relationships and partnerships
+                  {SellerisPending && <span className="ml-2">(Loading...)</span>}
+                </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="overflow-x-auto">
-                  <Table>
-                    <TableHeader>
+                {SellerisPending ? (
+                  <div className="flex justify-center items-center py-8">
+                    <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+                  </div>
+                ) : (
+                  <>
+                    <div className="overflow-x-auto">
+                      <Table>
+                        <TableHeader>
                       <TableRow>
                         <TableHead
                           className="cursor-pointer hover:bg-muted/50"
@@ -484,251 +523,315 @@ function ClientList() {
                         <TableHead>Actions</TableHead>
                       </TableRow>
                     </TableHeader>
-                    <TableBody>
-                      {filteredAndSortedClients.map((client) => (
-                        <TableRow key={client._id}>
-                          <TableCell>
-                            <div>
-                              <div className="flex items-center gap-2">
-                                <p className="font-medium">{client.name}</p>
-                                {client.status === "VIP" && <Star className="h-4 w-4 text-yellow-500 fill-current" />}
-                              </div>
-                              <p className="text-sm text-muted-foreground">{client._id}</p>
-                              {client.companySize && (
-                                <p className="text-xs text-muted-foreground">{client.companySize}</p>
-                              )}
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <div className="space-y-1">
-                              <div className="flex items-center gap-2">
-                                <Mail className="h-3 w-3 text-muted-foreground" />
-                                <span className="text-sm">{client.email}</span>
-                              </div>
-                              {client.phone && (
-                                <div className="flex items-center gap-2">
-                                  <Phone className="h-3 w-3 text-muted-foreground" />
-                                  <span className="text-sm">{client.phone}</span>
-                                </div>
-                              )}
-                              {client.industry && (
-                                <p className="text-xs text-muted-foreground">{client.industry}</p>
-                              )}
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <Badge variant={getStatusVariant(client.status)}>
-                              {client.status}
-                            </Badge>
-                          </TableCell>
-                          <TableCell>
-                            {client.priority && (
-                              <Badge variant={getPriorityVariant(client.priority)}>
-                                {client.priority}
-                              </Badge>
-                            )}
-                          </TableCell>
-                          <TableCell>{client.totalOrders}</TableCell>
-                          <TableCell className="flex items-center"><IndianRupeeIcon className="h-4 w-4 text-black" />{client.totalSpent.toLocaleString()}</TableCell>
-                          <TableCell>
-                            <span className={client.lastOrder === "Never" ? "text-muted-foreground" : ""}>
-                              {client.lastOrder}
-                            </span>
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex items-center gap-2">
-                              <Dialog>
-                                <DialogTrigger asChild>
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() => setSelectedClient(client)}
-                                  >
-                                    <Eye className="h-4 w-4" />
-                                  </Button>
-                                </DialogTrigger>
-                                <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
-                                  <DialogHeader>
-                                    <DialogTitle className="flex items-center gap-2">
-                                      {selectedClient?.name}
-                                      {selectedClient?.status === "VIP" && <Star className="h-5 w-5 text-yellow-500 fill-current" />}
-                                    </DialogTitle>
-                                    <DialogDescription>Complete client profile and business relationship details</DialogDescription>
-                                  </DialogHeader>
-                                  {selectedClient && (
-                                    <div className="grid gap-6 py-4">
-                                      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                        <div className="space-y-4">
-                                          <div>
-                                            <Label>Client Information</Label>
-                                            <div className="space-y-2 mt-2">
-                                              <p><span className="text-sm text-muted-foreground">ID:</span> {selectedClient._id}</p>
-                                              <div className="flex items-center gap-2">
-                                                <span className="text-sm text-muted-foreground">Status:</span>
-                                                <Badge variant={getStatusVariant(selectedClient.status)}>
-                                                  {selectedClient.status}
-                                                </Badge>
-                                              </div>
-                                              {selectedClient.priority && (
-                                                <div className="flex items-center gap-2">
-                                                  <span className="text-sm text-muted-foreground">Priority:</span>
-                                                  <Badge variant={getPriorityVariant(selectedClient.priority)}>
-                                                    {selectedClient.priority}
-                                                  </Badge>
-                                                </div>
-                                              )}
-                                            </div>
-                                          </div>
-
-                                          <div>
-                                            <Label>Contact Details</Label>
-                                            <div className="space-y-2 mt-2">
-                                              <div className="flex items-center gap-2">
-                                                <Mail className="h-4 w-4 text-muted-foreground" />
-                                                <span className="text-sm">{selectedClient.email}</span>
-                                              </div>
-                                              {selectedClient.phone && (
-                                                <div className="flex items-center gap-2">
-                                                  <Phone className="h-4 w-4 text-muted-foreground" />
-                                                  <span className="text-sm">{selectedClient.phone}</span>
-                                                </div>
-                                              )}
-                                              {selectedClient.address && (
-                                                <div className="flex items-center gap-2">
-                                                  <MapPin className="h-4 w-4 text-muted-foreground" />
-                                                  <span className="text-sm">{selectedClient.address}</span>
-                                                </div>
-                                              )}
-                                              {selectedClient.website && (
-                                                <div className="flex items-center gap-2">
-                                                  <Building2 className="h-4 w-4 text-muted-foreground" />
-                                                  <a href={selectedClient.website} target="_blank" rel="noopener noreferrer" className="text-sm text-blue-600 hover:underline">
-                                                    {selectedClient.website}
-                                                  </a>
-                                                </div>
-                                              )}
-                                            </div>
-                                          </div>
-                                        </div>
-
-                                        <div className="space-y-4">
-                                          <div>
-                                            <Label>Business Details</Label>
-                                            <div className="space-y-2 mt-2">
-                                              {selectedClient.industry && (
-                                                <p><span className="text-sm text-muted-foreground">Industry:</span> {selectedClient.industry}</p>
-                                              )}
-                                              {selectedClient.companySize && (
-                                                <p><span className="text-sm text-muted-foreground">Company Size:</span> {selectedClient.companySize}</p>
-                                              )}
-                                              {selectedClient.contactPerson && (
-                                                <p><span className="text-sm text-muted-foreground">Contact Person:</span> {selectedClient.contactPerson}</p>
-                                              )}
-                                            </div>
-                                          </div>
-
-                                          <div>
-                                            <Label>Financial Terms</Label>
-                                            <div className="space-y-2 mt-2">
-                                              {selectedClient.paymentTerms && (
-                                                <p><span className="text-sm text-muted-foreground">Payment Terms:</span> {selectedClient.paymentTerms}</p>
-                                              )}
-                                              {selectedClient.creditLimit && (
-                                                <p><span className="text-sm text-muted-foreground">Credit Limit:</span> ${selectedClient.creditLimit.toLocaleString()}</p>
-                                              )}
-                                              {selectedClient.gstNumber && (
-                                                <p><span className="text-sm text-muted-foreground">GST Number:</span> {selectedClient.gstNumber}</p>
-                                              )}
-                                            </div>
-                                          </div>
-                                        </div>
-
-                                        <div className="space-y-4">
-                                          <div>
-                                            <Label>Business Metrics</Label>
-                                            <div className="space-y-3 mt-2">
-                                              <div>
-                                                <p className="text-sm text-muted-foreground">Total Orders</p>
-                                                <p className="text-2xl font-bold">{selectedClient.totalOrders}</p>
-                                              </div>
-                                              <div>
-                                                <p className="text-sm text-muted-foreground">Total Revenue</p>
-                                                <p className="text-2xl font-bold"><IndianRupeeIcon className="h-4 w-4 text-black" />{selectedClient.totalSpent.toLocaleString()}</p>
-                                              </div>
-                                              <div>
-                                                <p className="text-sm text-muted-foreground">Last Order</p>
-                                                <p className="font-medium">{selectedClient.lastOrder}</p>
-                                              </div>
-                                              <div>
-                                                <p className="text-sm text-muted-foreground">Client Since</p>
-                                                <p className="font-medium">{selectedClient.joinDate}</p>
-                                              </div>
-                                            </div>
-                                          </div>
-                                        </div>
-                                      </div>
-
-                                      {selectedClient.tags && selectedClient.tags.length > 0 && (
-                                        <div>
-                                          <Label>Tags</Label>
-                                          <div className="flex flex-wrap gap-2 mt-2">
-                                            {selectedClient.tags.map((tag, index) => (
-                                              <Badge key={index} variant="outline">{tag}</Badge>
-                                            ))}
-                                          </div>
-                                        </div>
-                                      )}
-
-                                      {selectedClient.notes && (
-                                        <div>
-                                          <Label>Business Notes</Label>
-                                          <p className="text-sm text-muted-foreground mt-1 leading-relaxed">{selectedClient.notes}</p>
-                                        </div>
-                                      )}
+                        <TableBody>
+                          {clients.length === 0 ? (
+                            <TableRow>
+                              <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
+                                No clients found
+                              </TableCell>
+                            </TableRow>
+                          ) : (
+                            clients.map((client) => (
+                              <TableRow key={client._id}>
+                                <TableCell>
+                                  <div>
+                                    <div className="flex items-center gap-2">
+                                      <p className="font-medium">{client.name}</p>
+                                      {client.status === "VIP" && <Star className="h-4 w-4 text-yellow-500 fill-current" />}
                                     </div>
+                                    <p className="text-sm text-muted-foreground">{client._id}</p>
+                                    {client.companySize && (
+                                      <p className="text-xs text-muted-foreground">{client.companySize}</p>
+                                    )}
+                                  </div>
+                                </TableCell>
+                                <TableCell>
+                                  <div className="space-y-1">
+                                    <div className="flex items-center gap-2">
+                                      <Mail className="h-3 w-3 text-muted-foreground" />
+                                      <span className="text-sm">{client.email}</span>
+                                    </div>
+                                    {client.phone && (
+                                      <div className="flex items-center gap-2">
+                                        <Phone className="h-3 w-3 text-muted-foreground" />
+                                        <span className="text-sm">{client.phone}</span>
+                                      </div>
+                                    )}
+                                    {client.industry && (
+                                      <p className="text-xs text-muted-foreground">{client.industry}</p>
+                                    )}
+                                  </div>
+                                </TableCell>
+                                <TableCell>
+                                  <Badge variant={getStatusVariant(client.status)}>
+                                    {client.status}
+                                  </Badge>
+                                </TableCell>
+                                <TableCell>
+                                  {client.priority && (
+                                    <Badge variant={getPriorityVariant(client.priority)}>
+                                      {client.priority}
+                                    </Badge>
                                   )}
-                                </DialogContent>
-                              </Dialog>
+                                </TableCell>
+                                <TableCell>{client.totalOrders}</TableCell>
+                                <TableCell className="flex items-center"><IndianRupeeIcon className="h-4 w-4 text-black" />{client.totalSpent.toLocaleString()}</TableCell>
+                                <TableCell>
+                                  <span className={client.lastOrder === "Never" ? "text-muted-foreground" : ""}>
+                                    {client?.lastOrder}
+                                  </span>
+                                </TableCell>
+                                <TableCell>
+                                  <div className="flex items-center gap-2">
+                                    <Dialog>
+                                      <DialogTrigger asChild>
+                                        <Button
+                                          variant="ghost"
+                                          size="sm"
+                                          onClick={() => setSelectedClient(client)}
+                                        >
+                                          <Eye className="h-4 w-4" />
+                                        </Button>
+                                      </DialogTrigger>
+                                      <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+                                        <DialogHeader>
+                                          <DialogTitle className="flex items-center gap-2">
+                                            {selectedClient?.name}
+                                            {selectedClient?.status === "VIP" && <Star className="h-5 w-5 text-yellow-500 fill-current" />}
+                                          </DialogTitle>
+                                          <DialogDescription>Complete client profile and business relationship details</DialogDescription>
+                                        </DialogHeader>
+                                        {selectedClient && (
+                                          <div className="grid gap-6 py-4">
+                                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                              <div className="space-y-4">
+                                                <div>
+                                                  <Label>Client Information</Label>
+                                                  <div className="space-y-2 mt-2">
+                                                    <p><span className="text-sm text-muted-foreground">ID:</span> {selectedClient._id}</p>
+                                                    <div className="flex items-center gap-2">
+                                                      <span className="text-sm text-muted-foreground">Status:</span>
+                                                      <Badge variant={getStatusVariant(selectedClient.status)}>
+                                                        {selectedClient.status}
+                                                      </Badge>
+                                                    </div>
+                                                    {selectedClient.priority && (
+                                                      <div className="flex items-center gap-2">
+                                                        <span className="text-sm text-muted-foreground">Priority:</span>
+                                                        <Badge variant={getPriorityVariant(selectedClient.priority)}>
+                                                          {selectedClient.priority}
+                                                        </Badge>
+                                                      </div>
+                                                    )}
+                                                  </div>
+                                                </div>
 
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => openEditDialog(client)}
-                              >
-                                <Edit className="h-4 w-4" />
-                              </Button>
+                                                <div>
+                                                  <Label>Contact Details</Label>
+                                                  <div className="space-y-2 mt-2">
+                                                    <div className="flex items-center gap-2">
+                                                      <Mail className="h-4 w-4 text-muted-foreground" />
+                                                      <span className="text-sm">{selectedClient.email}</span>
+                                                    </div>
+                                                    {selectedClient.phone && (
+                                                      <div className="flex items-center gap-2">
+                                                        <Phone className="h-4 w-4 text-muted-foreground" />
+                                                        <span className="text-sm">{selectedClient.phone}</span>
+                                                      </div>
+                                                    )}
+                                                    {selectedClient.address && (
+                                                      <div className="flex items-center gap-2">
+                                                        <MapPin className="h-4 w-4 text-muted-foreground" />
+                                                        <span className="text-sm">{selectedClient.address}</span>
+                                                      </div>
+                                                    )}
+                                                    {selectedClient.website && (
+                                                      <div className="flex items-center gap-2">
+                                                        <Building2 className="h-4 w-4 text-muted-foreground" />
+                                                        <a href={selectedClient.website} target="_blank" rel="noopener noreferrer" className="text-sm text-blue-600 hover:underline">
+                                                          {selectedClient.website}
+                                                        </a>
+                                                      </div>
+                                                    )}
+                                                  </div>
+                                                </div>
+                                              </div>
 
-                              <AlertDialog>
-                                <AlertDialogTrigger asChild>
-                                  <Button variant="ghost" size="sm">
-                                    <Trash2 className="h-4 w-4" />
-                                  </Button>
-                                </AlertDialogTrigger>
-                                <AlertDialogContent>
-                                  <AlertDialogHeader>
-                                    <AlertDialogTitle>Delete Client</AlertDialogTitle>
-                                    <AlertDialogDescription>
-                                      Are you sure you want to delete {client.name}? This will permanently remove all client data, order history, and business relationship information. This action cannot be undone.
-                                    </AlertDialogDescription>
-                                  </AlertDialogHeader>
-                                  <AlertDialogFooter>
-                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                    <AlertDialogAction
-                                      onClick={() => handleDeleteClient(client._id)}
-                                      className="bg-danger text-destructive-foreground hover:bg-danger/90"
+                                              <div className="space-y-4">
+                                                <div>
+                                                  <Label>Business Details</Label>
+                                                  <div className="space-y-2 mt-2">
+                                                    {selectedClient.industry && (
+                                                      <p><span className="text-sm text-muted-foreground">Industry:</span> {selectedClient.industry}</p>
+                                                    )}
+                                                    {selectedClient.companySize && (
+                                                      <p><span className="text-sm text-muted-foreground">Company Size:</span> {selectedClient.companySize}</p>
+                                                    )}
+                                                    {selectedClient.contactPerson && (
+                                                      <p><span className="text-sm text-muted-foreground">Contact Person:</span> {selectedClient.contactPerson}</p>
+                                                    )}
+                                                  </div>
+                                                </div>
+
+                                                <div>
+                                                  <Label>Financial Terms</Label>
+                                                  <div className="space-y-2 mt-2">
+                                                    {selectedClient.paymentTerms && (
+                                                      <p><span className="text-sm text-muted-foreground">Payment Terms:</span> {selectedClient.paymentTerms}</p>
+                                                    )}
+                                                    {selectedClient.creditLimit && (
+                                                      <p><span className="text-sm text-muted-foreground">Credit Limit:</span> ${selectedClient.creditLimit.toLocaleString()}</p>
+                                                    )}
+                                                    {selectedClient.gstNumber && (
+                                                      <p><span className="text-sm text-muted-foreground">GST Number:</span> {selectedClient.gstNumber}</p>
+                                                    )}
+                                                  </div>
+                                                </div>
+                                              </div>
+
+                                              <div className="space-y-4">
+                                                <div>
+                                                  <Label>Business Metrics</Label>
+                                                  <div className="space-y-3 mt-2">
+                                                    <div>
+                                                      <p className="text-sm text-muted-foreground">Total Orders</p>
+                                                      <p className="text-2xl font-bold">{selectedClient.totalOrders}</p>
+                                                    </div>
+                                                    <div>
+                                                      <p className="text-sm text-muted-foreground">Total Revenue</p>
+                                                      <p className="text-2xl font-bold"><IndianRupeeIcon className="h-4 w-4 text-black" />{selectedClient.totalSpent.toLocaleString()}</p>
+                                                    </div>
+                                                    <div>
+                                                      <p className="text-sm text-muted-foreground">Last Order</p>
+                                                      <p className="font-medium">{selectedClient.lastOrder}</p>
+                                                    </div>
+                                                    <div>
+                                                      <p className="text-sm text-muted-foreground">Client Since</p>
+                                                      <p className="font-medium">{selectedClient.joinDate}</p>
+                                                    </div>
+                                                  </div>
+                                                </div>
+                                              </div>
+                                            </div>
+
+                                            {selectedClient.tags && selectedClient.tags.length > 0 && (
+                                              <div>
+                                                <Label>Tags</Label>
+                                                <div className="flex flex-wrap gap-2 mt-2">
+                                                  {selectedClient.tags.map((tag, index) => (
+                                                    <Badge key={index} variant="outline">{tag}</Badge>
+                                                  ))}
+                                                </div>
+                                              </div>
+                                            )}
+
+                                            {selectedClient.notes && (
+                                              <div>
+                                                <Label>Business Notes</Label>
+                                                <p className="text-sm text-muted-foreground mt-1 leading-relaxed">{selectedClient.notes}</p>
+                                              </div>
+                                            )}
+                                          </div>
+                                        )}
+                                      </DialogContent>
+                                    </Dialog>
+
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => openEditDialog(client)}
                                     >
-                                      Delete Client
-                                    </AlertDialogAction>
-                                  </AlertDialogFooter>
-                                </AlertDialogContent>
-                              </AlertDialog>
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
+                                      <Edit className="h-4 w-4" />
+                                    </Button>
+
+                                    <AlertDialog>
+                                      <AlertDialogTrigger asChild>
+                                        <Button variant="ghost" size="sm">
+                                          <Trash2 className="h-4 w-4" />
+                                        </Button>
+                                      </AlertDialogTrigger>
+                                      <AlertDialogContent>
+                                        <AlertDialogHeader>
+                                          <AlertDialogTitle>Delete Client</AlertDialogTitle>
+                                          <AlertDialogDescription>
+                                            Are you sure you want to delete {client.name}? This will permanently remove all client data, order history, and business relationship information. This action cannot be undone.
+                                          </AlertDialogDescription>
+                                        </AlertDialogHeader>
+                                        <AlertDialogFooter>
+                                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                          <AlertDialogAction
+                                            onClick={() => handleDeleteClient(client._id)}
+                                            className="bg-danger text-destructive-foreground hover:bg-danger/90"
+                                          >
+                                            Delete Client
+                                          </AlertDialogAction>
+                                        </AlertDialogFooter>
+                                      </AlertDialogContent>
+                                    </AlertDialog>
+                                  </div>
+                                </TableCell>
+                              </TableRow>
+                            ))
+                          )}
+                        </TableBody>
+                      </Table>
+                    </div>
+
+                    {/* ADD PAGINATION CONTROLS HERE - after the table */}
+                    <div className="flex items-center justify-between mt-4">
+                      <div className="text-sm flex space-x-3 items-center text-muted-foreground">
+                        <p>Showing {clients.length === 0 ? 0 : ((currentPage - 1) * limit) + 1} to {Math.min(currentPage * limit, totalClients)} of {totalClients} clients</p>
+                        <Select value={limit.toString()} onValueChange={handleLimitChange}>
+                          <SelectTrigger className="w-[120px]">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="5">5 per page</SelectItem>
+                            <SelectItem value="10">10 per page</SelectItem>
+                            <SelectItem value="25">25 per page</SelectItem>
+                            <SelectItem value="50">50 per page</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={handlePreviousPage}
+                          disabled={currentPage === 1 || SellerisPending}
+                        >
+                          <ChevronLeft className="h-4 w-4" />
+                          Previous
+                        </Button>
+                        
+                        <div className="flex items-center gap-1">
+                          {getPageNumbers().map((pageNum) => (
+                            <Button
+                              key={pageNum}
+                              variant={currentPage === pageNum ? "default" : "outline"}
+                              size="sm"
+                              onClick={() => handlePageChange(pageNum)}
+                              disabled={SellerisPending}
+                              className="w-8 h-8"
+                            >
+                              {pageNum}
+                            </Button>
+                          ))}
+                        </div>
+
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={handleNextPage}
+                          disabled={currentPage === totalPages || SellerisPending}
+                        >
+                          Next
+                          <ChevronRight className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  </>
+                )}
               </CardContent>
             </Card>
           </TabsContent>

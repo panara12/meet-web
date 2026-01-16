@@ -1,37 +1,81 @@
-import { createContext, useContext, useState } from "react";
+import { createContext, useContext, useState, useEffect } from "react";
 import { useAddCompany } from "../../hooks/company/useAddCompany";
 import { useGetAllCompany } from "../../hooks/company/useGetAllCompany";
-import { useEffect } from "react";
 import { useUpdateCompany } from "../../hooks/company/useUpdateCompany";
 import { useDeleteCompany } from "../../hooks/company/useDeleteCompany";
-
 
 const CompanyContext = createContext(undefined);
 
 export function CompanyProvider({ children }) {
   const [companies, setCompanies] = useState([]);
-  const { data: getCompantList, isPending:CompantListPending, isError:isCompantListError, error:CompantListError } = useGetAllCompany();
-  
-  useEffect(()=>{
-    if(getCompantList?.data){
-      setCompanies(getCompantList.data.company)
-    }
-  },[getCompantList])
+  const [currentPage, setCurrentPage] = useState(1);
+  const [limit, setLimit] = useState(10);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [sortField, setSortField] = useState("name");
+  const [sortDirection, setSortDirection] = useState("asc");
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalRecords, setTotalRecords] = useState(0);
 
-  const {mutate:addCompanyFn,isPending:isAddCompanyFnPending, isError:isAddCompanyFnError, error:addCompanyFnError} = useAddCompany({})
-  const {mutate:updateCompanyFn,isPending:isUpdateCompanyFnPending, isError:isUpdateCompanyFnError, error:updateCompanyFnError} = useUpdateCompany({})
-  const {mutate:deleteCompanyFn,isPending:isDeleteCompanyFnPending, isError:isDeleteCompanyFnError, error:deleteCompanyFnError} = useDeleteCompany({})
+  // Debounce search
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchTerm);
+      setCurrentPage(1); // Reset to first page on search
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
+
+  const { data: getCompanyList, isPending: companyListPending, isError: isCompanyListError, error: companyListError } = useGetAllCompany({
+    page: currentPage,
+    limit: limit,
+    search: debouncedSearch,
+    status: statusFilter !== "all" ? statusFilter : undefined,
+    sortField: sortField,
+    sortDirection: sortDirection
+  });
+
+  useEffect(() => {
+    if (getCompanyList?.company) {
+      setCompanies(getCompanyList.company.data || []);
+      if (getCompanyList.company.pagination) {
+        setTotalPages(getCompanyList.company.pagination.totalPages);
+        setTotalRecords(getCompanyList.company.pagination.totalRecords);
+      }
+    }
+  }, [getCompanyList]);
+
+  const { mutate: addCompanyFn, isPending: isAddCompanyFnPending } = useAddCompany({
+    onSuccess: () => {
+      // Refetch or update the list
+      setCurrentPage(1);
+    }
+  });
+  
+  const { mutate: updateCompanyFn, isPending: isUpdateCompanyFnPending } = useUpdateCompany({
+    onSuccess: () => {
+      // Data will be refetched automatically
+    }
+  });
+  
+  const { mutate: deleteCompanyFn, isPending: isDeleteCompanyFnPending } = useDeleteCompany({
+    onSuccess: () => {
+      // Data will be refetched automatically
+    }
+  });
 
   const addCompany = (companyData) => {
-    addCompanyFn(companyData)
+    addCompanyFn(companyData);
   };
 
   const updateCompany = (id, updates) => {
-    updateCompanyFn({id,updates})
+    updateCompanyFn({ id, updates });
   };
 
   const deleteCompany = (id) => {
-    deleteCompanyFn({id})
+    deleteCompanyFn({ id });
   };
 
   const getCompany = (id) => {
@@ -87,6 +131,22 @@ export function CompanyProvider({ children }) {
         incrementProductsCount,
         decrementProductsCount,
         resetProductsCount,
+        // Pagination and filters
+        currentPage,
+        setCurrentPage,
+        limit,
+        setLimit,
+        searchTerm,
+        setSearchTerm,
+        statusFilter,
+        setStatusFilter,
+        sortField,
+        setSortField,
+        sortDirection,
+        setSortDirection,
+        totalPages,
+        totalRecords,
+        isLoading: companyListPending,
       }}
     >
       {children}

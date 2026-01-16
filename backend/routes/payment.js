@@ -34,12 +34,68 @@ router.get('/getallpayments',user_session_checker("view_payments"),async(req,res
     manualLog("entered in get all payments method")
     try {
         const Payment = req.db.model("Payment")
-        const payments = await Payment.find().populate('payment_client').populate('payment_salesman')
+        // Extract query parameters
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 10;
+        const search = req.query.search || '';
+        const status = req.query.status;
+        const priority = req.query.priority;
+        const sortField = req.query.sortField || 'name';
+        const sortDirection = req.query.sortDirection === 'desc' ? -1 : 1;
+
+        // Build filter object
+        const filter = {};
+        
+        // Search filter (search in multiple fields)
+        if (search) {
+            filter.$or = [
+                { payment_client: { $regex: search, $options: 'i' } },
+                { payment_salesman: { $regex: search, $options: 'i' } },
+                { payment_amount: { $regex: search, $options: 'i' } }
+            ];
+        }
+
+        // Status filter
+        if (status) {
+            filter.status = status;
+        }
+
+        // Priority filter
+        if (priority) {
+            filter.priority = priority;
+        }
+
+        // Calculate skip value for pagination
+        const skip = (page - 1) * limit;
+
+        // Build sort object
+        const sort = {};
+        sort[sortField] = sortDirection;
+
+        // Get total count for pagination
+        const totalRecords = await Payment.countDocuments(filter);
+        const totalPages = Math.ceil(totalRecords / limit);
+
+        const payments = await Payment.find(filter).sort(sort)
+            .skip(skip)
+            .limit(limit)
+            .lean().populate('payment_client').populate('payment_salesman')
+
         manualLog("payments fetched successfully")
         res.status(200).send({
             message:"payments fetched successfully",
             success:true,
-            payments:payments
+            payments:{
+                data: payments,
+                pagination:{
+                    currentPage: page,
+                    totalPages: totalPages,
+                    totalRecords: totalRecords,
+                    limit: limit,
+                    hasNextPage: page < totalPages,
+                    hasPrevPage: page > 1
+                }
+            }
         })
     } catch (error) {
         manualLog("something broke in payment get all",error)

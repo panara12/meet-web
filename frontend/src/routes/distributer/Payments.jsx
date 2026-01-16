@@ -31,7 +31,9 @@ import {
   Building,
   Hash,
   ArrowUpDown,
-  RotateCcw
+  RotateCcw,
+  ChevronLeft,
+  ChevronRight
 } from "lucide-react"
 import { useGetAllPayment } from "../../hooks/payment/useGetAllPayment"
 import { useUpdatePaymentStatus } from "../../hooks/payment/useUpdatePaymentStatus"
@@ -198,18 +200,6 @@ import { useSelector } from "react-redux"
 
 function Payments() {
   // const [paymentRequests, setPaymentRequests] = useState([])
-  const { data: getAllPayment, isLoading: isPaymentLoading, isError: isPaymentError,error:paymentError } = useGetAllPayment()
-  const {mutate: updatePaymentStatus,isLoading:isUpdatePaymentLoading,isError:isUpdatePaymentError,error:updatePaymentError} = useUpdatePaymentStatus()
-  // useEffect(() => {
-  //   console.log("getAllPayment",getAllPayment.data.payments)
-  //   if (isPaymentLoading) {
-  //     setPaymentRequests(getAllPayment.data.payments)
-  //   }
-  // }, [])
-  // console.log("paymentRequests",getAllPayment,isPaymentLoading)
-
-  const userInfo = useSelector(state => state.app.userInfo) 
-  console.log("userInfo in payment page",userInfo)
   const [selectedRequest, setSelectedRequest] = useState(null)
   const [showDetailsDialog, setShowDetailsDialog] = useState(false)
   const [filterStatus, setFilterStatus] = useState("all")
@@ -218,10 +208,43 @@ function Payments() {
   const [adminNotes, setAdminNotes] = useState("")
   const [sortBy, setSortBy] = useState("date")
   const [sortOrder, setSortOrder] = useState("desc")
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [limit, setLimit] = useState(10);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalPayments, setTotalPayments] = useState(0);
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchTerm);
+      setCurrentPage(1); // Reset to first page on search
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
+  const { data: getAllPayment, isLoading: isPaymentLoading, isError: isPaymentError, error: paymentError } = useGetAllPayment({
+    page: currentPage,
+    limit: limit,
+    search: debouncedSearch,
+    status: filterStatus !== "all" ? filterStatus : undefined,
+    salesman: filterSalesman !== "all" ? filterSalesman : undefined,
+    sortField: sortBy,
+    sortDirection: sortOrder
+  });
+  useEffect(() => {
+    if (getAllPayment?.data?.payments) {
+      setTotalPages(getAllPayment.data.payments.pagination?.totalPages || 1);
+      setTotalPayments(getAllPayment.data.payments.pagination?.totalRecords || 0);
+    }
+  }, [getAllPayment]);
+  const {mutate: updatePaymentStatus,isLoading:isUpdatePaymentLoading,isError:isUpdatePaymentError,error:updatePaymentError} = useUpdatePaymentStatus()
+
+  const userInfo = useSelector(state => state.app.userInfo) 
+  console.log("userInfo in payment page",userInfo)
 
   // ✅ Use data directly from React Query
-  const paymentRequests = getAllPayment?.data?.payments || []
+  const paymentRequests = getAllPayment?.data?.payments?.data || []
   console.log("paymentRequests data",getAllPayment?.data?.payments)
+  
 
   // ✅ Show loading state
   if (isPaymentLoading) {
@@ -290,38 +313,6 @@ function Payments() {
   )
   // console.log("uniqueSalesmen",uniqueSalesmen)
 
-
-  // // Filter and sort requests
-  // console.log("vari",paymentRequests)
-  const filteredAndSortedRequests = paymentRequests.filter(request => {
-      // console.log('filtering request',request.payment_salesman._id ,"===", filterSalesman)
-      const matchesStatus = filterStatus === "all" || request.status[request.status.length - 1].status === filterStatus
-      const matchesSalesman = filterSalesman === "all" || request.payment_salesman._id === filterSalesman
-      const matchesSearch =
-        request.payment_salesman.firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        request.payment_client?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        request._id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        request.notes.toLowerCase().includes(searchTerm.toLowerCase())
-      return matchesStatus && matchesSalesman && matchesSearch
-    })
-    .sort((a, b) => {
-      let comparison = 0
-
-      switch (sortBy) {
-        case "date":
-          comparison = new Date(a.requestDate).getTime() - new Date(b.requestDate).getTime()
-          break
-        case "amount":
-          comparison = a.payment_amount - b.payment_amount
-          break
-        case "status":
-          comparison = a.status[a.status.length - 1].status.localeCompare(b.status[b.status.length - 1].status)
-          break
-      }
-
-      return sortOrder === "asc" ? comparison : -comparison
-    })
-
   const getStatusColor = (status) => {
     console.log("status icon",status)
     switch (status) {
@@ -365,6 +356,59 @@ function Payments() {
       minute: '2-digit'
     })
   }
+
+  const handleStatusFilterChange = (value) => {
+    setFilterStatus(value);
+    setCurrentPage(1);
+  };
+
+  const handleSalesmanFilterChange = (value) => {
+    setFilterSalesman(value);
+    setCurrentPage(1);
+  };
+
+  const handleSortChange = (field) => {
+    setSortBy(field);
+    setCurrentPage(1);
+  };
+
+  const handleSortOrderToggle = () => {
+    setSortOrder(sortOrder === "asc" ? "desc" : "asc");
+    setCurrentPage(1);
+  };
+
+  const handlePreviousPage = () => {
+    setCurrentPage(prev => Math.max(prev - 1, 1));
+  };
+
+  const handleNextPage = () => {
+    setCurrentPage(prev => Math.min(prev + 1, totalPages));
+  };
+
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+  };
+
+  const handleLimitChange = (value) => {
+    setLimit(parseInt(value));
+    setCurrentPage(1);
+  };
+
+  const getPageNumbers = () => {
+    const pages = [];
+    const maxPagesToShow = 5;
+    let startPage = Math.max(1, currentPage - Math.floor(maxPagesToShow / 2));
+    let endPage = Math.min(totalPages, startPage + maxPagesToShow - 1);
+
+    if (endPage - startPage < maxPagesToShow - 1) {
+      startPage = Math.max(1, endPage - maxPagesToShow + 1);
+    }
+
+    for (let i = startPage; i <= endPage; i++) {
+      pages.push(i);
+    }
+    return pages;
+  };
 
   return (
     <div className="w-full">
@@ -522,7 +566,7 @@ function Payments() {
                 {/* Status Filter */}
                 <div className="flex items-center gap-2 min-w-0">
                   <Label className="text-responsive-xs whitespace-nowrap">Status:</Label>
-                  <Select value={filterStatus} onValueChange={setFilterStatus}>
+                  <Select value={filterStatus} onValueChange={handleStatusFilterChange}>
                     <SelectTrigger className="w-40 sm:w-44 text-responsive-xs">
                       <SelectValue placeholder="All Status" />
                     </SelectTrigger>
@@ -553,7 +597,7 @@ function Payments() {
                 {/* Salesman Filter */}
                 <div className="flex items-center gap-2 min-w-0">
                   <Label className="text-responsive-xs whitespace-nowrap">Salesman:</Label>
-                  <Select value={filterSalesman} onValueChange={setFilterSalesman}>
+                  <Select value={filterSalesman} onValueChange={handleSalesmanFilterChange}>
                     <SelectTrigger className="w-44 sm:w-52 text-responsive-xs">
                       <SelectValue placeholder="All Salesmen" />
                     </SelectTrigger>
@@ -579,7 +623,7 @@ function Payments() {
                 <div className="flex items-center gap-2 min-w-0">
                   <Label className="text-responsive-xs whitespace-nowrap">Sort:</Label>
                   <div className="flex items-center gap-1">
-                    <Select value={sortBy} onValueChange={(value) => setSortBy(value)}>
+                    <Select value={sortBy} onValueChange={handleSortChange}>
                       <SelectTrigger className="w-32 sm:w-36 text-responsive-xs">
                         <SelectValue />
                       </SelectTrigger>
@@ -607,7 +651,7 @@ function Payments() {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}
+                      onClick={handleSortOrderToggle}
                       className="p-2 h-9"
                       title={`Sort ${sortOrder === "asc" ? "Descending" : "Ascending"}`}
                     >
@@ -627,7 +671,8 @@ function Payments() {
               <div>
                 <CardTitle className="flex items-center gap-2 text-responsive-lg">
                   <CreditCard className="icon-responsive-base" />
-                  Payment Requests ({filteredAndSortedRequests.length})
+                  Payment Requests ({totalPayments})
+                  {isPaymentLoading && <span className="ml-2 text-xs">(Loading...)</span>}
                 </CardTitle>
                 <CardDescription className="text-responsive-xs">
                   Manage payment confirmations with reversible status changes
@@ -636,6 +681,20 @@ function Payments() {
             </div>
           </CardHeader>
           <CardContent className="p-0">
+            <div className="flex items-center gap-2 min-w-0">
+                <Label className="text-responsive-xs whitespace-nowrap">Per Page:</Label>
+                <Select value={limit.toString()} onValueChange={handleLimitChange}>
+                  <SelectTrigger className="w-24 text-responsive-xs">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="5">5</SelectItem>
+                    <SelectItem value="10">10</SelectItem>
+                    <SelectItem value="25">25</SelectItem>
+                    <SelectItem value="50">50</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
@@ -650,7 +709,7 @@ function Payments() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredAndSortedRequests.map((request) => (
+                  {paymentRequests.map((request) => (
                     <TableRow key={request._id} className="hover:bg-muted/50">
                       <TableCell>
                         <div className="space-y-1">
@@ -1008,11 +1067,53 @@ function Payments() {
                   ))}
                 </TableBody>
               </Table>
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-4 pt-4 border-t">
+                <div className="text-responsive-xs text-muted-foreground">
+                  Showing {paymentRequests.length === 0 ? 0 : ((currentPage - 1) * limit) + 1} to {Math.min(currentPage * limit, totalPayments)} of {totalPayments} payments
+                </div>
+                
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handlePreviousPage}
+                    disabled={currentPage === 1 || isPaymentLoading}
+                  >
+                    <ChevronLeft className="h-4 w-4 mr-1" />
+                    Previous
+                  </Button>
+                  
+                  <div className="flex items-center gap-1">
+                    {getPageNumbers().map((pageNum) => (
+                      <Button
+                        key={pageNum}
+                        variant={currentPage === pageNum ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => handlePageChange(pageNum)}
+                        disabled={isPaymentLoading}
+                        className="w-8 h-8 p-0"
+                      >
+                        {pageNum}
+                      </Button>
+                    ))}
+                  </div>
+
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleNextPage}
+                    disabled={currentPage === totalPages || isPaymentLoading}
+                  >
+                    Next
+                    <ChevronRight className="h-4 w-4 ml-1" />
+                  </Button>
+                </div>
+              </div>
             </div>
           </CardContent>
         </Card>
 
-        {filteredAndSortedRequests.length === 0 && (
+        {paymentRequests.length === 0 && (
           <Card>
             <CardContent className="responsive-padding text-center">
               <div className="space-y-2">

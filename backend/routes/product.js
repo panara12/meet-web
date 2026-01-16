@@ -365,41 +365,96 @@ router.get(
   '/getallproduct',
   user_session_checker('get_all_product'),
   async (req, res) => {
-    manualLog('entered in get all product');
     try {
-      const { page = 1, limit = 10 } = req.query;
-      const pageNumber = parseInt(page);
-      const limitNumber = parseInt(limit);
-      const skip = (pageNumber - 1) * limitNumber;
+      const page = parseInt(req.query.page) || 1;
+      const limit = parseInt(req.query.limit) || 10;
+      const search = req.query.search || '';
+      const status = req.query.status;
+      const category = req.query.category;
+      const companyId = req.query.companyId;
+      const sortField = req.query.sortField || 'name';
+      const sortDirection = req.query.sortDirection === 'desc' ? -1 : 1;
 
       const Product = req.db.model('Product');
 
-      // Get products with pagination
-      const product_data = await Product.find()
-        .skip(skip)
-        .limit(limitNumber)
-        .sort({ createdAt: -1 }).populate('companyId'); // Sort by newest first
+      const matchStage = {};
 
-      // Get total count for pagination info
-      const totalProducts = await Product.countDocuments();
-      const totalPages = Math.ceil(totalProducts / limitNumber);
+      // Status filter
+      if (status) matchStage.status = status;
 
-      manualLog(`get all the products - page: ${pageNumber}, limit: ${limitNumber}`);
+      // Category filter
+      if (category) matchStage.category = category;
+
+      if (companyId) {
+        matchStage.companyId = new mongoose.Types.ObjectId(companyId);
+      }
+
+      const pipeline = [
+        {
+          $lookup: {
+            from: 'companies', // 🔥 MUST be MongoDB collection name
+            localField: 'companyId',
+            foreignField: '_id',
+            as: 'company'
+          }
+        },
+        { $unwind: '$company' }
+      ];
+
+      // 🔍 SEARCH (Product + Company)
+      if (search) {
+        pipeline.push({
+          $match: {
+            $or: [
+              { name: { $regex: search, $options: 'i' } },
+              { category: { $regex: search, $options: 'i' } },
+              { sku: { $regex: search, $options: 'i' } },
+              { description: { $regex: search, $options: 'i' } },
+              { 'company.name': { $regex: search, $options: 'i' } }
+            ]
+          }
+        });
+      }
+
+      pipeline.push(
+        { $match: matchStage },
+        { $sort: { [sortField]: sortDirection } },
+        { $skip: (page - 1) * limit },
+        { $limit: limit }
+      );
+
+      const productData = await Product.aggregate(pipeline);
+
+      // Count query
+      const countPipeline = pipeline.filter(stage =>
+        !stage.$skip && !stage.$limit && !stage.$sort
+      );
+
+      const totalRecords = (await Product.aggregate([
+        ...countPipeline,
+        { $count: 'count' }
+      ]))[0]?.count || 0;
+
+      const totalPages = Math.ceil(totalRecords / limit);
+
       res.status(200).json({
         message: 'got all the product',
-        product: product_data,
+        product: productData,
         pagination: {
-          currentPage: pageNumber,
-          totalPages: totalPages,
-          totalProducts: totalProducts,
-          hasNextPage: pageNumber < totalPages,
-          hasPrevPage: pageNumber > 1,
+          currentPage: page,
+          totalPages,
+          totalProducts: totalRecords,
+          hasNextPage: page < totalPages,
+          hasPrevPage: page > 1,
         },
       });
+
     } catch (error) {
-      console.log('there is error in get all product');
-      manualLog(`error in get all product :: ${JSON.stringify(error)}`);
-      res.status(500).json({ message: 'errror in get all product', error: error });
+      console.error('error in get all product', error);
+      res.status(500).json({
+        message: 'error in get all product',
+        error: error.message
+      });
     }
   }
 );

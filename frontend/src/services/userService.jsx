@@ -13,9 +13,29 @@ const userServices = {
         const res = await apiHelper.post('/user/getbyuserrole',payload);
         return res;
     },
-    getAllUser:async ()=>{
-        const res = await apiHelper.get('/user/getalluser');
-        return res;
+    getAllUser:async (params)=>{
+        const { page, 
+            limit, 
+            search, 
+            status, 
+            department, 
+            role, 
+            sortField, 
+            sortDirection  } = params || {};
+        
+        // Build query string
+        const queryParams = new URLSearchParams();
+        if (page) queryParams.append('page', page);
+        if (limit) queryParams.append('limit', limit);
+        if (search) queryParams.append('search', search);
+        if (status) queryParams.append('status', status);
+        if (department) queryParams.append('department', department);
+        if (role) queryParams.append('role', role);
+        if (sortField) queryParams.append('sortField', sortField);
+        if (sortDirection) queryParams.append('sortDirection', sortDirection);
+
+        const res = await apiHelper.get(`/user/getalluser?${queryParams.toString()}`);
+        return res.data;
     },
     updateUser:(payload) => apiHelper.post('/user/updateuser/'+payload.id,payload,{
         headers: { "Content-Type": "multipart/form-data" }

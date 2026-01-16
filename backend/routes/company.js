@@ -52,11 +52,62 @@ router.post('/updatecompany/:id', user_session_checker("edit_company"), async (r
 // Get All Companies
 router.get('/getallcompany', user_session_checker("get_all_company"), async (req, res) => {
     try {
+        
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 10;
+        const search = req.query.search || '';
+        const status = req.query.status;
+        const priority = req.query.priority;
+        const sortField = req.query.sortField || 'name';
+        const sortDirection = req.query.sortDirection === 'desc' ? -1 : 1;
+
+        const filter = {};
+        
+        // Search filter (search in multiple fields)
+        if (search) {
+            filter.$or = [
+                { name: { $regex: search, $options: 'i' } },
+                { email: { $regex: search, $options: 'i' } },
+                { description: { $regex: search, $options: 'i' } }
+            ];
+        }
+        // Status filter
+        if (status) {
+            filter.status = status;
+        }
+
+        // Priority filter
+        if (priority) {
+            filter.priority = priority;
+        }
+
+        // Calculate skip value for pagination
+        const skip = (page - 1) * limit;
+
+        // Build sort object
+        const sort = {};
+        sort[sortField] = sortDirection;
+
+        // Get total count for pagination
         const Company = req.db.model('Company');
-        const company_data = await Company.find();
+        const totalRecords = await Company.countDocuments(filter);
+        const totalPages = Math.ceil(totalRecords / limit);
+
+
+        const company_data = await Company.find(filter).sort(sort).skip(skip).limit(limit);
         res.status(200).json({
             message: "get all company successfully",
-            company: company_data
+            company: {
+                data: company_data,
+                pagination: {
+                    currentPage: page,
+                    totalPages: totalPages,
+                    totalRecords: totalRecords,
+                    limit: limit,
+                    hasNextPage: page < totalPages,
+                    hasPrevPage: page > 1
+                }
+            }
         });
 
     } catch (error) {

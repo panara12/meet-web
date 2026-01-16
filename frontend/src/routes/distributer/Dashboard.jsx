@@ -23,9 +23,8 @@ import {
 } from "lucide-react"
 import VoidVortexInbox from './Inbox'
 import { useStaff } from "./StaffContext";
-import { useInventory, categories } from "./InventoryContext"
+import { useInventory } from "./InventoryContext"
 import { useCompany } from "./CompanyContext"
-import { div } from "framer-motion/client";
 
 // Simple UI Components
 const Card = ({ children, className = "", onClick }) => (

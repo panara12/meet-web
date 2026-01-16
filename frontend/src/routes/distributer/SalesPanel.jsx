@@ -3,6 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/
 import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
+import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "./ui/select";
 import { Avatar, AvatarFallback } from "./ui/avatar";
 import Separator from "./ui/separator";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "./ui/dialog";
@@ -34,7 +35,8 @@ import {
   FolderOpen,
   ExternalLink,
   Loader2,
-  Cable
+  Cable,
+  ChevronLeft, ChevronRight
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -199,12 +201,31 @@ function SalesPanel() {
     isError,
     isLocationLoading,
     fetchPathPoints,
-    isPathPointsLoading  
+    isPathPointsLoading,  
+
+    currentPage,
+    setCurrentPage,
+    pagelimit,
+    setLimit,
+    searchTerm,
+    setSearchTerm,
+    statusFilter,
+    setStatusFilter,
+    departmentFilter,
+    setDepartmentFilter,
+    roleFilter,
+    setRoleFilter,
+    sortField,
+    setSortField,
+    sortDirection,
+    setSortDirection,
+    totalPages,
+    totalRecords,
   } = useStaff();
+  console.log("SalesPanel render: isLoading =", isLoading, ", staff count =", staff.length);
     
   const { uploadFile, getStaffFiles, getWeeklyFileCount, deleteFile } = useFileManagement();
   
-  const [searchTerm, setSearchTerm] = useState("");
   const [selectedStaff, setSelectedStaff] = useState(null);
   const [showInfoDialog, setShowInfoDialog] = useState(false);
   const [showLocationDialog, setShowLocationDialog] = useState(false);
@@ -228,19 +249,6 @@ function SalesPanel() {
   };
   
   const [selectedDate, setSelectedDate] = useState(getTodayDate());
-
-  // Safe filtering with null checks
-  const filteredStaff = (staff || []).filter(member => {
-    const searchLower = searchTerm.toLowerCase();
-    return (
-      (member?.firstName || "").toLowerCase().includes(searchLower) ||
-      (member?.lastName || "").toLowerCase().includes(searchLower) ||
-      (member?.role || "").toLowerCase().includes(searchLower) ||
-      (member?.department || "").toLowerCase().includes(searchLower) ||
-      (member?._id || "").toLowerCase().includes(searchLower) ||
-      (member?.email || "").toLowerCase().includes(searchLower)
-    );
-  });
 
   const getRoleColor = (role) => {
     if (!role) return "bg-gray-100 text-gray-800 border-gray-200";
@@ -677,8 +685,8 @@ function SalesPanel() {
 
         {/* Staff Cards Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredStaff.map((member) => (
-            <Card key={member?._id || Math.random()} className="hover:shadow-lg transition-shadow duration-200">
+          {!isLoading && staff.map((member) => (
+            <Card key={member?._id || Math.random()} className="hover:shadow-lg transition-shadow">
               <CardHeader className="pb-4">
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-3">
@@ -801,9 +809,90 @@ function SalesPanel() {
             </Card>
           ))}
         </div>
+        <div>
+          {!isLoading && staff.length > 0 && (  
+            <div className="mt-4 pt-4 border-t">
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div className="text-sm text-muted-foreground">
+                  Showing {((currentPage - 1) * pagelimit) + 1} to {Math.min(currentPage * pagelimit, totalRecords)} of {totalRecords} staff members
+                </div>
+                
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                    disabled={currentPage === 1}
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                    Previous
+                  </Button>
+                  
+                  <div className="flex items-center gap-1">
+                    {[...Array(Math.min(5, totalPages))].map((_, idx) => {
+                      let pageNum;
+                      if (totalPages <= 5) {
+                        pageNum = idx + 1;
+                      } else if (currentPage <= 3) {
+                        pageNum = idx + 1;
+                      } else if (currentPage >= totalPages - 2) {
+                        pageNum = totalPages - 4 + idx;
+                      } else {
+                        pageNum = currentPage - 2 + idx;
+                      }
+                      
+                      return (
+                        <Button
+                          key={pageNum}
+                          variant={currentPage === pageNum ? "default" : "outline"}
+                          size="sm"
+                          onClick={() => setCurrentPage(pageNum)}
+                          className="w-10"
+                        >
+                          {pageNum}
+                        </Button>
+                      );
+                    })}
+                  </div>
+                  
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                    disabled={currentPage === totalPages}
+                  >
+                    Next
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                </div>
+                
+                <div className="flex items-center gap-2">
+                  <Label className="text-sm">Per page:</Label>
+                  <Select 
+                    value={pagelimit.toString()} 
+                    onValueChange={(val) => {
+                      setLimit(parseInt(val));
+                      setCurrentPage(1);
+                    }}
+                  >
+                    <SelectTrigger className="w-[100px]">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="5">5</SelectItem>
+                      <SelectItem value="10">10</SelectItem>
+                      <SelectItem value="25">25</SelectItem>
+                      <SelectItem value="50">50</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
 
         {/* No Results */}
-        {filteredStaff.length === 0 && (
+        {staff.length === 0 && (
           <Card>
             <CardContent className="flex flex-col items-center justify-center py-12">
               <Search className="h-12 w-12 text-muted-foreground mb-4" />

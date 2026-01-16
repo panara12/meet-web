@@ -66,8 +66,38 @@ export function StaffProvider({ children }) {
   const userAllList = useSelector((state) => state.app.userAllList)
   const [limits, setLimits] = useState(null)
 
+  //pagination and filters
+   const [currentPage, setCurrentPage] = useState(1)
+    const [pagelimit, setLimit] = useState(10)
+    const [searchTerm, setSearchTerm] = useState("")
+    const [debouncedSearch, setDebouncedSearch] = useState("")
+    const [statusFilter, setStatusFilter] = useState(undefined)
+    const [departmentFilter, setDepartmentFilter] = useState(undefined)
+    const [roleFilter, setRoleFilter] = useState(undefined)
+    const [sortField, setSortField] = useState("firstName")
+    const [sortDirection, setSortDirection] = useState("asc")
+    const [totalPages, setTotalPages] = useState(1)
+    const [totalRecords, setTotalRecords] = useState(0)
+
+    useEffect(() => {
+      const timer = setTimeout(() => {
+        setDebouncedSearch(searchTerm)
+        setCurrentPage(1)
+      }, 500)
+      return () => clearTimeout(timer)
+    }, [searchTerm])
+
   // API Hooks
-  const { data: getAllUser, isPending: isgetAllUserPending, isError: isgetAllUserError, error: getAllUserError } = useGetAllUser()
+  const { data: getAllUser, isPending: isgetAllUserPending, isError: isgetAllUserError, error: getAllUserError } = useGetAllUser({
+     page: currentPage,
+    limit: pagelimit,
+    search: debouncedSearch,
+    status: statusFilter,
+    department: departmentFilter,
+    role: roleFilter,
+    sortField: sortField,
+    sortDirection: sortDirection
+  })
   const { data: getLimits, isPending: getLimitsPending, isError: isLimitError, error: limitError } = useGetAllLimit()
   const { mutate: addUser, isPending: isAddUserPending, isError: isAddUserError, error: addUserError } = useAddUser()
   const { mutate: updateUser, isPending: isUpdateUserPending, isError: isUpdateUserError, error: updateUserError } = useUpdateUser()
@@ -78,10 +108,16 @@ export function StaffProvider({ children }) {
   
   // Load users from API
   useEffect(() => {
-    if (getAllUser?.data?.user) {
-      console.log('Loaded users:', getAllUser.data.user)
-      dispatch(setUserAllList(getAllUser.data.user))
-      setStaff(getAllUser.data.user)
+    if (getAllUser?.user?.data) {
+      console.log('Loaded users:', getAllUser.user.data)
+      dispatch(setUserAllList(getAllUser.user.data))
+      setStaff(getAllUser.user.data)
+      
+      // Update pagination info
+      if (getAllUser.user.pagination) {
+        setTotalPages(getAllUser.user.pagination.totalPages)
+        setTotalRecords(getAllUser.user.pagination.totalRecords)
+      }
     }
   }, [getAllUser, dispatch])
 
@@ -460,6 +496,26 @@ const decrementPathRequest = () => {
         isLoading: isgetAllUserPending || getLimitsPending,
         isError: isgetAllUserError || isLimitError,
         isLocationLoading: isGetLocationByIdPending,
+
+        // filers and pagination
+        currentPage,
+        setCurrentPage,
+        pagelimit,
+        setLimit,
+        searchTerm,
+        setSearchTerm,
+        statusFilter,
+        setStatusFilter,
+        departmentFilter,
+        setDepartmentFilter,
+        roleFilter,
+        setRoleFilter,
+        sortField,
+        setSortField,
+        sortDirection,
+        setSortDirection,
+        totalPages,
+        totalRecords,
       }}
     >
       {children}

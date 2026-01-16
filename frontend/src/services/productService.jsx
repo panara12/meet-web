@@ -2,8 +2,21 @@ import apiHelper from '../utils/Url'
 
 
 const productServices = {
-    getAllProductList : async ()=> {
-        const res = await apiHelper.get('/product/getallproduct')
+    getAllProductList : async (params)=> {
+        const { page, limit, search, status,category, companyId, priority, sortField, sortDirection } = params || {};
+        
+        // Build query string
+        const queryParams = new URLSearchParams();
+        if (page) queryParams.append('page', page);
+        if (limit) queryParams.append('limit', limit);
+        if (search) queryParams.append('search', search);
+        if (status) queryParams.append('status', status);
+        if (category) queryParams.append('category', category);
+        if (companyId) queryParams.append('companyId', companyId);
+        if (sortField) queryParams.append('sortField', sortField);
+        if (sortDirection) queryParams.append('sortDirection', sortDirection);
+
+        const res = await apiHelper.get(`/product/getallproduct?${queryParams.toString()}`);
         return res.data;
     },
     getProductById : async (payload)=> {
