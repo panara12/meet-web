@@ -730,7 +730,7 @@ function Inventory() {
               </DialogHeader>
 
               <Tabs defaultValue="basic" className="w-full">
-                <TabsList className="grid w-full grid-cols-4">
+                <TabsList className="grid w-full grid-cols-2 mb-6 sm:mb-2 sm:grid-cols-4">
                   <TabsTrigger value="basic">Basic Info</TabsTrigger>
                   <TabsTrigger value="variants">Variants/SKUs</TabsTrigger>
                   <TabsTrigger value="details">Details</TabsTrigger>
@@ -1435,7 +1435,7 @@ function Inventory() {
             />
           </div>
 
-          <div className="flex gap-2">
+          <div className="flex flex-col sm:flex-row gap-2">
             <Select 
               value={categoryFilter || "all"} 
               onValueChange={(value) => {
@@ -1583,7 +1583,7 @@ function Inventory() {
                           <TableCell>
                             <div className="flex items-center gap-2">
                               <Building2 className="h-4 w-4 text-muted-foreground" />
-                              {product.companyName}
+                              {product?.company?.name}
                             </div>
                           </TableCell>
                           <TableCell>
@@ -1828,7 +1828,7 @@ function Inventory() {
             </DialogHeader>
 
             <Tabs defaultValue="basic" className="w-full">
-              <TabsList className="grid w-full grid-cols-4">
+              <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 mb-6 sm:mb-2">
                 <TabsTrigger value="basic">Basic Info</TabsTrigger>
                 <TabsTrigger value="variants">Variants/SKUs</TabsTrigger>
                 <TabsTrigger value="details">Details</TabsTrigger>
@@ -2460,7 +2460,7 @@ function Inventory() {
               <AlertDialogAction
                 onClick={handleDeleteProduct}
                 disabled={isSubmitting}
-                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                className="bg-danger text-destructive-foreground hover:bg-destructive/90"
               >
                 {isSubmitting ? (
                   <>

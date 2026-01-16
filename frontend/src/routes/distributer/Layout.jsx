@@ -42,7 +42,7 @@ export default function Layout({ title, items, activeId, onSelect, onLogout, chi
         style={{ backgroundColor: THEME.primary }}
       >
         {/* Header - Fixed */}
-        <div className="flex-shrink-0 p-6 border-b border-white border-opacity-20">
+        <div className="flex-shrink-0 p-6 text-center border-b border-white border-opacity-20">
           <h1 className="text-xl font-bold" style={{ color: THEME.primaryText }}>
             {title}
           </h1>

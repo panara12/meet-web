@@ -588,6 +588,49 @@ function Company() {
           </Dialog>
         </div>
 
+        
+        {/* Stats */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium">Total Companies</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{totalRecords}</div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium">Active Companies</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-green-600">
+                {companies.filter(c => c.status === 'active').length}
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium">Total Products</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                {companies.reduce((sum, c) => sum + c.productsCount|| 0, 0)}
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium">Industries</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                {new Set(companies.map(c => c.industry)).size}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
         {/* Search */}
         <div className="relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -642,64 +685,8 @@ function Company() {
               </SelectContent>
             </Select>
           </div>
-
-          <div className="flex items-center gap-2">
-            <Label>Per page:</Label>
-            <Select value={limit.toString()} onValueChange={(val) => setLimit(parseInt(val))}>
-              <SelectTrigger className="w-[100px]">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="5">5</SelectItem>
-                <SelectItem value="10">10</SelectItem>
-                <SelectItem value="25">25</SelectItem>
-                <SelectItem value="50">50</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
         </div>
 
-        {/* Stats */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium">Total Companies</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{totalRecords}</div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium">Active Companies</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-green-600">
-                {companies.filter(c => c.status === 'active').length}
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium">Total Products</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                {companies.reduce((sum, c) => sum + c.productsCount|| 0, 0)}
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium">Industries</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                {new Set(companies.map(c => c.industry)).size}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
 
         {/* Loading state */}
         {isLoading && (
@@ -873,6 +860,20 @@ function Company() {
                 <ChevronRight className="h-4 w-4" />
               </Button>
             </div>
+            <div className="flex items-center gap-2">
+            <Label>Per page:</Label>
+            <Select value={limit.toString()} onValueChange={(val) => setLimit(parseInt(val))}>
+              <SelectTrigger className="w-[100px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="5">5</SelectItem>
+                <SelectItem value="10">10</SelectItem>
+                <SelectItem value="25">25</SelectItem>
+                <SelectItem value="50">50</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
           </div>
         </Card>
       )}
@@ -888,14 +889,14 @@ function Company() {
             </DialogHeader>
             
             <div className="space-y-2">
-              <Button
+              {/* <Button
                 variant="outline"
                 className="w-full justify-start"
                 onClick={() => openAddProductDialog(selectedCompany)}
               >
                 <Package className="h-4 w-4 mr-2" />
                 Add Product
-              </Button>
+              </Button> */}
               <Button
                 variant="outline"
                 className="w-full justify-start"

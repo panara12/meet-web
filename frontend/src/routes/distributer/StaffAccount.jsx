@@ -758,7 +758,7 @@ function StaffAccount() {
                                   <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto mx-4">
                                     <DialogHeader>
                                       <DialogTitle className="flex items-center gap-2">
-                                        <Avatar className="h-8 w-8">
+                                        <Avatar className="h-10 w-10 bg-gray-300">
                                           <AvatarImage src={selectedStaff?.avatar} />
                                           <AvatarFallback>{selectedStaff?.firstName[0]}{selectedStaff?.lastName[0]}</AvatarFallback>
                                         </Avatar>
@@ -847,16 +847,16 @@ function StaffAccount() {
                                               <div className="space-y-3 mt-2">
                                                 <div>
                                                   <p className="text-sm text-muted-foreground">Annual Salary</p>
-                                                  <p className="text-2xl font-bold">${selectedStaff.salary.toLocaleString()}</p>
+                                                  <p className="text-2xl font-bold">${selectedStaff?.salary?.toLocaleString()}</p>
                                                 </div>
                                                 <div>
                                                   <p className="text-sm text-muted-foreground">Hire Date</p>
-                                                  <p className="font-medium">{selectedStaff.hireDate}</p>
+                                                  <p className="font-medium">{selectedStaff?.hireDate}</p>
                                                 </div>
                                                 <div>
                                                   <p className="text-sm text-muted-foreground">Tenure</p>
                                                   <p className="font-medium">
-                                                    {Math.floor((new Date().getTime() - new Date(selectedStaff.hireDate).getTime()) / (1000 * 60 * 60 * 24 * 30))} months
+                                                    {Math.floor((new Date().getTime() - new Date(selectedStaff?.hireDate).getTime()) / (1000 * 60 * 60 * 24 * 30))} months
                                                   </p>
                                                 </div>
                                               </div>

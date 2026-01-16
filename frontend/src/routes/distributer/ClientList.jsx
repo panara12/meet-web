@@ -410,7 +410,7 @@ function ClientList() {
         </div>
 
         <Tabs defaultValue="list" className="space-y-4">
-          <TabsList>
+          <TabsList className="flex justify-center items-start my-5 flex-col sm:flex-row">
             <TabsTrigger value="list">Client Directory</TabsTrigger>
             <TabsTrigger value="analytics">Business Analytics</TabsTrigger>
             <TabsTrigger value="reports">Client Reports</TabsTrigger>
@@ -779,8 +779,46 @@ function ClientList() {
 
                     {/* ADD PAGINATION CONTROLS HERE - after the table */}
                     <div className="flex items-center justify-between mt-4">
-                      <div className="text-sm flex space-x-3 items-center text-muted-foreground">
-                        <p>Showing {clients.length === 0 ? 0 : ((currentPage - 1) * limit) + 1} to {Math.min(currentPage * limit, totalClients)} of {totalClients} clients</p>
+                      <div className="text-sm flex flex-col sm:flex-row items-center justify-between gap-4 text-muted-foreground">
+                        <div className="text-sm text-muted-foreground">
+                          Showing {clients.length === 0 ? 0 : ((currentPage - 1) * limit) + 1} to {Math.min(currentPage * limit, totalClients)} of {totalClients} clients
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={handlePreviousPage}
+                            disabled={currentPage === 1 || SellerisPending}
+                          >
+                            <ChevronLeft className="h-4 w-4" />
+                            Previous
+                          </Button>
+                          
+                          <div className="flex items-center gap-1">
+                            {getPageNumbers().map((pageNum) => (
+                              <Button
+                                key={pageNum}
+                                variant={currentPage === pageNum ? "default" : "outline"}
+                                size="sm"
+                                onClick={() => handlePageChange(pageNum)}
+                                disabled={SellerisPending}
+                                className="w-8 h-8"
+                              >
+                                {pageNum}
+                              </Button>
+                            ))}
+                          </div>
+
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={handleNextPage}
+                            disabled={currentPage === totalPages || SellerisPending}
+                          >
+                            Next
+                            <ChevronRight className="h-4 w-4" />
+                          </Button>
+                        </div>
                         <Select value={limit.toString()} onValueChange={handleLimitChange}>
                           <SelectTrigger className="w-[120px]">
                             <SelectValue />
@@ -792,42 +830,6 @@ function ClientList() {
                             <SelectItem value="50">50 per page</SelectItem>
                           </SelectContent>
                         </Select>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={handlePreviousPage}
-                          disabled={currentPage === 1 || SellerisPending}
-                        >
-                          <ChevronLeft className="h-4 w-4" />
-                          Previous
-                        </Button>
-                        
-                        <div className="flex items-center gap-1">
-                          {getPageNumbers().map((pageNum) => (
-                            <Button
-                              key={pageNum}
-                              variant={currentPage === pageNum ? "default" : "outline"}
-                              size="sm"
-                              onClick={() => handlePageChange(pageNum)}
-                              disabled={SellerisPending}
-                              className="w-8 h-8"
-                            >
-                              {pageNum}
-                            </Button>
-                          ))}
-                        </div>
-
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={handleNextPage}
-                          disabled={currentPage === totalPages || SellerisPending}
-                        >
-                          Next
-                          <ChevronRight className="h-4 w-4" />
-                        </Button>
                       </div>
                     </div>
                   </>

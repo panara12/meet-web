@@ -84,28 +84,28 @@ function DirectionsMapComponent({ coordinates }) {
   }
 
   return (
-    <GoogleMap
-      mapContainerStyle={mapContainerStyles.large}
-      center={origin}
-      zoom={15}
-      onLoad={onLoad}
-      onUnmount={onUnmount}
-      options={simpleMapOptions}
-    >
-      {directionsResponse && (
-        <DirectionsRenderer
-          directions={directionsResponse}
-          options={{
-            polylineOptions: {
-              strokeColor: '#0000FF',
-              strokeOpacity: 0.8,
-              strokeWeight: 6,
-            },
-            suppressMarkers: false,
-          }}
-        />
-      )}
-    </GoogleMap>
+      <GoogleMap
+        mapContainerStyle={mapContainerStyles.large}
+        center={origin}
+        zoom={15}
+        onLoad={onLoad}
+        onUnmount={onUnmount}
+        options={simpleMapOptions}
+      >
+        {directionsResponse && (
+          <DirectionsRenderer
+            directions={directionsResponse}
+            options={{
+              polylineOptions: {
+                strokeColor: '#0000FF',
+                strokeOpacity: 0.8,
+                strokeWeight: 6,
+              },
+              suppressMarkers: false,
+            }}
+          />
+        )}
+      </GoogleMap>
   );
 }
 

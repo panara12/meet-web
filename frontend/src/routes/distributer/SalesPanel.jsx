@@ -587,14 +587,14 @@ function SalesPanel() {
             <p className="text-muted-foreground">Manage and monitor all staff members with quick access to their information</p>
           </div>
           <div className="grid grid-rows-2 space-y-2">
-            <div className="grid grid-cols-2 items-center gap-3">
-              <Badge variant="outline" className="text-sm">
-                {limits?.data[0]?.adminlimit+limits?.data[0]?.salesmanlimit+limits?.data[0]?.billinglimit+limits?.data[0]?.packagelimit || 0} Total Staff
-              </Badge>
-              <Badge variant="outline" className="text-sm">
-                {(staff || []).filter(s => s?.status?.toLowerCase() === "active").length} Active
-              </Badge>
-            </div>
+              <div className="grid grid-cols-2  gap-3">
+                <Badge variant="outline" className="text-sm">
+                  {limits?.data[0]?.adminlimit+limits?.data[0]?.salesmanlimit+limits?.data[0]?.billinglimit+limits?.data[0]?.packagelimit || 0} Total Staff
+                </Badge>
+                <Badge variant="outline" className="text-sm">
+                  {(staff || []).filter(s => s?.status?.toLowerCase() === "active").length} Active
+                </Badge>
+              </div>
             <div className="grid grid-cols-2 items-center gap-3">
               <Badge 
                 variant={getRequestsRemaining() <= 5 ? "destructive" : "outline"} 
@@ -702,10 +702,10 @@ function SalesPanel() {
                       <CardDescription>{member?.employeeId || 'N/A'}</CardDescription>
                     </div>
                   </div>
-                  <DropdownMenu>
+                  {/* <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                        <MoreHorizontal className="h-4 w-4" />
+                        <MoreHorizontal className="h-4 hidden w-4" />
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
@@ -724,7 +724,7 @@ function SalesPanel() {
                         Send Message
                       </DropdownMenuItem>
                     </DropdownMenuContent>
-                  </DropdownMenu>
+                  </DropdownMenu> */}
                 </div>
                 
                 <div className="flex items-center gap-2 mt-2">
@@ -947,9 +947,9 @@ function SalesPanel() {
                       </div>
                       <div>
                         <label className="text-sm font-medium">Emergency Contact</label>
-                        <p className="text-sm text-muted-foreground">{selectedStaff.emergencyContact.name || "Not provided"}</p>
-                        <p className="text-sm text-muted-foreground">{selectedStaff.emergencyContact.phone || "Not provided"}</p>
-                        <p className="text-sm text-muted-foreground">{selectedStaff.emergencyContact.relationship || "Not provided"}</p>
+                        <p className="text-sm text-muted-foreground">{selectedStaff?.emergencyContact?.name || "Not provided"}</p>
+                        <p className="text-sm text-muted-foreground">{selectedStaff?.emergencyContact?.phone || "Not provided"}</p>
+                        <p className="text-sm text-muted-foreground">{selectedStaff?.emergencyContact?.relationship || "Not provided"}</p>
                       </div>
                     </div>
                   </TabsContent>
@@ -1051,7 +1051,7 @@ function SalesPanel() {
             {selectedStaff && (
               <ScrollArea className="max-h-[70vh]">
                 <Tabs defaultValue="current" className="w-full">
-                  <TabsList className="grid w-full grid-cols-3">
+                  <TabsList className="flex w-full my-8 sm:my-2  flex-col sm:flex-row">
                     <TabsTrigger value="current">Current Location</TabsTrigger>
                     <TabsTrigger value="path">Path History</TabsTrigger>
                     <TabsTrigger value="usage">Usage Stats</TabsTrigger>
@@ -1099,7 +1099,7 @@ function SalesPanel() {
                             onMapLoad={handleMapLoad}
                           />
 
-                          {isMapLoaded && (
+                          {/* {isMapLoaded && (
                             <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
                               <div className="flex items-center gap-2 text-green-800">
                                 <CheckCircle2 className="h-4 w-4" />
@@ -1108,9 +1108,9 @@ function SalesPanel() {
                                 </p>
                               </div>
                             </div>
-                          )}
+                          )} */}
                           
-                          <div className="grid grid-cols-2 gap-4 mt-4">
+                          {/* <div className="grid grid-cols-2 gap-4 mt-4">
                             <div>
                               <label className="text-sm font-medium">Address</label>
                               <p className="text-sm text-muted-foreground">
@@ -1136,7 +1136,7 @@ function SalesPanel() {
                                 GPS Location
                               </p>
                             </div>
-                          </div>
+                          </div> */}
                         </div>
                       )}
                       
@@ -1156,23 +1156,24 @@ function SalesPanel() {
                   <TabsContent value="path" forceMount className="space-y-4 data-[state=inactive]:hidden">
                     <div className="space-y-4">
                       {/* Header with Controls */}
-                      <div className="flex items-center justify-between gap-4">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                         <h3 className="text-lg font-medium">Movement Path</h3>
                         
-                        <div className="flex items-center gap-2">
+                        <div className="flex justify-between items-center gap-2">
                           {/* Date Input */}
-                          <Label htmlFor="path-date" className="text-sm">
-                            Date:
-                          </Label>
-                          <Input
-                            id="path-date"
-                            type="text"
-                            placeholder="dd/mm/yyyy"
-                            value={selectedDate}
-                            onChange={(e) => setSelectedDate(e.target.value)}
-                            className="w-32 text-sm"
-                          />
-                          
+                          <div className="flex sm:space-x-4 space-x-1">
+                            <Label htmlFor="path-date" className="text-sm">
+                              Date:
+                            </Label>
+                            <Input
+                              id="path-date"
+                              type="text"
+                              placeholder="dd/mm/yyyy"
+                              value={selectedDate}
+                              onChange={(e) => setSelectedDate(e.target.value)}
+                              className="w-32 text-sm"
+                            />
+                          </div>
                           {/* Load Path Button */}
                           <Button 
                             onClick={handleFetchPathPoints}
