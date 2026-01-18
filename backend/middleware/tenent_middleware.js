@@ -29,9 +29,9 @@ const tenent_checker = async(req,res,next)=>{
             console.log('user not found',active_tenent);
         }
 
-        if (active_tenent.D_payment != 'done') {
-            return res.status(403).json({ message: "payment is pending" });
-        }
+        // if (active_tenent.D_payment != 'done') {
+        //     return res.status(403).json({ message: "payment is pending" });
+        // }
         console.log(active_tenent.D_dbname)
         
         //get the tenent Db connection

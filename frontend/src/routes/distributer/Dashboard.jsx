@@ -21,6 +21,7 @@ import {
   CreditCard,
   X
 } from "lucide-react"
+import { Link } from 'react-router-dom';
 import VoidVortexInbox from './Inbox'
 import { useStaff } from "./StaffContext";
 import { useInventory } from "./InventoryContext"
@@ -269,7 +270,7 @@ export default function Dashboard({ onNavigate }) {
       action: () => onNavigate && onNavigate('staff'),
       color: "bg-blue-500 hover:bg-blue-600",
       textColor: "text-white",
-      to:"/staff"
+      to:"/distributer/staff"
     },
     {
       title: "Add Product",
@@ -278,7 +279,7 @@ export default function Dashboard({ onNavigate }) {
       action: () => onNavigate && onNavigate('inventory'),
       color: "bg-green-500 hover:bg-green-600",
       textColor: "text-white",
-      to:"/inventory"
+      to:"/distributer/inventory"
     },
     {
       title: "Add Company",
@@ -287,7 +288,7 @@ export default function Dashboard({ onNavigate }) {
       action: () => onNavigate && onNavigate('company'),
       color: "bg-purple-500 hover:bg-purple-600",
       textColor: "text-white",
-      to:"/company"
+      to:"/distributer/company"
     },
     {
       title: "Payment Confirmations",
@@ -297,7 +298,7 @@ export default function Dashboard({ onNavigate }) {
       color: "bg-teal-500 hover:bg-teal-600",
       textColor: "text-white",
       hasNotification: true,
-      to:"/payments"
+      to:"/distributer/payments"
     },
     {
       title: "Contact VoidVortex",
@@ -347,6 +348,31 @@ export default function Dashboard({ onNavigate }) {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {quickActions.map((action, index) => {
               const Icon = action.icon
+              if(action.to){
+                return (
+                  <Link to={action.to}>
+                    <Card 
+                      key={index} 
+                      className="cursor-pointer hover:shadow-lg transition-all duration-200 hover:scale-[1.02] border-2 hover:border-blue-200 relative"
+                      onClick={action.action}
+                    >
+                    <CardContent className="p-4">
+                      <div className="flex items-center gap-3">
+                        <div className={`p-3 rounded-lg ${action.color} relative flex-shrink-0`}>
+                          <Icon className={`h-5 w-5 ${action.textColor}`} />
+                          {action.hasNotification && (
+                            <div className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full"></div>
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-medium truncate">{action.title}</h3>
+                          <p className="text-sm text-gray-600 truncate">{action.description}</p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card> 
+                </Link>)
+              }
               return (
                 <Card 
                   key={index} 

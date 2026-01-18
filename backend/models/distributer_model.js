@@ -31,11 +31,6 @@ const distributerSchema = mongoose.Schema({
         type : String,
         required:[true,'please enter username']
     },
-    distributer_plan:{
-        type : String,
-        required:[true,'please enter the plan name'],
-        enum:['bronze','silver','gold','platinum']
-    },
     user_tenant:{
         type:String,
         required:[true,"please enter user tenant name"]

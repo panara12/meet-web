@@ -36,7 +36,11 @@ import {
   ExternalLink,
   Loader2,
   Cable,
-  ChevronLeft, ChevronRight
+  ChevronLeft, ChevronRight,
+  Upload,
+  FilePlus,
+  FileText,
+  ImageIcon
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -48,10 +52,11 @@ import {
 } from "./ui/dropdown-menu";
 import { toast } from "sonner";
 import { useStaff } from "./StaffContext";
-import { useFileManagement } from "./FileManagementContext";
+import { useFileManagement} from "./FileManagementContext";
 import { GoogleMap, Marker } from '@react-google-maps/api';
 import DirectionsMapComponent from "../../component/mappathgenerater.jsx";
 import { useGoogleMaps, mapContainerStyles, defaultMapOptions } from '../../utils/googlemaps.jsx';
+import { Textarea } from "./ui/textarea.jsx";
 
 const GoogleMapViewWithTracking = ({ latitude, longitude, staffName, address, onMapLoad }) => {
   const [map, setMap] = useState(null);
@@ -973,10 +978,6 @@ function SalesPanel() {
                         <p className="text-sm text-muted-foreground">{selectedStaff.workHours}</p>
                       </div>
                       <div>
-                        <label className="text-sm font-medium">Hire Date</label>
-                        <p className="text-sm text-muted-foreground">{selectedStaff.hireDate}</p>
-                      </div>
-                      <div>
                         <label className="text-sm font-medium">Salary</label>
                         <p className="text-sm text-muted-foreground">${selectedStaff.salary?.toLocaleString()}</p>
                       </div>
@@ -1291,6 +1292,258 @@ function SalesPanel() {
                           </p>
                         </div>
                       )}
+                    </div>
+                  </TabsContent>
+                </Tabs>
+              </ScrollArea>
+            )}
+          </DialogContent>
+        </Dialog>
+
+        {/* Daily Files Dialog */}
+        <Dialog open={showFilesDialog} onOpenChange={setShowFilesDialog}>
+          <DialogContent className="max-w-4xl max-h-[90vh]">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <FolderOpen className="h-5 w-5" />
+                Daily Files - {selectedStaff?.firstName} {selectedStaff?.lastName}
+              </DialogTitle>
+              <DialogDescription>
+                Upload and manage daily files for {selectedStaff?.employeeId}
+              </DialogDescription>
+            </DialogHeader>
+            
+            {selectedStaff && (
+              <ScrollArea className="max-h-[70vh]">
+                <Tabs defaultValue="upload" className="w-full">
+                  <TabsList className="grid w-full grid-cols-2">
+                    <TabsTrigger value="upload">Upload Files</TabsTrigger>
+                    <TabsTrigger value="manage">Manage Files</TabsTrigger>
+                  </TabsList>
+                  
+                  <TabsContent value="upload" className="space-y-4">
+                    <div className="space-y-6">
+                      {/* Day Selection */}
+                      <div className="space-y-3">
+                        <Label className="text-base font-medium">Select Day</Label>
+                        <div className="grid grid-cols-7 gap-2">
+                          {Object.entries(dayNames).map(([day, dayName]) => (
+                            <Button
+                              key={day}
+                              variant={selectedDay === day ? "default" : "outline"}
+                              size="sm"
+                              onClick={() => setSelectedDay(day)}
+                              className="text-xs"
+                            >
+                              {dayName.slice(0, 3)}
+                            </Button>
+                          ))}
+                        </div>
+                        <p className="text-sm text-muted-foreground">
+                          Selected: <span className="font-medium">{dayNames[selectedDay]}</span>
+                        </p>
+                      </div>
+
+                      {/* File Description */}
+                      <div className="space-y-2">
+                        <Label htmlFor="description">File Description (Optional)</Label>
+                        <Textarea
+                          id="description"
+                          placeholder="Enter a description for the files..."
+                          value={fileDescription}
+                          onChange={(e) => setFileDescription(e.target.value)}
+                          rows={3}
+                        />
+                      </div>
+
+                      {/* File Upload */}
+                      <div className="space-y-4">
+                        <Label className="text-base font-medium">Upload Files</Label>
+                        <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-8">
+                          <div className="text-center">
+                            <Upload className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                            <h4 className="text-lg font-medium mb-2">Upload Files</h4>
+                            <p className="text-sm text-muted-foreground mb-4">
+                              Support for PDF and image files up to 10MB each
+                            </p>
+                            
+                            <input
+                              type="file"
+                              id="file-upload"
+                              multiple
+                              accept=".pdf,.png,.jpg,.jpeg,.gif,.bmp,.webp"
+                              onChange={handleFileUpload}
+                              className="hidden"
+                              disabled={isUploading}
+                            />
+                            
+                            <Button
+                              onClick={() => document.getElementById('file-upload')?.click()}
+                              disabled={isUploading}
+                              className="mb-2"
+                            >
+                              {isUploading ? (
+                                <>
+                                  <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                                  Uploading...
+                                </>
+                              ) : (
+                                <>
+                                  <FilePlus className="h-4 w-4 mr-2" />
+                                  Select Files
+                                </>
+                              )}
+                            </Button>
+                            
+                            <p className="text-xs text-muted-foreground">
+                              You can select multiple files at once
+                            </p>
+                          </div>
+                        </div>
+
+                        {/* File Type Info */}
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="flex items-center gap-2 p-3 border rounded-lg">
+                            <FileText className="h-5 w-5 text-red-500" />
+                            <div>
+                              <p className="font-medium text-sm">PDF Documents</p>
+                              <p className="text-xs text-muted-foreground">Reports, presentations, contracts</p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2 p-3 border rounded-lg">
+                            <ImageIcon className="h-5 w-5 text-blue-500" />
+                            <div>
+                              <p className="font-medium text-sm">Images</p>
+                              <p className="text-xs text-muted-foreground">Photos, screenshots, diagrams</p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </TabsContent>
+                  
+                  <TabsContent value="manage" className="space-y-4">
+                    <div className="space-y-4">
+                      {selectedStaff && (() => {
+                        const staffFiles = getStaffFiles(selectedStaff.id)
+                        
+                        if (!staffFiles) {
+                          return (
+                            <div className="text-center py-8">
+                              <FolderOpen className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                              <h4 className="font-medium mb-2">No Files Uploaded</h4>
+                              <p className="text-sm text-muted-foreground">
+                                Upload files in the Upload tab to get started
+                              </p>
+                            </div>
+                          )
+                        }
+
+                        return (
+                          <div className="space-y-4">
+                            {/* Weekly Overview */}
+                            <div className="grid grid-cols-7 gap-2">
+                              {Object.entries(dayNames).map(([day, dayName]) => (
+                                <Button
+                                  key={day}
+                                  variant={selectedDay === day ? "default" : "outline"}
+                                  size="sm"
+                                  onClick={() => setSelectedDay(day)}
+                                  className="text-xs"
+                                >
+                                  {dayName.slice(0, 3)}
+                                </Button>
+                              ))}
+                            </div>
+
+                            {/* Files by Day */}
+                            <Tabs defaultValue="monday" className="w-full">
+                              <TabsList className="grid w-full grid-cols-7">
+                                {Object.keys(dayNames).map((day) => (
+                                  <TabsTrigger key={day} value={day} className="text-xs">
+                                    {dayNames[day].slice(0, 3)}
+                                  </TabsTrigger>
+                                ))}
+                              </TabsList>
+                              
+                              {Object.entries(dayNames).map(([day, dayName]) => {
+                                const dayFiles = staffFiles.currentWeek[day]
+                                
+                                return (
+                                  <TabsContent key={day} value={day} className="space-y-3">
+                                    <div className="flex items-center justify-between">
+                                      <h4 className="font-medium">{dayName} Files</h4>
+                                      <Badge variant="secondary">{dayFiles.length} files</Badge>
+                                    </div>
+                                    
+                                    {dayFiles.length === 0 ? (
+                                      <div className="text-center py-6 text-muted-foreground">
+                                        <Calendar className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                                        <p>No files for {dayName}</p>
+                                      </div>
+                                    ) : (
+                                      <div className="space-y-2">
+                                        {dayFiles.map((file) => (
+                                          <div key={file.id} className="flex items-center justify-between p-3 border rounded-lg">
+                                            <div className="flex items-center gap-3 flex-1 min-w-0">
+                                              {file.type === 'pdf' ? (
+                                                <FileText className="h-5 w-5 text-red-500 flex-shrink-0" />
+                                              ) : (
+                                                <ImageIcon className="h-5 w-5 text-blue-500 flex-shrink-0" />
+                                              )}
+                                              <div className="flex-1 min-w-0">
+                                                <p className="font-medium text-sm truncate">{file.name}</p>
+                                                <p className="text-xs text-muted-foreground">
+                                                  {formatFileSize(file.size)} • {new Date(file.uploadDate).toLocaleDateString()}
+                                                </p>
+                                                {file.description && (
+                                                  <p className="text-xs text-muted-foreground mt-1 truncate">
+                                                    "{file.description}"
+                                                  </p>
+                                                )}
+                                              </div>
+                                            </div>
+                                            <div className="flex gap-2 flex-shrink-0">
+                                              <Button
+                                                size="sm"
+                                                variant="outline"
+                                                onClick={() => {
+                                                  // Simulate download
+                                                  const link = document.createElement('a')
+                                                  link.href = file.url
+                                                  link.download = file.name
+                                                  document.body.appendChild(link)
+                                                  link.click()
+                                                  document.body.removeChild(link)
+                                                  toast.success(`Downloaded ${file.name}`)
+                                                }}
+                                              >
+                                                <Download className="h-3 w-3" />
+                                              </Button>
+                                              <Button
+                                                size="sm"
+                                                variant="destructive"
+                                                onClick={() => handleFileDelete(selectedStaff.id, day, file.id, file.name)}
+                                                disabled={deletingFileId === file.id}
+                                              >
+                                                {deletingFileId === file.id ? (
+                                                  <RefreshCw className="h-3 w-3 animate-spin" />
+                                                ) : (
+                                                  <Trash2 className="h-3 w-3" />
+                                                )}
+                                              </Button>
+                                            </div>
+                                          </div>
+                                        ))}
+                                      </div>
+                                    )}
+                                  </TabsContent>
+                                )
+                              })}
+                            </Tabs>
+                          </div>
+                        )
+                      })()}
                     </div>
                   </TabsContent>
                 </Tabs>

@@ -210,8 +210,6 @@ function StaffAccount() {
       },
       notes: formData.notes.trim() || undefined,
       workHours: formData.workHours,
-      hireDate: new Date().toISOString().split('T')[0],
-      permissions: [],
       lastLogin: "Never",
       // Location Tracking
       locationTracking: {
@@ -336,7 +334,7 @@ function StaffAccount() {
       role: member.role,
       department: member.department,
       status: member.status,
-      salary: member.salary.toString(),
+      salary: member.salary?.toString(),
       emergencyContact: {
         name: member.emergencyContact?.name || "",
         phone: member.emergencyContact?.phone || "",
@@ -418,9 +416,9 @@ function StaffAccount() {
     count: staff.filter(s => s.department === dept).length
   }))
 
-  const recentHires = Array.from(staff)
-  .sort((a, b) => new Date(b.hireDate) - new Date(a.hireDate))
-  .slice(0, 5);
+  // const recentHires = Array.from(staff)
+  // .sort((a, b) => new Date(b.hireDate) - new Date(a.hireDate))
+  // .slice(0, 5);
 
   return (
     <div className="w-full">
@@ -663,7 +661,7 @@ function StaffAccount() {
                             <Filter className="h-4 w-4" />
                           </div>
                         </TableHead>
-                        <TableHead 
+                        {/* <TableHead 
                           className="cursor-pointer hover:bg-muted/50"
                           onClick={() => handleSort('hireDate')}
                         >
@@ -671,7 +669,7 @@ function StaffAccount() {
                             Hire Date
                             <Filter className="h-4 w-4" />
                           </div>
-                        </TableHead>
+                        </TableHead> */}
                         <TableHead>Actions</TableHead>
                       </TableRow>
                     </TableHeader>
@@ -740,7 +738,7 @@ function StaffAccount() {
                               </Badge>
                             </TableCell>
                             <TableCell>{member.salary ? `${member.salary?.toLocaleString()}` : 'N/A'}</TableCell>
-                            <TableCell>{member.hireDate}</TableCell>
+                            {/* <TableCell>{member.hireDate}</TableCell> */}
                             <TableCell>
                               <div className="flex items-center gap-2">
                                 <Dialog>
@@ -760,7 +758,7 @@ function StaffAccount() {
                                       <DialogTitle className="flex items-center gap-2">
                                         <Avatar className="h-10 w-10 bg-gray-300">
                                           <AvatarImage src={selectedStaff?.avatar} />
-                                          <AvatarFallback>{selectedStaff?.firstName[0]}{selectedStaff?.lastName[0]}</AvatarFallback>
+                                          <AvatarFallback>{selectedStaff?.firstName[0]}{selectedStaff?.lastName && selectedStaff?.lastName[0]}</AvatarFallback>
                                         </Avatar>
                                         {selectedStaff?.firstName} {selectedStaff?.lastName}
                                       </DialogTitle>
@@ -849,16 +847,16 @@ function StaffAccount() {
                                                   <p className="text-sm text-muted-foreground">Annual Salary</p>
                                                   <p className="text-2xl font-bold">${selectedStaff?.salary?.toLocaleString()}</p>
                                                 </div>
-                                                <div>
+                                                {/* <div>
                                                   <p className="text-sm text-muted-foreground">Hire Date</p>
                                                   <p className="font-medium">{selectedStaff?.hireDate}</p>
-                                                </div>
-                                                <div>
+                                                </div> */}
+                                                {/* <div>
                                                   <p className="text-sm text-muted-foreground">Tenure</p>
                                                   <p className="font-medium">
                                                     {Math.floor((new Date().getTime() - new Date(selectedStaff?.hireDate).getTime()) / (1000 * 60 * 60 * 24 * 30))} months
                                                   </p>
-                                                </div>
+                                                </div> */}
                                               </div>
                                             </div>
                                           </div>
@@ -931,7 +929,7 @@ function StaffAccount() {
                                           </div>
                                         )}
 
-                                        {selectedStaff.permissions && selectedStaff.permissions.length > 0 && (
+                                        {/* {selectedStaff.permissions && selectedStaff.permissions.length > 0 && (
                                           <div>
                                             <Label>System Permissions</Label>
                                             <div className="flex flex-wrap gap-2 mt-2">
@@ -940,7 +938,7 @@ function StaffAccount() {
                                               ))}
                                             </div>
                                           </div>
-                                        )}
+                                        )} */}
 
                                         {selectedStaff.notes && (
                                           <div>
@@ -1105,7 +1103,7 @@ function StaffAccount() {
 
           <TabsContent value="reports" className="space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              <Card>
+              {/* <Card>
                 <CardHeader>
                   <CardTitle>Recent Hires</CardTitle>
                   <CardDescription>Newest team members</CardDescription>
@@ -1120,7 +1118,7 @@ function StaffAccount() {
                     ))}
                   </div>
                 </CardContent>
-              </Card>
+              </Card> */}
 
               <Card>
                 <CardHeader>
@@ -1220,7 +1218,7 @@ function StaffAccount() {
 
         {/* Add Staff Dialog */}
         <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto mx-4">
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto mx-1 sm:mx-4">
             <DialogHeader>
               <DialogTitle>Add New Staff Member</DialogTitle>
               <DialogDescription>Create a comprehensive employee profile with role assignments and contact details</DialogDescription>
@@ -1580,7 +1578,7 @@ function StaffAccount() {
 
         {/* Edit Staff Dialog */}
         <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto mx-4">
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto mx-1 sm:mx-4">
             <DialogHeader>
               <DialogTitle>Edit Staff Member</DialogTitle>
               <DialogDescription>Update employee information and employment details</DialogDescription>

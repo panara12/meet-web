@@ -36,7 +36,7 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: [false, 'Last name is required'],
     trim: true
-  },
+  }, 
   email: {
     type: String,
     required: [true, 'Email is required'],
@@ -69,10 +69,6 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: [true, 'Department is required'],
     trim: true
-  },
-  hireDate: {
-    type: Date,
-    default: Date.now
   },
   salary: {
     type: Number,
@@ -110,11 +106,11 @@ const userSchema = new mongoose.Schema({
   },
   
   // Permissions
-  permissions: {
-    type: [String],
-    enum: ['sales_access', 'client_management', 'order_management', 'admin_access', 'report_access'],
-    default: ['sales_access']
-  },
+  // permissions: {
+  //   type: [String],
+  //   enum: ['sales_access', 'client_management', 'order_management', 'admin_access', 'report_access'],
+  //   default: ['sales_access']
+  // },
   
   // Document/Image Information
   documents: [imageSchema],

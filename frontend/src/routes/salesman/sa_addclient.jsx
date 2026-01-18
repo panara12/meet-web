@@ -9,7 +9,7 @@ export default function AddClient() {
     contactPerson: "",
     email: "",
     phone: "",
-    website: "",
+    username:"",
     address: "",
     status: "",
     priority: "",
@@ -40,7 +40,7 @@ export default function AddClient() {
           contactPerson: "",
           email: "",
           phone: "",
-          website: "",
+          username:"",
           address: "",
           status: "",
           priority: "",
@@ -120,6 +120,20 @@ export default function AddClient() {
 
             <div>
               <label className="block text-sm font-medium text-gray-700">
+                UserName
+              </label>
+              <input
+                type="text"
+                required
+                value={formData.username}
+                onChange={(e) => handleChange("username", e.target.value)}
+                placeholder="Enter username"
+                className="w-full border rounded-lg px-3 py-2 mt-1 text-sm"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700">
                 Primary Email
               </label>
               <input
@@ -131,7 +145,7 @@ export default function AddClient() {
               />
             </div>
 
-            <div>
+            {/* <div>
               <label className="block text-sm font-medium text-gray-700">
                 Website
               </label>
@@ -142,7 +156,7 @@ export default function AddClient() {
                 placeholder="https://example.com"
                 className="w-full border rounded-lg px-3 py-2 mt-1 text-sm"
               />
-            </div>
+            </div> */}
 
             <div>
               <label className="block text-sm font-medium text-gray-700">

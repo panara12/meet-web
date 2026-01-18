@@ -15,7 +15,6 @@ router.post('/adddistributer',async (req,res)=>{
         distributer_firms,
         distributer_city,
         distributer_username,
-        distributer_plan,
         user_tenant,
         user_role} = req.body
     // console.log(req.body)
@@ -30,7 +29,6 @@ router.post('/adddistributer',async (req,res)=>{
         distributer_firms,
         distributer_city,
         distributer_username,
-        distributer_plan,
         user_tenant,
         user_role});
     await new_user.save();

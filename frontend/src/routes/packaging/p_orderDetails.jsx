@@ -1,368 +1,345 @@
-import React, { useState } from 'react';
-import { Minus, Plus, Check, ArrowLeft } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { useState } from 'react';
+import { Button } from '../distributer/ui/button';
+import { Checkbox } from '../distributer/ui/checkbox';
+import { Badge } from '../distributer/ui/badge';
+import  Separator  from '../distributer/ui/separator';
+import { Card } from '../distributer/ui/card';
+import { Input } from '../distributer/ui/input';
+import { CartoonCountDialog } from './p_cartoonCountDialog';
+import { useTranslation } from './translations';
+import { toast } from 'sonner';
+import { 
+  Minus, 
+  Plus, 
+  Package, 
+  Calendar, 
+  CheckCircle2, 
+  Clock,
+  Settings,
+  ShoppingBag 
+} from 'lucide-react';
 
-// Sample data structure based on your screenshot
-const sampleOrder = {
-  id: '1',
-  orderNumber: 'ORD-2024-001',
-  date: '2024-01-15',
-  status: 'pending',
-  totalItems: 15,
-  items: [
-    {
-      id: '1',
-      name: 'Executive Office Chairs',
-      description: 'Ergonomic leather chairs with adjustable height',
-      price: 299.99,
-      quantity: 5,
-      instructions: 'Assemble before delivery. Place in conference room.',
-      sentToBilling: false,
-      cartoonCount: null
-    },
-    {
-      id: '2',
-      name: 'Standing Desks',
-      description: 'Electric height-adjustable desks',
-      price: 599.99,
-      quantity: 3,
-      instructions: 'Position near windows for natural light',
-      sentToBilling: true,
-      cartoonCount: 2
-    },
-    {
-      id: '3',
-      name: 'Leo bottle',
-      description: 'Ergonomic leather chairs with adjustable height',
-      price: 299.99,
-      quantity: 10,
-      instructions: 'Assemble before delivery. Place in conference room.',
-      sentToBilling: false,
-      cartoonCount: null
-    },
-    {
-      id: '4',
-      name: 'goodday bottle',
-      description: 'Ergonomic leather chairs with adjustable height',
-      price: 399.99,
-      quantity: 3,
-      instructions: 'Assemble before delivery. Place in conference room.',
-      sentToBilling: false,
-      cartoonCount: null
-    }
-  ]
-};
+export function OrderDetails({ order, onUpdateOrder, onUpdateQuantity, language }) {
+  const { t } = useTranslation(language);
 
-const OrderDetails = () => {
-  const [order, setOrder] = useState(sampleOrder);
-  const [selectedItems, setSelectedItems] = useState(new Set());
+  const [selectedItems, setSelectedItems] = useState(
+    new Set(order.items.filter(item => item.sentToBilling).map(item => item.id))
+  );
   const [showCartoonDialog, setShowCartoonDialog] = useState(false);
-  const [cartoonCount, setCartoonCount] = useState(1);
 
   const handleItemToggle = (itemId) => {
     const item = order.items.find(item => item.id === itemId);
     if (item?.sentToBilling) return;
-    
+
     const newSelected = new Set(selectedItems);
-    if (newSelected.has(itemId)) {
-      newSelected.delete(itemId);
-    } else {
-      newSelected.add(itemId);
-    }
+    newSelected.has(itemId) ? newSelected.delete(itemId) : newSelected.add(itemId);
     setSelectedItems(newSelected);
+  };
+
+  const handleQuantityUpdate = (itemId, newQuantity) => {
+    const item = order.items.find(item => item.id === itemId);
+    if (item?.sentToBilling || newQuantity < 1) return;
+
+    const updatedItems = order.items.map(item =>
+      item.id === itemId ? { ...item, quantity: newQuantity } : item
+    );
+
+    if (onUpdateQuantity) {
+      onUpdateQuantity(order.id, updatedItems);
+      toast.success(t('Quantity updated successfully'));
+    }
   };
 
   const handleQuantityChange = (itemId, delta) => {
     const item = order.items.find(item => item.id === itemId);
     if (!item || item.sentToBilling) return;
-    
-    const newQuantity = Math.max(1, item.quantity + delta);
-    const updatedItems = order.items.map(item => 
-      item.id === itemId ? { ...item, quantity: newQuantity } : item
-    );
-    
-    setOrder({ ...order, items: updatedItems });
+    handleQuantityUpdate(itemId, Math.max(1, item.quantity + delta));
   };
 
-  const handleSelectAll = () => {
-    const availableItemIds = order.items
-      .filter(item => !item.sentToBilling)
-      .map(item => item.id);
-    setSelectedItems(new Set([...selectedItems, ...availableItemIds]));
+  const handleQuantityInputChange = (itemId, value) => {
+    const numericValue = parseInt(value, 10) || 1;
+    handleQuantityUpdate(itemId, Math.max(1, Math.min(999, numericValue)));
   };
 
-  const handleSelectNone = () => {
-    const sentToBillingIds = order.items
-      .filter(item => item.sentToBilling)
-      .map(item => item.id);
-    setSelectedItems(new Set(sentToBillingIds));
-  };
-
-  const handleSendToBilling = () => {
-    const newlySelectedCount = Array.from(selectedItems).filter(itemId => {
-      const item = order.items.find(i => i.id === itemId);
-      return item && !item.sentToBilling;
-    }).length;
-
-    if (newlySelectedCount > 0) {
-      setShowCartoonDialog(true);
-    }
-  };
-
-  const handleCartoonConfirm = () => {
-    const updatedItems = order.items.map(item => ({
-      ...item,
-      sentToBilling: item.sentToBilling || selectedItems.has(item.id),
-      cartoonCount: (selectedItems.has(item.id) && !item.sentToBilling) ? cartoonCount : item.cartoonCount
-    }));
-
-    setOrder({ ...order, items: updatedItems });
-    setShowCartoonDialog(false);
-    setSelectedItems(new Set());
-  };
-
-  const availableItemsCount = order.items.filter(item => !item.sentToBilling).length;
-  const newlySelectedCount = Array.from(selectedItems).filter(itemId => {
-    const item = order.items.find(i => i.id === itemId);
+  const availableItemsCount = order.items.filter(i => !i.sentToBilling).length;
+  const newlySelectedCount = [...selectedItems].filter(id => {
+    const item = order.items.find(i => i.id === id);
     return item && !item.sentToBilling;
   }).length;
 
-  const selectedAmount = order.items
-    .filter(item => selectedItems.has(item.id) && !item.sentToBilling)
-    .reduce((sum, item) => sum + (item.price * item.quantity), 0);
+  const handleSendToBilling = () => {
+    if (newlySelectedCount > 0) setShowCartoonDialog(true);
+  };
 
-  const getStatusColor = (status) => {
-    switch (status) {
-      case 'pending': return 'bg-red-100 text-red-800';
-      case 'processing': return 'bg-blue-100 text-blue-800';
-      case 'completed': return 'bg-green-100 text-green-800';
-      default: return 'bg-gray-100 text-gray-800';
+  const handleCartoonConfirm = (cartoonCount, billingDate) => {
+    const updatedItems = order.items.map(item => ({
+      ...item,
+      sentToBilling: item.sentToBilling || selectedItems.has(item.id),
+      cartoonCount:
+        selectedItems.has(item.id) && !item.sentToBilling
+          ? cartoonCount
+          : item.cartoonCount,
+      billingDate:
+        selectedItems.has(item.id) && !item.sentToBilling
+          ? billingDate
+          : item.billingDate
+    }));
+
+    onUpdateOrder(order.id, updatedItems, cartoonCount);
+
+    toast.success(
+      `${newlySelectedCount} ${t('Items')} sent to billing department with ${cartoonCount} cartoons on ${billingDate}`
+    );
+  };
+
+  const handleSelectAll = () => {
+    const ids = order.items.filter(i => !i.sentToBilling).map(i => i.id);
+    setSelectedItems(new Set([...selectedItems, ...ids]));
+  };
+
+  const handleSelectNone = () => {
+    const sentIds = order.items.filter(i => i.sentToBilling).map(i => i.id);
+    setSelectedItems(new Set(sentIds));
+  };
+
+  const getOrderStatusVariant = () => {
+    switch (order.status) {
+      case 'pending':
+        return 'destructive';
+      case 'processing':
+        return 'secondary';
+      case 'completed':
+        return 'default';
+      default:
+        return 'secondary';
+    }
+  };
+
+  const getStatusIcon = () => {
+    switch (order.status) {
+      case 'pending':
+        return <Clock className="w-3.5 h-3.5 sm:w-4 sm:h-4" />;
+      case 'processing':
+        return <Settings className="w-3.5 h-3.5 sm:w-4 sm:h-4" />;
+      case 'completed':
+        return <CheckCircle2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />;
+      default:
+        return <Package className="w-3.5 h-3.5 sm:w-4 sm:h-4" />;
     }
   };
 
   return (
-    <div className="flex flex-col h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white border-b border-gray-200 p-4 md:p-6">
-        <div className="flex items-center justify-between mb-4">
-          <div className='flex items-center'>
-            <Link to="/packaging/orderslist" className="p-2 hover:bg-gray-200 rounded-full transition-colors">
-              <ArrowLeft className="w-5 h-5 text-gray-600" />
-            </Link>
-            <div>
-                <h2 className="text-xl md:text-2xl font-semibold text-gray-900">
-                Order #{order.orderNumber}
-                </h2>
-                <p className="text-sm text-gray-500">
-                {order.date} • {order.totalItems} Items
-                </p>
+    <div className="flex flex-col h-full bg-background" dir={language === 'ar' ? 'rtl' : 'ltr'}>
+      {/* Header Section */}
+      <div className="p-3 sm:p-4 md:p-5 bg-card border-b border-border shrink-0">
+        {/* Order Info */}
+        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 mb-4">
+          <div className="flex-1 min-w-0">
+            <h2 className="text-base sm:text-lg md:text-xl font-bold text-foreground mb-1">
+              {t('Order')} #{order.orderNumber}
+            </h2>
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs sm:text-sm text-muted-foreground">
+              <div className="flex items-center gap-1">
+                <Calendar className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+                <span>{order.date}</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <ShoppingBag className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+                <span>{order.totalItems} {t('Items')}</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <Package className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+                <span>${order.totalAmount?.toFixed(2) || '0.00'}</span>
+              </div>
             </div>
           </div>
-          <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(order.status)}`}>
-            {order.status}
-          </span>
+          <Badge 
+            variant={getOrderStatusVariant()} 
+            className="text-xs sm:text-sm px-3 py-1 flex items-center gap-1.5 w-fit"
+          >
+            {getStatusIcon()}
+            {t(order.status)}
+          </Badge>
         </div>
 
-        <div className="flex gap-2 mb-4">
-          <button 
-            onClick={handleSelectAll}
+        {/* Action Buttons */}
+        <div className="flex gap-2">
+          <Button 
+            onClick={handleSelectAll} 
+            size="sm" 
+            variant="outline" 
             disabled={availableItemsCount === 0}
-            className="flex-1 md:flex-none px-4 py-2 text-sm border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex-1 text-xs sm:text-sm h-8 sm:h-9 touch-manipulation"
           >
-            Select All
-          </button>
-          <button 
-            onClick={handleSelectNone}
+            {t('Select All')}
+          </Button>
+          <Button 
+            onClick={handleSelectNone} 
+            size="sm" 
+            variant="outline" 
             disabled={newlySelectedCount === 0}
-            className="flex-1 md:flex-none px-4 py-2 text-sm border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex-1 text-xs sm:text-sm h-8 sm:h-9 touch-manipulation"
           >
-            Select None
-          </button>
+            {t('Select None')}
+          </Button>
         </div>
 
-        <div className="text-sm text-gray-600">
-          Selected: {newlySelectedCount} Items ({availableItemsCount} available) • ${selectedAmount.toFixed(2)}
-        </div>
+        {/* Selection Stats */}
+        {newlySelectedCount > 0 && (
+          <div className="mt-3 p-2 sm:p-3 bg-primary/5 border border-primary/20 rounded-lg">
+            <p className="text-xs sm:text-sm text-primary font-medium">
+              {newlySelectedCount} {t('Items')} selected for billing
+            </p>
+          </div>
+        )}
       </div>
 
       {/* Items List */}
-      <div className="flex-1 overflow-y-auto p-4 md:p-6">
-        <div className="space-y-4">
-          {order.items.map((item) => (
-            <div 
-              key={item.id}
-              className={`bg-white rounded-lg border border-gray-200 p-4 transition-opacity ${
-                item.sentToBilling ? 'opacity-60 bg-gray-50' : ''
+      <div className="flex-1 overflow-y-auto p-2 sm:p-3 md:p-4">
+        <div className="space-y-2 sm:space-y-3">
+          {order.items.map(item => (
+            <Card 
+              key={item.id} 
+              className={`p-3 sm:p-4 transition-all duration-200 ${
+                item.sentToBilling 
+                  ? 'opacity-60 bg-muted/30' 
+                  : 'hover:shadow-md hover:border-primary/30'
+              } ${
+                selectedItems.has(item.id) && !item.sentToBilling
+                  ? 'border-primary bg-primary/5'
+                  : ''
               }`}
             >
-              <div className="flex items-start gap-3">
-                <div className="flex items-center mt-1">
-                  <input
-                    type="checkbox"
+              <div className="flex gap-3 sm:gap-4">
+                {/* Checkbox */}
+                <div className="flex-shrink-0 pt-1">
+                  <Checkbox
                     checked={selectedItems.has(item.id)}
-                    onChange={() => handleItemToggle(item.id)}
+                    onCheckedChange={() => handleItemToggle(item.id)}
                     disabled={item.sentToBilling}
-                    className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 disabled:opacity-50"
+                    className="w-5 h-5 sm:w-6 sm:h-6"
                   />
                 </div>
 
+                {/* Item Content */}
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-start justify-between gap-4">
+                  <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2 sm:gap-4">
+                    {/* Item Info */}
                     <div className="flex-1 min-w-0">
-                      <h4 className={`text-base md:text-lg font-medium ${
-                        item.sentToBilling ? 'text-gray-400 line-through' : 'text-gray-900'
+                      <h4 className={`text-sm sm:text-base font-semibold mb-1 ${
+                        item.sentToBilling ? 'line-through text-muted-foreground' : 'text-foreground'
                       }`}>
                         {item.name}
                       </h4>
                       {item.description && (
-                        <p className={`text-sm mt-1 ${
-                          item.sentToBilling ? 'text-gray-400 line-through' : 'text-gray-600'
+                        <p className={`text-xs sm:text-sm mb-2 ${
+                          item.sentToBilling ? 'line-through text-muted-foreground' : 'text-muted-foreground'
                         }`}>
                           {item.description}
                         </p>
                       )}
+                      {item.instructions && (
+                        <div className={`mt-2 p-2 sm:p-2.5 bg-accent rounded-lg ${
+                          item.sentToBilling ? 'opacity-60' : ''
+                        }`}>
+                          <p className={`text-xs sm:text-sm ${
+                            item.sentToBilling ? 'line-through' : ''
+                          }`}>
+                            <span className="font-semibold">{t('Instructions')}: </span>
+                            {item.instructions}
+                          </p>
+                        </div>
+                      )}
                     </div>
 
-                    <div className="text-right">
-                      <div className={`text-base md:text-lg font-medium ${
-                        item.sentToBilling ? 'text-gray-400' : 'text-gray-900'
+                    {/* Price & Quantity */}
+                    <div className="flex-shrink-0 text-right">
+                      <div className={`text-sm sm:text-base font-semibold mb-2 ${
+                        item.sentToBilling ? 'text-muted-foreground' : 'text-foreground'
                       }`}>
-                        ${item.price}
+                        ${item.price?.toFixed(2) || '0.00'}
                       </div>
                       
                       {!item.sentToBilling ? (
-                        <div className="flex items-center gap-2 mt-2">
-                          <button
+                        <div className="flex items-center gap-1 sm:gap-1.5 justify-end">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="h-7 w-7 sm:h-8 sm:w-8 p-0 touch-manipulation"
                             onClick={() => handleQuantityChange(item.id, -1)}
                             disabled={item.quantity <= 1}
-                            className="w-8 h-8 flex items-center justify-center border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50"
                           >
-                            <Minus className="w-4 h-4" />
-                          </button>
-                          <span className="w-8 text-center text-sm font-medium">
-                            {item.quantity}
-                          </span>
-                          <button
+                            <Minus className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+                          </Button>
+                          <Input
+                            type="number"
+                            min="1"
+                            max="999"
+                            value={item.quantity}
+                            onChange={e => handleQuantityInputChange(item.id, e.target.value)}
+                            className="w-12 sm:w-14 h-7 sm:h-8 text-center text-xs sm:text-sm font-medium"
+                          />
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="h-7 w-7 sm:h-8 sm:w-8 p-0 touch-manipulation"
                             onClick={() => handleQuantityChange(item.id, 1)}
-                            className="w-8 h-8 flex items-center justify-center border border-gray-300 rounded hover:bg-gray-50"
+                            disabled={item.quantity >= 999}
                           >
-                            <Plus className="w-4 h-4" />
-                          </button>
+                            <Plus className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+                          </Button>
                         </div>
                       ) : (
-                        <div className="text-sm text-gray-400 mt-2">
-                          Qty: {item.quantity}
-                        </div>
+                        <span className="text-xs sm:text-sm text-muted-foreground">
+                          {t('Qty')}: {item.quantity}
+                        </span>
                       )}
                     </div>
                   </div>
 
-                  {item.instructions && (
-                    <div className={`mt-3 p-3 bg-gray-100 rounded-lg ${
-                      item.sentToBilling ? 'opacity-60' : ''
-                    }`}>
-                      <p className={`text-sm ${
-                        item.sentToBilling ? 'line-through text-gray-400' : 'text-gray-700'
-                      }`}>
-                        <span className="font-medium">Instructions: </span>
-                        {item.instructions}
-                      </p>
-                    </div>
-                  )}
-
+                  {/* Item Footer */}
                   <div className="flex items-center gap-2 mt-3 flex-wrap">
-                    <span className={`px-2 py-1 bg-gray-100 text-gray-800 rounded text-xs font-medium ${
-                      item.sentToBilling ? 'opacity-60' : ''
-                    }`}>
-                      ${(item.price * item.quantity).toFixed(2)} total
-                    </span>
+                    <Badge variant="outline" className="text-[10px] sm:text-xs">
+                      ${((item.price || 0) * (item.quantity || 0)).toFixed(2)} {t('total')}
+                    </Badge>
                     {item.sentToBilling && (
-                      <span className="px-2 py-1 bg-green-100 text-green-800 rounded text-xs font-medium">
-                        Sent to Billing
-                      </span>
+                      <Badge variant="default" className="text-[10px] sm:text-xs">
+                        {t('Sent to Billing')}
+                      </Badge>
                     )}
                     {item.cartoonCount && (
-                      <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs font-medium">
+                      <Badge variant="secondary" className="text-[10px] sm:text-xs">
                         {item.cartoonCount} cartoons
-                      </span>
+                      </Badge>
                     )}
                   </div>
                 </div>
               </div>
-            </div>
+            </Card>
           ))}
         </div>
       </div>
 
-      {/* Footer */}
-      <div className="bg-white border-t border-gray-200 p-4 md:p-6">
-        <div className="border-t border-gray-200 pt-4 justify-between flex">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <div className="text-base font-medium text-gray-900">
-                Selected Items: {newlySelectedCount}
-              </div>
-              <div className="text-base font-medium text-gray-900">
-                Total Amount: ${selectedAmount.toFixed(2)}
-              </div>
-            </div>
-          </div>
-          <div className=''>
-            <button 
-                onClick={handleSendToBilling}
-                disabled={newlySelectedCount === 0}
-                className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-                Send to Billing {newlySelectedCount > 0 ? `(${newlySelectedCount})` : ''}
-            </button>
-          </div>
-        </div>
+      {/* Footer - Send to Billing */}
+      <div className="p-3 sm:p-4 md:p-5 border-t border-border bg-card shrink-0">
+        <Separator className="mb-3 sm:mb-4" />
+        <Button 
+          onClick={handleSendToBilling} 
+          disabled={newlySelectedCount === 0} 
+          className="w-full h-10 sm:h-11 md:h-12 text-sm sm:text-base font-semibold touch-manipulation"
+        >
+          {t('Send to Billing')} ({newlySelectedCount})
+        </Button>
       </div>
 
       {/* Cartoon Count Dialog */}
-      {showCartoonDialog && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md">
-            <h3 className="text-lg font-semibold mb-4">Set Cartoon Count</h3>
-            <p className="text-sm text-gray-600 mb-4">
-              How many cartoons should be included with the {newlySelectedCount} selected item{newlySelectedCount !== 1 ? 's' : ''}?
-            </p>
-            <div className="flex items-center gap-3 mb-6">
-              <button
-                onClick={() => setCartoonCount(Math.max(1, cartoonCount - 1))}
-                className="w-10 h-10 flex items-center justify-center border border-gray-300 rounded hover:bg-gray-50"
-              >
-                <Minus className="w-4 h-4" />
-              </button>
-              <span className="text-xl font-medium w-12 text-center">
-                {cartoonCount}
-              </span>
-              <button
-                onClick={() => setCartoonCount(cartoonCount + 1)}
-                className="w-10 h-10 flex items-center justify-center border border-gray-300 rounded hover:bg-gray-50"
-              >
-                <Plus className="w-4 h-4" />
-              </button>
-            </div>
-            <div className="flex gap-3">
-              <button
-                onClick={() => setShowCartoonDialog(false)}
-                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleCartoonConfirm}
-                className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-              >
-                Confirm
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <CartoonCountDialog
+        isOpen={showCartoonDialog}
+        onClose={() => setShowCartoonDialog(false)}
+        onConfirm={handleCartoonConfirm}
+        selectedItemsCount={newlySelectedCount}
+        language={language}
+      />
     </div>
   );
-};
-
-export default OrderDetails;
+}

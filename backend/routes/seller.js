@@ -11,9 +11,9 @@ router.use(tenent_checker);
 router.post('/addseller',user_session_checker("add_seller"),async(req,res)=>{
     manualLog('entered in add new seller route')
     try {
-        const {name,email,phone,address,contactPerson,website,status,priority,industry,companySize,paymentTerms,gstNumber,creditLimit,tags,notes,userRole} = req.body
+        const {name,email,phone,address,contactPerson,status,priority,industry,companySize,paymentTerms,gstNumber,creditLimit,tags,notes,userRole,username} = req.body
         //hash round and convert normal password to hasspassword
-        const password = "youdon'tknow"
+        const password = "seller123"
         const saltRounds = 10;
         const hashedPassword = await bcrypt.hash(password, saltRounds);
         const SellerModel = req.db.model("Seller");
@@ -24,8 +24,8 @@ router.post('/addseller',user_session_checker("add_seller"),async(req,res)=>{
             phone,
             address,
             contactPerson,
+            username,
             password: hashedPassword,
-            website,
             status,
             priority,
             industry,
@@ -43,7 +43,8 @@ router.post('/addseller',user_session_checker("add_seller"),async(req,res)=>{
             user_email:email,
             tenant_user_id:new_seller._id,
             user_password:hashedPassword,
-            user_username:phone,
+            user_username:username,
+            user_mobile:phone,
             user_tenant:req.session.user.tenant,
             user_role:"seller"
         });
@@ -70,7 +71,7 @@ router.post('/updateseller/:id',user_session_checker("edit_seller"),async(req,re
     manualLog('entered in update seller route')
     try {
         const {id} = req.params;
-        const {name,email,phone,address,contactPerson,website,status,priority,industry,companySize,paymentTerms,gstNumber,creditLimit,tags,notes,userRole} = req.body;
+        const {name,email,phone,address,contactPerson,status,priority,industry,companySize,paymentTerms,gstNumber,creditLimit,tags,notes,userRole} = req.body;
         
         const user_data = {
             name,
@@ -78,7 +79,6 @@ router.post('/updateseller/:id',user_session_checker("edit_seller"),async(req,re
             phone,
             address,
             contactPerson,
-            website,
             status,
             priority,
             industry,

@@ -18,7 +18,7 @@ const limitsSchema = new mongoose.Schema({
     },
     liveLocationlimit:{
         type: Number,
-        default: 20
+        default: 35
     },
     totalLiveLocationlimit:{
         type: Number,
@@ -26,11 +26,19 @@ const limitsSchema = new mongoose.Schema({
     },
     routeLocationlimit:{
         type: Number,
-        default: 20
+        default: 35
     },
     totalRouteLocationlimit:{
         type: Number,
         default: 35
+    },
+    getPhotos:{
+        type: Boolean,
+        default: true
+    },
+    idAdminMembers:{
+        type: Boolean,
+        default: false
     }
 })
 

@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import { Textarea } from "./ui/textarea"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs"
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "./ui/alert-dialog"
-import { Search, Plus, Eye, Edit, Trash2, Mail, Phone, MapPin, Building2, Calendar, IndianRupeeIcon, Package, ArrowUpDown, Star, Clock, TrendingUp, FileText, Users, Loader2, ChevronLeft, ChevronRight } from "lucide-react"
+import { Search, Plus, Eye, Edit, Trash2, Mail, Phone, MapPin, Building2, Calendar, IndianRupeeIcon, Package, ArrowUpDown, Star, Clock, TrendingUp, FileText, Users, Loader2, ChevronLeft, ChevronRight, User } from "lucide-react"
 import { toast } from "sonner"
 import { useGetAllSeller } from "../../hooks/seller/useGetAllSeller"
 import { useUpdateSeller } from "../../hooks/seller/useUpdateSeller"
@@ -22,12 +22,13 @@ const defaultFormData = {
   name: "",
   email: "",
   phone: "",
+  username:"",
   address: "",
   status: "Active",
   industry: "",
   contactPerson: "",
   notes: "",
-  website: "",
+  // website: "",
   companySize: "",
   priority: "Medium",
   paymentTerms: "Net 30",
@@ -129,8 +130,6 @@ function ClientList() {
   }, [getSellerList]);
 
   
-
-
     const handleStatusFilterChange = (value) => {
       setStatusFilter(value);
       setCurrentPage(1); // Reset to first page
@@ -212,12 +211,13 @@ function ClientList() {
       name: formData.name.trim(),
       email: formData.email.trim(),
       phone: formData.phone.trim(),
+      username:formData.username.trim(),
       address: formData.address.trim(),
       status: formData.status,
       industry: formData.industry.trim() || undefined,
       contactPerson: formData.contactPerson.trim() || undefined,
       notes: formData.notes.trim() || undefined,
-      website: formData.website.trim() || undefined,
+      // website: formData.website.trim() || undefined,
       companySize: formData.companySize.trim() || undefined,
       priority: formData.priority,
       paymentTerms: formData.paymentTerms.trim() || undefined,
@@ -259,12 +259,13 @@ function ClientList() {
             name: formData.name.trim(),
             email: formData.email.trim(),
             phone: formData.phone.trim(),
+            username:formData.username.trim(),
             address: formData.address.trim(),
             status: formData.status,
             industry: formData.industry.trim() || undefined,
             contactPerson: formData.contactPerson.trim() || undefined,
             notes: formData.notes.trim() || undefined,
-            website: formData.website.trim() || undefined,
+            // website: formData.website.trim() || undefined,
             companySize: formData.companySize.trim() || undefined,
             priority: formData.priority,
             paymentTerms: formData.paymentTerms.trim() || undefined,
@@ -288,12 +289,13 @@ function ClientList() {
       name: client.name,
       email: client.email,
       phone: client.phone,
+      username: client.username || "",
       address: client.address,
       status: client.status,
       industry: client.industry || "",
       contactPerson: client.contactPerson || "",
       notes: client.notes || "",
-      website: client.website || "",
+      // website: client.website || "",
       companySize: client.companySize || "",
       priority: client.priority || "Medium",
       paymentTerms: client.paymentTerms || "",
@@ -322,7 +324,7 @@ function ClientList() {
   const getStatusVariant = useCallback((status) => {
     switch (status) {
       case "Active": return "default";
-      case "VIP": return "default";
+      case "VIP": return "destructive";
       case "Pending": return "secondary";
       case "Inactive": return "outline";
       default: return "secondary";
@@ -341,7 +343,7 @@ function ClientList() {
   // Calculated stats
   const activeClients = clients.filter(c => c.status === "Active" || c.status === "VIP").length;
   const vipClients = clients.filter(c => c.status === "VIP").length;
-  const totalRevenue = clients.reduce((sum, client) => sum + (client.totalSpent || 0), 0);
+  // const totalRevenue = clients.reduce((sum, client) => sum + (client.totalSpent || 0), 0);
   const totalOrders = clients.reduce((sum, client) => sum + (client.totalOrders || 0), 0);
   const highPriorityClients = clients.filter(c => c.priority === "High").length;
 
@@ -386,16 +388,16 @@ function ClientList() {
             </CardContent>
           </Card>
 
-          <Card>
+          {/* <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
               <IndianRupeeIcon className="h-4 w-4 text-green-500" />
             </CardHeader>
-            <CardContent>
+            {/* <CardContent>
               <div className="text-2xl font-bold flex items-center"><IndianRupeeIcon className="h-4 w-4 text-black" />{totalRevenue.toLocaleString()}</div>
               <p className="text-xs text-muted-foreground">Lifetime client value</p>
-            </CardContent>
-          </Card>
+            </CardContent> 
+          </Card> */}
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -502,7 +504,7 @@ function ClientList() {
                             <ArrowUpDown className="h-4 w-4" />
                           </div>
                         </TableHead>
-                        <TableHead
+                        {/* <TableHead
                           className="cursor-pointer hover:bg-muted/50"
                           onClick={() => handleSort('totalSpent')}
                         >
@@ -510,16 +512,13 @@ function ClientList() {
                             Revenue
                             <ArrowUpDown className="h-4 w-4" />
                           </div>
-                        </TableHead>
-                        <TableHead
-                          className="cursor-pointer hover:bg-muted/50"
-                          onClick={() => handleSort('lastOrder')}
-                        >
+                        </TableHead> */}
+                        {/* <TableHead className="cursor-pointer hover:bg-muted/50" onClick={() => handleSort('lastOrder')}>
                           <div className="flex items-center gap-2">
                             Last Order
                             <ArrowUpDown className="h-4 w-4" />
                           </div>
-                        </TableHead>
+                        </TableHead> */}
                         <TableHead>Actions</TableHead>
                       </TableRow>
                     </TableHeader>
@@ -557,6 +556,12 @@ function ClientList() {
                                         <span className="text-sm">{client.phone}</span>
                                       </div>
                                     )}
+                                    {client.username && (
+                                      <div className="flex items-center gap-2">
+                                        <User className="h-3 w-3 text-muted-foreground" />
+                                        <span className="text-sm">{client.username}</span>
+                                      </div>
+                                    )}
                                     {client.industry && (
                                       <p className="text-xs text-muted-foreground">{client.industry}</p>
                                     )}
@@ -575,12 +580,12 @@ function ClientList() {
                                   )}
                                 </TableCell>
                                 <TableCell>{client.totalOrders}</TableCell>
-                                <TableCell className="flex items-center"><IndianRupeeIcon className="h-4 w-4 text-black" />{client.totalSpent.toLocaleString()}</TableCell>
-                                <TableCell>
+                                {/* <TableCell className="flex items-center"><IndianRupeeIcon className="h-4 w-4 text-black" />{client.totalSpent.toLocaleString()}</TableCell> */}
+                                {/* <TableCell>
                                   <span className={client.lastOrder === "Never" ? "text-muted-foreground" : ""}>
                                     {client?.lastOrder}
                                   </span>
-                                </TableCell>
+                                </TableCell> */}
                                 <TableCell>
                                   <div className="flex items-center gap-2">
                                     <Dialog>
@@ -639,20 +644,26 @@ function ClientList() {
                                                         <span className="text-sm">{selectedClient.phone}</span>
                                                       </div>
                                                     )}
+                                                    {selectedClient.username && (
+                                                      <div className="flex items-center gap-2">
+                                                        <User className="h-4 w-4 text-muted-foreground" />
+                                                        <span className="text-sm">{selectedClient.username}</span>
+                                                      </div>
+                                                    )}
                                                     {selectedClient.address && (
                                                       <div className="flex items-center gap-2">
                                                         <MapPin className="h-4 w-4 text-muted-foreground" />
                                                         <span className="text-sm">{selectedClient.address}</span>
                                                       </div>
                                                     )}
-                                                    {selectedClient.website && (
+                                                    {/* {selectedClient.website && (
                                                       <div className="flex items-center gap-2">
                                                         <Building2 className="h-4 w-4 text-muted-foreground" />
                                                         <a href={selectedClient.website} target="_blank" rel="noopener noreferrer" className="text-sm text-blue-600 hover:underline">
                                                           {selectedClient.website}
                                                         </a>
                                                       </div>
-                                                    )}
+                                                    )} */}
                                                   </div>
                                                 </div>
                                               </div>
@@ -697,10 +708,10 @@ function ClientList() {
                                                       <p className="text-sm text-muted-foreground">Total Orders</p>
                                                       <p className="text-2xl font-bold">{selectedClient.totalOrders}</p>
                                                     </div>
-                                                    <div>
+                                                    {/* <div>
                                                       <p className="text-sm text-muted-foreground">Total Revenue</p>
                                                       <p className="text-2xl font-bold"><IndianRupeeIcon className="h-4 w-4 text-black" />{selectedClient.totalSpent.toLocaleString()}</p>
-                                                    </div>
+                                                    </div> */}
                                                     <div>
                                                       <p className="text-sm text-muted-foreground">Last Order</p>
                                                       <p className="font-medium">{selectedClient.lastOrder}</p>
@@ -889,7 +900,7 @@ function ClientList() {
                 </CardContent>
               </Card>
 
-              <Card>
+              {/* <Card>
                 <CardHeader>
                   <CardTitle>Top Clients by Revenue</CardTitle>
                   <CardDescription>Highest value business relationships</CardDescription>
@@ -908,7 +919,7 @@ function ClientList() {
                     ))}
                   </div>
                 </CardContent>
-              </Card>
+              </Card> */}
             </div>
           </TabsContent>
 
@@ -931,7 +942,7 @@ function ClientList() {
                 </CardContent>
               </Card>
 
-              <Card>
+              {/* <Card>
                 <CardHeader>
                   <CardTitle>Revenue Growth</CardTitle>
                   <CardDescription>Total client lifetime value</CardDescription>
@@ -948,7 +959,7 @@ function ClientList() {
                     </div>
                   </div>
                 </CardContent>
-              </Card>
+              </Card> */}
 
               <Card>
                 <CardHeader>
@@ -967,12 +978,12 @@ function ClientList() {
                       <p className="text-sm text-muted-foreground">VIP Clients</p>
                       <p className="text-lg font-bold">{vipClients}</p>
                     </div>
-                    <div>
+                    {/* <div>
                       <p className="text-sm text-muted-foreground">Avg Revenue/Client</p>
                       <p className="text-lg font-bold">
                         ${Math.round(totalRevenue / totalClients).toLocaleString()}
                       </p>
-                    </div>
+                    </div> */}
                   </div>
                 </CardContent>
               </Card>
@@ -1023,6 +1034,15 @@ function ClientList() {
                   />
                 </div>
                 <div>
+                  <Label htmlFor="user-name">User Name</Label>
+                  <Input
+                    id="user-name"
+                    value={formData.username}
+                    onChange={(e) => updateFormData('username', e.target.value)}
+                    placeholder="Enter username"
+                  />
+                </div>
+                {/* <div>
                   <Label htmlFor="add-website">Website</Label>
                   <Input
                     id="add-website"
@@ -1030,7 +1050,7 @@ function ClientList() {
                     onChange={(e) => updateFormData('website', e.target.value)}
                     placeholder="https://company.com"
                   />
-                </div>
+                </div> */}
               </div>
 
               <div>
@@ -1224,6 +1244,15 @@ function ClientList() {
                   />
                 </div>
                 <div>
+                  <Label htmlFor="user-name">User Name</Label>
+                  <Input
+                    id="user-name"
+                    value={formData.username}
+                    onChange={(e) => updateFormData('username', e.target.value)}
+                    placeholder="Enter username"
+                  />
+                </div>
+                {/* <div>
                   <Label htmlFor="edit-website">Website</Label>
                   <Input
                     id="edit-website"
@@ -1231,8 +1260,8 @@ function ClientList() {
                     onChange={(e) => updateFormData('website', e.target.value)}
                     placeholder="https://company.com"
                   />
-                </div>
-              </div>
+                </div> */}
+              </div> 
 
               <div>
                 <Label htmlFor="edit-address">Business Address</Label>

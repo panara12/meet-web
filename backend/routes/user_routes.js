@@ -18,7 +18,7 @@ router.post('/adduser', user_session_checker('add_user'), upload.fields([
   ]), async (req, res) => {
   manualLog('entered in add new user route');
   try {
-    const { firstName, lastName, email, phone, address, role, department, hireDate, salary, username, password, workHours, permissions, emergencyContact, notes, aadhaarNumber, panNumber, drivingLicenseNumber, accountHolderName, bankAccountNumber, bankName, ifscCode, bankBranch } = req.body;
+    const { firstName, lastName, email, phone, address, role, department, salary, username, password, workHours, emergencyContact, notes, aadhaarNumber, panNumber, drivingLicenseNumber, accountHolderName, bankAccountNumber, bankName, ifscCode, bankBranch } = req.body;
     const tenent_username = req.tenent.D_dbname;
     let imageDocs = []
     const folderPath = `${tenent_username}/${firstName}-${lastName}`;
@@ -68,14 +68,12 @@ router.post('/adduser', user_session_checker('add_user'), upload.fields([
       address,
       role,
       department,
-      hireDate: hireDate || new Date(),
       salary: salary || 0,
       username,
       password: hashedPassword,
       documents: imageDocs,
       workHours: workHours || 'Full-time',
       status: 'Active',
-      permissions: permissions || ['sales_access'],
       emergencyContact: emergencyContact,
       notes,
       aadhaarNumber,
@@ -172,9 +170,9 @@ router.post('/updateuser/:id', user_session_checker('edit_user'), async (req, re
       req_user_data.emergencyContact = JSON.parse(req_user_data.emergencyContact);
     }
 
-    if (req_user_data.permissions && typeof req_user_data.permissions === 'string') {
-      req_user_data.permissions = JSON.parse(req_user_data.permissions);
-    }
+    // if (req_user_data.permissions && typeof req_user_data.permissions === 'string') {
+    //   req_user_data.permissions = JSON.parse(req_user_data.permissions);
+    // }
 
     // Hash password if provided
     if (req_user_data.password) {

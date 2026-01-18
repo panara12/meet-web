@@ -32,25 +32,18 @@ const sellerSchema = mongoose.Schema({
     },
     contactPerson: {
         type: String,
-        required: [true, 'Contact person name is required'],
+        required: [false, 'Contact person name is required'],
         trim: true
     },
 
     // Nullable fields with defaults
-    password: {
+    username:{
         type: String,
         default: null
     },
-    website: {
+    password: {
         type: String,
-        default: null,
-        validate: {
-            validator: function (v) {
-                if (!v) return true;
-                return /^https?:\/\/[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}(\/[^\s]*)?$/.test(v);
-            },
-            message: 'Please provide a valid website URL'
-        }
+        default: null
     },
     status: {
         type: String,
