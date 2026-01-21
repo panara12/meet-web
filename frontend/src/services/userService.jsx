@@ -8,7 +8,7 @@ const userServices = {
     getUserById:async (payload) => {
         const res  = await apiHelper.get('/user/getuser/'+payload.id,)
         return res;
-    },
+    }, 
     getAllByRoleUser:async (payload)=>{
         const res = await apiHelper.post('/user/getbyuserrole',payload);
         return res;
@@ -37,9 +37,12 @@ const userServices = {
         const res = await apiHelper.get(`/user/getalluser?${queryParams.toString()}`);
         return res.data;
     },
-    updateUser:(payload) => apiHelper.post('/user/updateuser/'+payload.id,payload,{
-        headers: { "Content-Type": "multipart/form-data" }
-    }),
+    updateUser:(payload) => {
+        console.log("update payload",payload);
+        const res  = apiHelper.post('/user/updateuser/'+payload.id,payload,{
+        headers: { "Content-Type": "multipart/form-data" }})
+        return res;
+    },
     deleteUser:(payload) => apiHelper.delete('/user/deleteuser/'+payload.id)
 }
 

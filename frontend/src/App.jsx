@@ -13,6 +13,7 @@ import Packaging_router from './routes/packaging/packaging_router'
 import Billing_router from './routes/billing/billing_router'
 import SalesmanOutlet from './component/ui/salesmanOutlet'
 import { useState } from 'react'
+import TenantRegistrationPage from './routes/tenant/addtenant'
 
 
 function App() {
@@ -21,6 +22,7 @@ function App() {
     <>
       <BrowserRouter>
         <Routes>
+          <Route path='/addtenant' element={<TenantRegistrationPage />}></Route>
           <Route path="/loading" element={<LoadingPage/>}></Route>
           <Route path="/forgotpassword" element={<PasswordReset/>}></Route>
           <Route path="/resetpassword" element={<ResetPasswordPage/>}></Route>

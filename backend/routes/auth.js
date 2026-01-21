@@ -12,14 +12,28 @@ const ResetPassword = require('../models/reset_password_model');
 router.post('/login',async(req,res)=>{
     manualLog(`entered in login`)
     try {
-        const {username,password} = req.body
-        const user_data = await Tenent_user_master.findOne({
-            $or: [
-                { user_email: username },
-                { user_username: username }
-            ]
-        });
-        // console.log("get user data",user_data);
+        const {type,username,password} = req.body
+        console.log("tyeo",type)
+        let user_data = {}
+        if(type == "Username"){
+            user_data = await Tenent_user_master.findOne({ user_username: username })
+            console.log("username worke", user_data)
+        }else if(type == "Mobile"){
+            user_data = await Tenent_user_master.findOne({ user_mobile: username })
+            console.log("mobile", user_data,username)
+        }else{
+            user_data = await Tenent_user_master.findOne({ user_email: username })
+            console.log("email", user_data)
+        }
+
+        // const user_data = await Tenent_user_master.findOne({
+        //     $or: [
+        //         { user_email: username },
+        //         { user_username: username },
+        //         { user_mobile: username}
+        //     ]
+        // });
+        console.log("get user data",user_data);
 
         if(user_data == null){
             return res.status(400).send({ 
@@ -148,9 +162,15 @@ router.post("/checkotp",async(req,res)=>{
         }
         console.log(req.body)
         const now = Date.now();
-        const userdata = await ResetPassword.findOne({user_email:email,otp_expiry:{$gt:now},user_otp:otp}).sort({ createdAt: -1 });
+        const userdata = await ResetPassword.findOne(
+            {$and: [
+                { user_email: email },
+                { user_otp: otp },
+                { otp_expiry: { $gt: new Date() } }
+            ]}).sort({ createdAt: -1 });
+            
         console.log("userdata==",userdata)
-        if (!userdata) {
+        if (!userdata || userdata == null) {
             return res.send({ success: false, message: "Invalid or expired OTP" });
         } 
 

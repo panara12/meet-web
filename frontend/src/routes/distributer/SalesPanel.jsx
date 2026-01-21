@@ -814,6 +814,8 @@ function SalesPanel() {
             </Card>
           ))}
         </div>
+
+        {/* pagination */}
         <div>
           {!isLoading && staff.length > 0 && (  
             <div className="mt-4 pt-4 border-t">

@@ -1,36 +1,47 @@
 import { Icon } from '@iconify/react'
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ChevronDown, Shield, User, Package, CreditCard, Truck } from 'lucide-react';
 import { useLogin } from '../../hooks/auth/useLogin';
 import ErrorMessage from '../../component/ui/errorMessage';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
+import { useSelector } from 'react-redux';
 
 
 function Login() {
-    const [selectedLoginType, setSelectedLoginType] = useState('username');
+    const [selectedLoginType, setSelectedLoginType] = useState('Email');
     const [username, setusername] = useState('');
     const [password, setPassword] = useState('');
     const {mutate:UserLogin,isPending, isError, error} = useLogin();
+    const [formError, setFormError] = useState('');
+    const [errorOtp,setErrorOtp] = useState("");
+    const location = useLocation();
+    useEffect(() => {
+      if (location?.state?.result) {
+        setErrorOtp(location.state.result);
+        window.history.replaceState({}, document.title); // Clear state
+      }
+    }, [location]);
+    
 
     const [isOpen, setIsOpen] = useState(false);
     const [selectedRole, setSelectedRole] = useState(null);
 
   const roles = [
     {
-      id: 'administrator',
-      name: 'Administrator',
+      id: 'admin',
+      name: 'Admin',
       icon: <Shield className="w-5 h-5 text-red-500" />,
       color: 'border-red-200 bg-red-50'
     },
     {
-      id: 'sales-person',
-      name: 'Sales Person',
+      id: 'salesman',
+      name: 'Salesman',
       icon: <User className="w-5 h-5 text-green-500" />,
       color: 'border-green-200 bg-green-50'
     },
     {
-      id: 'packing-department',
-      name: 'Packing Department',
+      id: 'packing',
+      name: 'Packing',
       icon: <Package className="w-5 h-5 text-blue-500" />,
       color: 'border-blue-200 bg-blue-50'
     }
@@ -50,12 +61,38 @@ function Login() {
 
   const handleRoleSelect = (role) => {
     setSelectedRole(role);
+    setFormError('');
     setIsOpen(false);
   };
 
   const handleLogin = ()=>{
-    const userdata = {username:username,password:password}
+     setFormError('');
+     if (!selectedRole) {
+      setFormError('Please select your department');
+      return;
+    }
+
+    if (!selectedLoginType) {
+      setFormError('Please select login type');
+      return;
+    }
+
+    if (!username.trim()) {
+      setFormError(`Please enter your ${selectedLoginType.toLowerCase()}`);
+      return;
+    }
+
+    if (!password.trim()) {
+      setFormError('Please enter your password');
+      return;
+    }
+    const userdata = {
+      type:selectedLoginType,
+      username:username.trim(),
+      password:password.trim()
+    }
     UserLogin(userdata);
+    
   }
 
 
@@ -173,7 +210,7 @@ function Login() {
                 Login Credentials
               </label>
               <div className="flex bg-gray-100 rounded-lg p-1">
-                {['username', 'Mobile', 'Email'].map((type) => (
+                {['Email','Username', 'Mobile'].map((type) => (
                   <button
                     key={type}
                     onClick={() => setSelectedLoginType(type)}
@@ -214,6 +251,13 @@ function Login() {
               />
             </div>
 
+            {/* Validation Error */}
+            {formError && (
+              <div className="mb-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded px-3 py-2">
+                {formError}
+              </div>
+            )}
+
             {/* Forgot Password */}
             <div className="flex items-center justify-between mb-6">
               <Link to="/forgotpassword" className="text-sm text-blue-600 hover:text-blue-800 transition-colors">
@@ -228,6 +272,10 @@ function Login() {
 
             {
               isError &&  <ErrorMessage message={error.response.data.message} />
+            }
+
+            {
+              errorOtp && <ErrorMessage message={errorOtp} />
             }
 
             {/* Support Link */}

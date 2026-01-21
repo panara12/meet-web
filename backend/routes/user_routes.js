@@ -18,7 +18,7 @@ router.post('/adduser', user_session_checker('add_user'), upload.fields([
   ]), async (req, res) => {
   manualLog('entered in add new user route');
   try {
-    const { firstName, lastName, email, phone, address, role, department, salary, username, password, workHours, emergencyContact, notes, aadhaarNumber, panNumber, drivingLicenseNumber, accountHolderName, bankAccountNumber, bankName, ifscCode, bankBranch } = req.body;
+    const { firstName, lastName, email, phone, address, role, salary, username, password, workHours, emergencyContact, notes, aadhaarNumber, panNumber, drivingLicenseNumber, accountHolderName, bankAccountNumber, bankName, ifscCode, bankBranch } = req.body;
     const tenent_username = req.tenent.D_dbname;
     let imageDocs = []
     const folderPath = `${tenent_username}/${firstName}-${lastName}`;
@@ -44,7 +44,7 @@ router.post('/adduser', user_session_checker('add_user'), upload.fields([
     }
 
     // Validation
-    if (!firstName || !lastName || !email || !password || !phone || !username || !role || !department) {
+    if (!firstName || !lastName || !email || !password || !phone || !username || !role) {
       return res.status(400).json({ message: 'Missing required fields' });
     }
 
@@ -67,7 +67,6 @@ router.post('/adduser', user_session_checker('add_user'), upload.fields([
       phone,
       address,
       role,
-      department,
       salary: salary || 0,
       username,
       password: hashedPassword,
@@ -118,21 +117,27 @@ router.post('/adduser', user_session_checker('add_user'), upload.fields([
 });
 
 // UPDATE USER
-router.post('/updateuser/:id', user_session_checker('edit_user'), async (req, res) => {
+router.post('/updateuser/:id',upload.fields([
+    { name: 'aadhar', maxCount: 1 },
+    { name: 'pan', maxCount: 1 },
+    { name: 'driving', maxCount: 1 },
+  ]), user_session_checker('edit_user'), async (req, res) => {
   manualLog('entered in update user route');
   try {
     const { id } = req.params;
-    const req_user_data = req.body;
+    const req_user_data = req.body.updates;
+    console.log("req sata body",req.body.updates);
+    // return;
 
-    const User = req.db.model('User');
+    const User = req.db.model('User'); 
     const user_data = await User.findById(id);
-
+    console.log("user_datya ==",req_user_data)
     if (!user_data) {
       return res.status(404).json({ message: 'User not found' });
     }
 
     // Handle document updates
-    if (req_user_data.documents || req.files.length > 0) {
+    if (req_user_data?.documents || req.files?.length > 0) {
       const updatedPublicIds = Array.isArray(req_user_data.documents)
         ? req_user_data.documents
         : req_user_data.documents ? [req_user_data.documents] : [];
@@ -164,31 +169,32 @@ router.post('/updateuser/:id', user_session_checker('edit_user'), async (req, re
       req_user_data.documents = [...retainedDocuments, ...imageDocs];
 
     }
-
+    console.log("pass the docu udpate")
     // Parse JSON fields if provided as strings
-    if (req_user_data.emergencyContact && typeof req_user_data.emergencyContact === 'string') {
+    if (req_user_data?.emergencyContact && typeof req_user_data?.emergencyContact === 'string') {
       req_user_data.emergencyContact = JSON.parse(req_user_data.emergencyContact);
     }
-
+    console.log("emergancy")
     // if (req_user_data.permissions && typeof req_user_data.permissions === 'string') {
     //   req_user_data.permissions = JSON.parse(req_user_data.permissions);
     // }
 
     // Hash password if provided
-    if (req_user_data.password) {
+    if (req_user_data?.password) {
       const saltRounds = 10;
       req_user_data.password = await bcrypt.hash(req_user_data.password, saltRounds);
     }
-
+    console.log("passswword passed")
     // Update user
     const updated_user = await User.findOneAndUpdate(
       { _id: id },
       { $set: req_user_data },
       { new: true, runValidators: true }
-    );
+    ); 
+    console.log("user updated",updated_user)
 
     manualLog(`User updated successfully :: ${updated_user._id}`);
-    res.status(200).json({
+    res.status(200).send({
       message: 'User updated successfully',
       user: updated_user
     });
@@ -213,7 +219,6 @@ router.get('/getalluser', user_session_checker('get_all_user'), async (req, res)
         const limit = parseInt(req.query.limit) || 10;
         const search = req.query.search || '';
         const status = req.query.status;
-        const department = req.query.department;
         const role = req.query.role;
         const sortField = req.query.sortField || 'name';
         const sortDirection = req.query.sortDirection === 'desc' ? -1 : 1;
@@ -234,10 +239,7 @@ router.get('/getalluser', user_session_checker('get_all_user'), async (req, res)
             filter.status = status;
         }
 
-        // Department filter
-        if (department) {
-            filter.department = department;
-        }
+        // roles filter
         if (role) {
             filter.role = role;
         }

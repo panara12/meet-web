@@ -11,7 +11,7 @@ router.use(tenent_checker);
 router.post('/addseller',user_session_checker("add_seller"),async(req,res)=>{
     manualLog('entered in add new seller route')
     try {
-        const {name,email,phone,address,contactPerson,status,priority,industry,companySize,paymentTerms,gstNumber,creditLimit,tags,notes,userRole,username} = req.body
+        const {name,email,phone,address,contactPerson,status,priority,paymentTerms,gstNumber,creditLimit,notes,userRole,username} = req.body
         //hash round and convert normal password to hasspassword
         const password = "seller123"
         const saltRounds = 10;
@@ -28,12 +28,9 @@ router.post('/addseller',user_session_checker("add_seller"),async(req,res)=>{
             password: hashedPassword,
             status,
             priority,
-            industry,
-            companySize,
             paymentTerms,
             gstNumber,
             creditLimit,
-            tags,
             notes,
             userRole,
             createdBy: req.session.user.master_user_id
@@ -71,7 +68,7 @@ router.post('/updateseller/:id',user_session_checker("edit_seller"),async(req,re
     manualLog('entered in update seller route')
     try {
         const {id} = req.params;
-        const {name,email,phone,address,contactPerson,status,priority,industry,companySize,paymentTerms,gstNumber,creditLimit,tags,notes,userRole} = req.body;
+        const {name,email,phone,address,contactPerson,status,priority,paymentTerms,gstNumber,creditLimit,notes,userRole} = req.body;
         
         const user_data = {
             name,
@@ -81,12 +78,9 @@ router.post('/updateseller/:id',user_session_checker("edit_seller"),async(req,re
             contactPerson,
             status,
             priority,
-            industry,
-            companySize,
             paymentTerms,
             gstNumber,
             creditLimit,
-            tags,
             notes,
             userRole,
             createdBy: req.session.user.master_user_id

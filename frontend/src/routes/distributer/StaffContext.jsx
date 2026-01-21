@@ -72,7 +72,6 @@ export function StaffProvider({ children }) {
     const [searchTerm, setSearchTerm] = useState("")
     const [debouncedSearch, setDebouncedSearch] = useState("")
     const [statusFilter, setStatusFilter] = useState(undefined)
-    const [departmentFilter, setDepartmentFilter] = useState(undefined)
     const [roleFilter, setRoleFilter] = useState(undefined)
     const [sortField, setSortField] = useState("firstName")
     const [sortDirection, setSortDirection] = useState("asc")
@@ -93,7 +92,6 @@ export function StaffProvider({ children }) {
     limit: pagelimit,
     search: debouncedSearch,
     status: statusFilter,
-    department: departmentFilter,
     role: roleFilter,
     sortField: sortField,
     sortDirection: sortDirection
@@ -131,34 +129,34 @@ export function StaffProvider({ children }) {
 
   // Get common location request stats
   const getCommonLocationStats = () => {
-  if (!limits) {
+    if (!limits) {
+      return {
+        used: 0,
+        limit: 20,
+        remaining: 20,
+        pathUsed: 0,          // NEW
+        pathLimit: 20,        // NEW
+        pathRemaining: 20     // NEW
+      }
+    }
+
+    const used = limits.data[0].liveLocationlimit || 0
+    const limit = limits.data[0].liveLocationlimit || 20
+    
+    // NEW: Path stats
+    const pathUsed = limits.data[0].routeLocationlimit || 0
+    const pathLimit = limits.data[0].totalRouteLocationlimit || 20
+    const pathRemaining = limits.data[0].routeLocationlimit
+
     return {
-      used: 0,
-      limit: 20,
-      remaining: 20,
-      pathUsed: 0,          // NEW
-      pathLimit: 20,        // NEW
-      pathRemaining: 20     // NEW
+      used,
+      limit,
+      remaining: limits.data[0].liveLocationlimit,
+      pathUsed,           // NEW
+      pathLimit,          // NEW
+      pathRemaining       // NEW
     }
   }
-
-  const used = limits.data[0].liveLocationlimit || 0
-  const limit = limits.data[0].liveLocationlimit || 20
-  
-  // NEW: Path stats
-  const pathUsed = limits.data[0].routeLocationlimit || 0
-  const pathLimit = limits.data[0].totalRouteLocationlimit || 20
-  const pathRemaining = limits.data[0].routeLocationlimit
-
-  return {
-    used,
-    limit,
-    remaining: limits.data[0].liveLocationlimit,
-    pathUsed,           // NEW
-    pathLimit,          // NEW
-    pathRemaining       // NEW
-  }
-}
 
   // CRUD Operations
   const addStaff = (newStaff) => {
@@ -506,8 +504,6 @@ const decrementPathRequest = () => {
         setSearchTerm,
         statusFilter,
         setStatusFilter,
-        departmentFilter,
-        setDepartmentFilter,
         roleFilter,
         setRoleFilter,
         sortField,

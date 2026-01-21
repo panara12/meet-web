@@ -32,13 +32,21 @@ const limitsSchema = new mongoose.Schema({
         type: Number,
         default: 35
     },
-    getPhotos:{
+    wantToUsePhotos:{
         type: Boolean,
         default: true
     },
     idAdminMembers:{
         type: Boolean,
         default: false
+    },
+    wantToUsePayment:{
+        type:Boolean,
+        default:true
+    },
+    wantToUseLocation:{
+        type:Boolean,
+        default:true
     }
 })
 

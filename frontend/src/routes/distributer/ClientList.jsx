@@ -25,39 +25,15 @@ const defaultFormData = {
   username:"",
   address: "",
   status: "Active",
-  industry: "",
   contactPerson: "",
   notes: "",
   // website: "",
-  companySize: "",
   priority: "Medium",
   paymentTerms: "Net 30",
   creditLimit: "",
   gstNumber: ""
 };
 
-const companySizes = [
-  "Startup (1-10 employees)",
-  "Small (10-50 employees)",
-  "Medium (100-500 employees)",
-  "Large (500-1000 employees)",
-  "Enterprise (1000+ employees)"
-];
-
-const industries = [
-  "Technology",
-  "Software Development",
-  "Manufacturing",
-  "Retail",
-  "Healthcare",
-  "Finance",
-  "Education",
-  "Real Estate",
-  "Consulting",
-  "Import/Export",
-  "Venture Capital",
-  "Other"
-];
 
 function ClientList() {
   const [clients, setClients] = useState([]);
@@ -214,11 +190,9 @@ function ClientList() {
       username:formData.username.trim(),
       address: formData.address.trim(),
       status: formData.status,
-      industry: formData.industry.trim() || undefined,
       contactPerson: formData.contactPerson.trim() || undefined,
       notes: formData.notes.trim() || undefined,
       // website: formData.website.trim() || undefined,
-      companySize: formData.companySize.trim() || undefined,
       priority: formData.priority,
       paymentTerms: formData.paymentTerms.trim() || undefined,
       creditLimit: formData.creditLimit ? parseInt(formData.creditLimit) : undefined,
@@ -227,7 +201,6 @@ function ClientList() {
       totalSpent: 0,
       lastOrder: "Never",
       joinDate: new Date().toISOString().split('T')[0],
-      tags: []
     };
 
     addSeller(newClient);    
@@ -262,11 +235,9 @@ function ClientList() {
             username:formData.username.trim(),
             address: formData.address.trim(),
             status: formData.status,
-            industry: formData.industry.trim() || undefined,
             contactPerson: formData.contactPerson.trim() || undefined,
             notes: formData.notes.trim() || undefined,
             // website: formData.website.trim() || undefined,
-            companySize: formData.companySize.trim() || undefined,
             priority: formData.priority,
             paymentTerms: formData.paymentTerms.trim() || undefined,
             creditLimit: formData.creditLimit ? parseInt(formData.creditLimit) : undefined,
@@ -292,11 +263,9 @@ function ClientList() {
       username: client.username || "",
       address: client.address,
       status: client.status,
-      industry: client.industry || "",
       contactPerson: client.contactPerson || "",
       notes: client.notes || "",
       // website: client.website || "",
-      companySize: client.companySize || "",
       priority: client.priority || "Medium",
       paymentTerms: client.paymentTerms || "",
       creditLimit: client.creditLimit?.toString() || "",
@@ -484,7 +453,7 @@ function ClientList() {
                             <ArrowUpDown className="h-4 w-4" />
                           </div>
                         </TableHead>
-                        <TableHead>Contact & Industry</TableHead>
+                        <TableHead>Contact</TableHead>
                         <TableHead>Status</TableHead>
                         <TableHead
                           className="cursor-pointer hover:bg-muted/50"
@@ -539,9 +508,6 @@ function ClientList() {
                                       {client.status === "VIP" && <Star className="h-4 w-4 text-yellow-500 fill-current" />}
                                     </div>
                                     <p className="text-sm text-muted-foreground">{client._id}</p>
-                                    {client.companySize && (
-                                      <p className="text-xs text-muted-foreground">{client.companySize}</p>
-                                    )}
                                   </div>
                                 </TableCell>
                                 <TableCell>
@@ -561,9 +527,6 @@ function ClientList() {
                                         <User className="h-3 w-3 text-muted-foreground" />
                                         <span className="text-sm">{client.username}</span>
                                       </div>
-                                    )}
-                                    {client.industry && (
-                                      <p className="text-xs text-muted-foreground">{client.industry}</p>
                                     )}
                                   </div>
                                 </TableCell>
@@ -672,12 +635,6 @@ function ClientList() {
                                                 <div>
                                                   <Label>Business Details</Label>
                                                   <div className="space-y-2 mt-2">
-                                                    {selectedClient.industry && (
-                                                      <p><span className="text-sm text-muted-foreground">Industry:</span> {selectedClient.industry}</p>
-                                                    )}
-                                                    {selectedClient.companySize && (
-                                                      <p><span className="text-sm text-muted-foreground">Company Size:</span> {selectedClient.companySize}</p>
-                                                    )}
                                                     {selectedClient.contactPerson && (
                                                       <p><span className="text-sm text-muted-foreground">Contact Person:</span> {selectedClient.contactPerson}</p>
                                                     )}
@@ -724,17 +681,6 @@ function ClientList() {
                                                 </div>
                                               </div>
                                             </div>
-
-                                            {selectedClient.tags && selectedClient.tags.length > 0 && (
-                                              <div>
-                                                <Label>Tags</Label>
-                                                <div className="flex flex-wrap gap-2 mt-2">
-                                                  {selectedClient.tags.map((tag, index) => (
-                                                    <Badge key={index} variant="outline">{tag}</Badge>
-                                                  ))}
-                                                </div>
-                                              </div>
-                                            )}
 
                                             {selectedClient.notes && (
                                               <div>
@@ -1111,32 +1057,6 @@ function ClientList() {
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
-                  <Label htmlFor="add-industry">Industry</Label>
-                  <Select value={formData.industry} onValueChange={(value) => updateFormData('industry', value)}>
-                    <SelectTrigger id="add-industry">
-                      <SelectValue placeholder="Select industry" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {industries.map(industry => (
-                        <SelectItem key={industry} value={industry}>{industry}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label htmlFor="add-companySize">Company Size</Label>
-                  <Select value={formData.companySize} onValueChange={(value) => updateFormData('companySize', value)}>
-                    <SelectTrigger id="add-companySize">
-                      <SelectValue placeholder="Select company size" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {companySizes.map(size => (
-                        <SelectItem key={size} value={size}>{size}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
                   <Label htmlFor="add-creditLimit">Credit Limit ($)</Label>
                   <Input
                     id="add-creditLimit"
@@ -1320,32 +1240,6 @@ function ClientList() {
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div>
-                  <Label htmlFor="edit-industry">Industry</Label>
-                  <Select value={formData.industry} onValueChange={(value) => updateFormData('industry', value)}>
-                    <SelectTrigger id="edit-industry">
-                      <SelectValue placeholder="Select industry" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {industries.map(industry => (
-                        <SelectItem key={industry} value={industry}>{industry}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label htmlFor="edit-companySize">Company Size</Label>
-                  <Select value={formData.companySize} onValueChange={(value) => updateFormData('companySize', value)}>
-                    <SelectTrigger id="edit-companySize">
-                      <SelectValue placeholder="Select company size" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {companySizes.map(size => (
-                        <SelectItem key={size} value={size}>{size}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
                 <div>
                   <Label htmlFor="edit-creditLimit">Credit Limit ($)</Label>
                   <Input

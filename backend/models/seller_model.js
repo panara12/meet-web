@@ -55,14 +55,6 @@ const sellerSchema = mongoose.Schema({
         enum: ['High', 'Medium', 'Low'],
         default: null
     },
-    industry: {
-        type: String,
-        default: null
-    },
-    companySize: {
-        type: String,
-        default: null
-    },
     paymentTerms: {
         type: String,
         default: null
@@ -86,10 +78,6 @@ const sellerSchema = mongoose.Schema({
     lastOrder: {
         type: Date,
         default: null
-    },
-    tags: {
-        type: [String],
-        default: []
     },
     notes: {
         type: String,

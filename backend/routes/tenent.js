@@ -57,7 +57,11 @@ async function initializeTenantDb(tenantDbConnection, distributerData, limitsDat
             liveLocationlimit: limitsData.liveLocationlimit || 35,
             totalLiveLocationlimit: limitsData.totalLiveLocationlimit || 35,
             routeLocationlimit: limitsData.routeLocationlimit || 35,
-            totalRouteLocationlimit: limitsData.totalRouteLocationlimit || 35
+            totalRouteLocationlimit: limitsData.totalRouteLocationlimit || 35,
+            wantToUsePhotos:limitsData.wantToUsePhotos || true,
+            idAdminMembers:limitsData.idAdminMembers||false,
+            wantToUsePayment:limitsData.wantToUsePayment||true,
+            wantToUseLocation:limitsData.wantToUseLocation||true
         });
 
         manualLog(`✅ Tenant DB initialized successfully with Distributer: ${newDistributer._id}, User: ${newUser._id}, Limits: ${newLimits._id}`);
@@ -109,7 +113,11 @@ router.post('/addtenent', async (req, res) => {
             liveLocationlimit,
             totalLiveLocationlimit,
             routeLocationlimit,
-            totalRouteLocationlimit
+            totalRouteLocationlimit,
+            wantToUsePhotos,
+            idAdminMembers,
+            wantToUsePayment,
+            wantToUseLocation
         } = req.body;
 
         console.log("📝 Tenant Registration Data:", { D_name, D_domain, D_dbname });
@@ -158,7 +166,11 @@ router.post('/addtenent', async (req, res) => {
             liveLocationlimit,
             totalLiveLocationlimit,
             routeLocationlimit,
-            totalRouteLocationlimit
+            totalRouteLocationlimit,
+            wantToUsePhotos,
+            idAdminMembers,
+            wantToUsePayment,
+            wantToUseLocation
         };
 
         const { distributer: newDistributer, user: newUser, limits: newLimits } = 

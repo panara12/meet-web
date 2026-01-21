@@ -18,7 +18,7 @@ const user_tenent_Schema = mongoose.Schema({
         unique:true
     },
     user_mobile:{
-        type:Number,
+        type:String,
         required:[true,'Mobile number is required'],
         unique:true
     },

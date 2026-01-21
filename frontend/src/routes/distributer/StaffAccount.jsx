@@ -25,8 +25,7 @@ const defaultFormData = {
   email: "",
   phone: "",
   address: "",
-  role: "Sales-man",
-  department: "Operations",
+  role: "salesman",
   status: "Active",
   salary: "",
   emergencyContact: {
@@ -56,8 +55,6 @@ const defaultFormData = {
 
 const roles = ["admin", "packaging", "billing", "salesman"]
 
-
-const departments = ["admin", "salesman", "packaging", "billing", "seller"]
 const statuses = ["Active", "Inactive", "On Leave", "Terminated"]
 const workHourTypes = ["Full-time", "Part-time", "Contract", "Freelance"]
 
@@ -76,8 +73,6 @@ function StaffAccount() {
   setSearchTerm,
   statusFilter,
   setStatusFilter,
-  departmentFilter,
-  setDepartmentFilter,
   roleFilter,
   setRoleFilter,
   sortField,
@@ -199,7 +194,6 @@ function StaffAccount() {
       phone: formData.phone.trim(),
       address: formData.address.trim(),
       role: formData.role,
-      department: formData.department,
       status: formData.status,
       salary: formData.salary ? parseInt(formData.salary) : 0,
       employeeId: generateEmpId(formData.role),
@@ -280,7 +274,6 @@ function StaffAccount() {
       phone: formData.phone.trim(),
       address: formData.address.trim(),
       role: formData.role,
-      department: formData.department,
       status: formData.status,
       salary: formData.salary ? parseInt(formData.salary) : editingStaff.salary,
       emergencyContact: {
@@ -332,7 +325,6 @@ function StaffAccount() {
       phone: member.phone,
       address: member.address,
       role: member.role,
-      department: member.department,
       status: member.status,
       salary: member.salary?.toString(),
       emergencyContact: {
@@ -398,10 +390,10 @@ function StaffAccount() {
 
   const getRoleVariant = useCallback((role) => {
     switch (role) {
-      case "Admin": return "default"
-      case "Sales-man": return "secondary"
-      case "Biller": return "outline"
-      case "Packager": return "secondary"
+      case "admin": return "destructive"
+      case "salesman": return "default"
+      case "billing": return "outline"
+      case "packaging": return "secondary"
       default: return "outline"
     }
   }, [])
@@ -411,14 +403,14 @@ function StaffAccount() {
   const activeStaff = staff.filter(s => s.status === "Active").length
   const totalSalaryExpense = staff.filter(s => s.status === "Active").reduce((sum, member) => sum + (member.salary || 0), 0)
 
-  const departmentBreakdown = departments.map(dept => ({
-    department: dept,
-    count: staff.filter(s => s.department === dept).length
-  }))
-
   // const recentHires = Array.from(staff)
   // .sort((a, b) => new Date(b.hireDate) - new Date(a.hireDate))
   // .slice(0, 5);
+
+  const departmentBreakdown = roles.map(dept => ({
+    roles: dept,
+    count: staff.filter(s => s.role === dept).length
+  }))
 
   return (
     <div className="w-full">
@@ -544,7 +536,7 @@ function StaffAccount() {
         <Tabs defaultValue="directory" className="space-y-4">
           <TabsList>
             <TabsTrigger value="directory">Staff Directory</TabsTrigger>
-            <TabsTrigger value="departments">Departments</TabsTrigger>
+             <TabsTrigger value="departments">Roles</TabsTrigger>
             <TabsTrigger value="reports">Reports</TabsTrigger>
           </TabsList>
 
@@ -555,7 +547,7 @@ function StaffAccount() {
                 <div className="relative flex-1 max-w-md">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
-                    placeholder="Search staff, roles, or departments..."
+                    placeholder="Search staff, roles or ..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     className="pl-9"
@@ -576,24 +568,6 @@ function StaffAccount() {
                       <SelectItem value="all">All Roles</SelectItem>
                       {roles.map(role => (
                         <SelectItem key={role} value={role}>{role}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-
-                  <Select 
-                    value={departmentFilter || "all"} 
-                    onValueChange={(value) => {
-                      setDepartmentFilter(value === "all" ? undefined : value)
-                      setCurrentPage(1)
-                    }}
-                  >
-                    <SelectTrigger className="w-full sm:w-[150px]">
-                      <SelectValue placeholder="All Departments" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Departments</SelectItem>
-                      {departments.map(dept => (
-                        <SelectItem key={dept} value={dept}>{dept}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
@@ -624,10 +598,10 @@ function StaffAccount() {
             <Card>
               <CardHeader>
                 <CardTitle>Employee Directory ({totalRecords})</CardTitle>
-                <CardDescription>Complete staff roster with roles, departments, and employment details</CardDescription>
+                <CardDescription>Complete staff roster with roles and employment details</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="overflow-x-auto -mx-4 sm:mx-0">
+                <div className="overflow -mx-4 sm:mx-0">
                   <div className="min-w-[800px] px-4 sm:px-0">
                     <Table>
                     <TableHeader>
@@ -636,7 +610,7 @@ function StaffAccount() {
                           className="cursor-pointer hover:bg-muted/50"
                           onClick={() => handleSort('firstName')}
                         >
-                          <div className="flex items-center gap-2">
+                          <div className="flex justify-center items-center gap-2">
                             Employee
                             <Filter className="h-4 w-4" />
                           </div>
@@ -647,7 +621,7 @@ function StaffAccount() {
                           onClick={() => handleSort('role')}
                         >
                           <div className="flex items-center gap-2">
-                            Role & Department
+                            Role
                             <Filter className="h-4 w-4" />
                           </div>
                         </TableHead>
@@ -670,7 +644,7 @@ function StaffAccount() {
                             <Filter className="h-4 w-4" />
                           </div>
                         </TableHead> */}
-                        <TableHead>Actions</TableHead>
+                        <TableHead className="text-center">Actions</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -724,12 +698,11 @@ function StaffAccount() {
                                 )}
                               </div>
                             </TableCell>
-                            <TableCell>
+                            <TableCell className="text-center">
                               <div className="space-y-1">
                                 <Badge variant={getRoleVariant(member.role)}>
                                   {member.role}
                                 </Badge>
-                                <p className="text-sm text-muted-foreground">{member.department}</p>
                               </div>
                             </TableCell>
                             <TableCell>
@@ -737,7 +710,7 @@ function StaffAccount() {
                                 {member.status}
                               </Badge>
                             </TableCell>
-                            <TableCell>{member.salary ? `${member.salary?.toLocaleString()}` : 'N/A'}</TableCell>
+                            <TableCell className="text-center">{member.salary ? `${member.salary?.toLocaleString()}` : 'N/A'}</TableCell>
                             {/* <TableCell>{member.hireDate}</TableCell> */}
                             <TableCell>
                               <div className="flex items-center gap-2">
@@ -815,7 +788,7 @@ function StaffAccount() {
 
                                           <div className="space-y-4">
                                             <div>
-                                              <Label>Role & Department</Label>
+                                              <Label>Role</Label>
                                               <div className="space-y-2 mt-2">
                                                 <div className="flex items-center gap-2">
                                                   <span className="text-sm text-muted-foreground">Role:</span>
@@ -823,7 +796,6 @@ function StaffAccount() {
                                                     {selectedStaff.role}
                                                   </Badge>
                                                 </div>
-                                                <p><span className="text-sm text-muted-foreground">Department:</span> {selectedStaff.department}</p>
                                                 <p><span className="text-sm text-muted-foreground">Work Hours:</span> {selectedStaff.workHours}</p>
                                               </div>
                                             </div>
@@ -958,7 +930,8 @@ function StaffAccount() {
                                 >
                                   <Edit className="h-4 w-4" />
                                 </Button>
-                                
+
+                                {/* delete dialog */}
                                 <AlertDialog>
                                   <AlertDialogTrigger asChild>
                                     <Button variant="ghost" size="sm">
@@ -991,6 +964,7 @@ function StaffAccount() {
                     </Table>
                   </div>
                 </div>
+                {/* {pagination} */}
                  {!isLoading && staff.length > 0 && (
                     <div className="mt-4 pt-4 border-t">
                       <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
@@ -1086,7 +1060,7 @@ function StaffAccount() {
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-2">
-                      {staff.filter(s => s.department === dept.department).map(member => (
+                      {staff.filter(s => s.role === dept.roles).map(member => (
                         <div key={member._id} className="flex items-center justify-between text-sm">
                           <span className="font-medium">{member.firstName} {member.lastName}</span>
                           <Badge variant={getRoleVariant(member.role)} className="text-xs">
@@ -1310,19 +1284,6 @@ function StaffAccount() {
                   <p className="text-xs text-muted-foreground mt-1">
                     Numbers show current/maximum allowed for each role
                   </p>
-                </div>
-                <div>
-                  <Label htmlFor="add-department">Department</Label>
-                  <Select value={formData.role} onValueChange={(value) => updateFormData('department', value)}>
-                    <SelectTrigger id="add-department">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {departments.map(dept => (
-                        <SelectItem key={dept} value={dept}>{dept}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
                 </div>
                 <div>
                   <Label htmlFor="add-status">Status</Label>
@@ -1671,20 +1632,6 @@ function StaffAccount() {
                   <p className="text-xs text-muted-foreground mt-1">
                     Numbers show current/maximum allowed for each role
                   </p>
-                </div>
-                <div>
-                  <Label htmlFor="edit-department">Department</Label>
-                  {console.log(formData) }
-                  <Select value={formData.department} disabled={true} onValueChange={(value) => updateFormData('department', value)}>
-                    <SelectTrigger id="edit-department">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {departments.map(dept => (
-                        <SelectItem key={dept} value={dept}>{dept}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
                 </div>
                 <div>
                   <Label htmlFor="edit-status">Status</Label>

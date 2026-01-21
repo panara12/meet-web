@@ -65,11 +65,6 @@ const userSchema = new mongoose.Schema({
     required: [true, 'Role is required'],
     trim: true
   },
-  department: {
-    type: String,
-    required: [true, 'Department is required'],
-    trim: true
-  },
   salary: {
     type: Number,
     required: [false, 'Salary is required'],
