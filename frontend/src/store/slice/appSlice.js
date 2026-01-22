@@ -2,6 +2,7 @@ import { createSlice } from "@reduxjs/toolkit";
 
 const initialState = {
   userInfo: null,
+  limits:null,
   pendingOrderCount: 0,
   userEmail:null,
   userAllList:null
@@ -13,6 +14,9 @@ const appSlice = createSlice({
   reducers: {
     setUserInfo: (state, action) => {
       state.userInfo = action.payload;
+    },
+    setLimitsInfo:(state,action) =>{
+      state.limits = action.payload;
     },
     setPendingOrderCount: (state, action) => {
       state.pendingOrderCount = action.payload;
@@ -30,5 +34,5 @@ const appSlice = createSlice({
   }
 });
 
-export const { setUserInfo, setPendingOrderCount, setResetEmail, setUserAllList } = appSlice.actions;
+export const { setUserInfo,setLimitsInfo, setPendingOrderCount, setResetEmail, setUserAllList } = appSlice.actions;
 export default appSlice.reducer;

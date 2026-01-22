@@ -6,6 +6,7 @@ const { generateCookieName, attachCustomCookie} = require('../middleware/session
 const manualLog = require('../utils/manuallogger');
 const resetPassword = require('../utils/resetpasswordotp');
 const ResetPassword = require('../models/reset_password_model');
+const user_session_checker = require('../middleware/user_session');
 
 //comman login 
 
@@ -83,28 +84,6 @@ router.post('/login',async(req,res)=>{
     }
 })
 
-
-router.get('/me',(req,res)=>{
-    manualLog(`entered in get me`);
-    console.log("auth me",req.session)
-    try {
-        if(req.session && req.session.user){
-            manualLog(`got the user data`);
-            res.send({
-                loggedIn: true,
-                user: req.session.user, // you probably stored {id, role, name}
-            });
-        }else{
-            res.status(401).send({
-                loggedIn: false,
-                message: "Session expired or not logged in",
-            })
-        }
-    } catch (error) {
-        manualLog(`Error in auth me: ${JSON.stringify(error)}`);
-        res.status(500).send({ message: "Error in auth me",error });
-    }
-})
 
 
 router.get('/logout',(req,res)=>{

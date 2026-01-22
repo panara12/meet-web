@@ -224,7 +224,7 @@ export default function ForgotPasswordPage() {
                 </label>
                 <input
                   id="phone"
-                  type="tel"
+                  type="email"
                   placeholder="Enter your registered Email Adderrs"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}

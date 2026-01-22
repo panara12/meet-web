@@ -1,12 +1,10 @@
 import React from "react"
+import Dashboard from "../packaging/p_dashboard"
 
 export default function Packaging() {
   return (
-    <div className="space-y-6">
-      <div>
-        <h2>Packaging Management</h2>
-        <p className="text-muted-foreground">Packaging workflows can be built here</p>
-      </div>
+    <div className="w-full h-full overflow-hidden">
+      <Dashboard />
     </div>
   )
 }

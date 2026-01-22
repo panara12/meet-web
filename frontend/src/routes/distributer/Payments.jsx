@@ -209,6 +209,8 @@ function Payments() {
   const [sortBy, setSortBy] = useState("date")
   const [sortOrder, setSortOrder] = useState("desc")
   const [debouncedSearch, setDebouncedSearch] = useState("");
+  const dblimits = useSelector((state) => state.app.limits);
+  console.log("db limits",dblimits);
   const [currentPage, setCurrentPage] = useState(1);
   const [limit, setLimit] = useState(10);
   const [totalPages, setTotalPages] = useState(1);
