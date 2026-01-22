@@ -167,7 +167,7 @@ export default function AddOrder() {
   });
 
   // Set clients data
-  console.log("sellers daya",getSellerList.seller.data[0])
+  console.log("sellers daya",getSellerList?.seller?.data[0])
   useEffect(() => {
     if (getSellerList?.seller?.data) {
       setClientsdata(getSellerList.seller.data);

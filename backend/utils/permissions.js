@@ -61,17 +61,20 @@ const permissions = {
         "get_all_orders",
         "add_location",
         "get_location",
+        "get_limits"
     ],
     "seller":[
         "get_by_id_seller",
         "edit_seller",
         "get_by_id_product",
         "get_all_product",
-        "get_by_id_user"
+        "get_by_id_user",
+        "get_limits"
     ],
     "packaging":[
         "get_by_id_product",
-        "get_by_id_user"
+        "get_by_id_user",
+        "get_limits"
     ]
 }
 
