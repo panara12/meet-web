@@ -59,9 +59,18 @@ const permissions = {
         "delete_notes",
         "get_order_count",
         "get_all_orders",
+        "add_order",
         "add_location",
         "get_location",
-        "get_limits"
+        "get_limits",
+        "add_cart",
+        "get_cart",
+        "update_cart",
+        "delete_cart",
+        "update_limits",
+        "get_all_company",
+        "get_all_category",
+        "udpate_seller_orders"
     ],
     "seller":[
         "get_by_id_seller",
@@ -69,12 +78,16 @@ const permissions = {
         "get_by_id_product",
         "get_all_product",
         "get_by_id_user",
-        "get_limits"
+        "get_limits",
+        "udpate_seller_orders"
     ],
     "packaging":[
         "get_by_id_product",
         "get_by_id_user",
-        "get_limits"
+        "get_limits",
+        "get_all_orders",
+        "update_order",
+        "udpate_seller_orders"
     ]
 }
 

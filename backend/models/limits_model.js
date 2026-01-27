@@ -47,6 +47,10 @@ const limitsSchema = new mongoose.Schema({
     wantToUseLocation:{
         type:Boolean,
         default:true
+    },
+    placedOrderCount:{
+        type:Number,
+        default:0
     }
 })
 

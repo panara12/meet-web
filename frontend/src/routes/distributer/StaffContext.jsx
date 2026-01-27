@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useEffect } from "react"
 import { useSelector, useDispatch } from "react-redux"
-import { setUserAllList } from "../../store/slice/appSlice"
+import { setLimitsInfo, setUserAllList } from "../../store/slice/appSlice"
 import { useGetAllUser } from "../../hooks/user/useGetAllUser"
 import { useDeleteUser } from "../../hooks/user/useDeleteUser"
 import { useUpdateUser } from "../../hooks/user/useUpdateUser"
@@ -100,7 +100,12 @@ export function StaffProvider({ children }) {
   const { mutate: addUser, isPending: isAddUserPending, isError: isAddUserError, error: addUserError } = useAddUser()
   const { mutate: updateUser, isPending: isUpdateUserPending, isError: isUpdateUserError, error: updateUserError } = useUpdateUser()
   const { mutate: deleteUser, isPending: isDeleteUserPending, isError: isDeleteUserError, error: deleteUserError } = useDeleteUser()
-  const { mutate: updateLimit, isPending: isUpdateLimitPending, isError: isUpdateLimitError, error: updateLimitError } = useUpdateLimit()
+  const { mutate: updateLimit, isPending: isUpdateLimitPending, isError: isUpdateLimitError, error: updateLimitError } = useUpdateLimit({
+    onSuccess:(res)=>{
+      console.log('responiser kjdbfka akjsb',res)
+      dispatch(setLimitsInfo(res.data));
+    }
+  })
   const { mutate: getLocationById, isPending: isGetLocationByIdPending, isError: isGetLocationByIdError, error: getLocationByIdError } = useGetLocationById()
   const { mutate: getPathPoints, isPending: isGetPathPointsPending, isError: isGetPathPointsError, error: getPathPointsError } = useGetpathPoints()
   
@@ -248,6 +253,8 @@ export function StaffProvider({ children }) {
 
   // Update location request count after successful map load
   const decrementLocationRequest = () => {
+    
+    
     console.log("Decrementing location request count",limits)
     if (!limits) {
       console.error("Limits not available")
@@ -263,6 +270,7 @@ export function StaffProvider({ children }) {
         liveLocationlimit: newUsedCount
       }
     })
+
 
     // Update local state immediately for better UX
     setLimits({
@@ -290,7 +298,7 @@ const decrementPathRequest = () => {
   updateLimit({
     id: limits.data[0]._id,
     updates: {
-      routeLocationlimit: newUsedCount
+      placedOrderCount: newUsedCount
     }
   })
 

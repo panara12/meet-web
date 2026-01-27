@@ -61,7 +61,8 @@ async function initializeTenantDb(tenantDbConnection, distributerData, limitsDat
             wantToUsePhotos:limitsData.wantToUsePhotos || true,
             idAdminMembers:limitsData.idAdminMembers||false,
             wantToUsePayment:limitsData.wantToUsePayment||true,
-            wantToUseLocation:limitsData.wantToUseLocation||true
+            wantToUseLocation:limitsData.wantToUseLocation||true,
+            placedOrderCount:0
         });
 
         manualLog(`✅ Tenant DB initialized successfully with Distributer: ${newDistributer._id}, User: ${newUser._id}, Limits: ${newLimits._id}`);

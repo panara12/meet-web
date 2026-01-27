@@ -15,10 +15,10 @@ const orderServices = {
         return res.data;
     },
     addOrders: (payload) => apiHelper.post('/order/addorder',payload),
-    editOrders: (payload) =>{
+    updateOrders: (payload) =>{
         console.log("payload",payload)
-        apiHelper.post('/order/updateorder/'+payload._id,payload)},
-    deleteNotes: async(id) =>{ 
+        apiHelper.put('/order/updateorder/'+payload._id,payload)},
+    deleteOrders: async(id) =>{ 
         const res  = await  apiHelper.delete('/order/deleteorder/'+id)
         return res
     }

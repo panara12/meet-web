@@ -14,6 +14,7 @@ import Billing_router from './routes/billing/billing_router'
 import SalesmanOutlet from './component/ui/salesmanOutlet'
 import { useState } from 'react'
 import TenantRegistrationPage from './routes/tenant/addtenant'
+import RoleProtectedRoute from './routes/RoleProtectedRoute'
 
 
 function App() {
@@ -29,13 +30,42 @@ function App() {
           <Route path="/otpverification" element={<OTPVerification />}></Route>
           <Route path="/login" element={<Login/>}></Route>
           <Route path="/" element={<Login/>}></Route>
-          <Route element={<ProtectedRoute/>}>
-              <Route path='/distributer/*' element={<Distributer_router />}></Route>
-              <Route path='/seller/*' element={<Seller_router />}></Route>
-              <Route path='/billing/*'  element={<Billing_router />}></Route>
-              <Route path='/packaging/*' element={<Packaging_router />}></Route>
-            <Route element={<SalesmanOutlet />}>
-              <Route path='/salesman/*' element={<Salesman_router />}></Route>
+            <Route element={<ProtectedRoute/>}>
+                {/* DISTRIBUTER */}
+            <Route
+              element={<RoleProtectedRoute allowedRoles={["distributer"]} />}
+            >
+              <Route path="/distributer/*" element={<Distributer_router />} />
+            </Route>
+
+            {/* SELLER */}
+            <Route
+              element={<RoleProtectedRoute allowedRoles={["seller"]} />}
+            >
+              <Route path="/seller/*" element={<Seller_router />} />
+            </Route>
+
+            {/* BILLING */}
+            <Route
+              element={<RoleProtectedRoute allowedRoles={["billing"]} />}
+            >
+              <Route path="/billing/*" element={<Billing_router />} />
+            </Route>
+
+            {/* PACKAGING */}
+            <Route
+              element={<RoleProtectedRoute allowedRoles={["packaging"]} />}
+            >
+              <Route path="/packaging/*" element={<Packaging_router />} />
+            </Route>
+
+            {/* SALESMAN ONLY */}
+            <Route
+              element={<RoleProtectedRoute allowedRoles={["salesman"]} />}
+            >
+              <Route element={<SalesmanOutlet />}>
+                <Route path="/salesman/*" element={<Salesman_router />} />
+              </Route>
             </Route>
           </Route>
         </Routes>

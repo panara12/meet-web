@@ -4,6 +4,7 @@ import { Button } from "./addOrder/button";
 import { Badge } from "./addOrder/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./addOrder/select";
 import { Input } from "./addOrder/input";
+import dayjs from "dayjs";
 import { Label } from "./addOrder/label";
 import { Textarea } from "./addOrder/textarea";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "./addOrder/dialog";
@@ -35,9 +36,19 @@ import {
   ChevronRight
 } from 'lucide-react';
 import { useGetAllSeller } from '../../hooks/seller/useGetAllSeller';
-import { useGetAllOrders } from '../../hooks/order/useGetAllOrder';
 import { useGetAllProduct } from "../../hooks/product/useGetAllProduct";
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
+import { useAddCart } from '../../hooks/cart/useAddCart';
+import { useUpdateCart } from '../../hooks/cart/useUpdateCart';
+import { useDeleteCart } from '../../hooks/cart/useDeleteCart';
+import { useGetAllCart } from '../../hooks/cart/useGetAllCart';
+import { useAddOrder } from '../../hooks/order/useAddOrder';
+import { useAddPayment } from '../../hooks/payment/useAddPayment';
+import { useUpdateLimit } from '../../hooks/limit/useUpdateLimit';
+import { setLimitsInfo } from '../../store/slice/appSlice';
+import { useGetAllCompany } from '../../hooks/company/useGetAllCompany';
+import { useGetAllCategory } from '../../hooks/category/useGetAllCategory';
+import { useUpdateOrderSeller } from '../../hooks/seller/useUpdateOrderSeller';
 
 // ENV CONFIG
 const digital_ocean_url = import.meta.env.VITE_DIGITAL_OCEAN_URL;
@@ -96,8 +107,11 @@ const toast = {
 };
 
 export default function AddOrder() {
+  const dispatch = useDispatch();
   const userInfo = useSelector((state) => state.app.userInfo);
-  
+  const [activeClientCarts,setActiveClientCarts] = useState();
+  const userlimits = useSelector((state) => state.app.limits)
+  console.log("limsits",userlimits)  
   // Client states
   const [selectedClient, setSelectedClient] = useState("");
   const [clientSearchQuery, setClientSearchQuery] = useState("");
@@ -143,16 +157,97 @@ export default function AddOrder() {
   const [paymentData, setPaymentData] = useState({
     amount: "",
     type: "",
-    date: new Date().toISOString().split('T')[0]
+    date: new Date().toISOString().split('T')[0],
+    note:""
   });
   
   // Order ID
-  const [orderCount, setOrderCount] = useState(0);
+  const orderCount = userlimits.placedOrderCount; 
   const [orderId, setOrderId] = useState("");
 
   // API Hooks
+
+  const {mutate:addOrders,isPending: isAddOrderPending} = useAddOrder()
+  const { mutate: updateOrderCount, isPending: isUpdateLimitPending, isError: isUpdateLimitError, error: updateLimitError } = useUpdateLimit({
+    onSuccess:(res)=>{
+      console.log('responiser kjdbfka akjsb',res)
+      dispatch(setLimitsInfo(res.data));
+    }
+  })
+
+  //cart hooks
+  const { data: getCart, isPending: cartPending, isError: isCartError, error: cartError,isSuccess:isCartSuccess } = useGetAllCart();
+  // console.log("useGetCart response:", {
+  //   getCart,
+  //   cartPending,
+  //   isCartError,
+  //   cartError,
+  //   isCartSuccess,
+  // });
+  // console.log("get cart",getCart?.data?.cart[0])
+
+    useEffect(() => {
+  if (!cartPending) {
+    const cartData = getCart?.data?.cart[0];
+    console.log("initial cart data", cartData);
+
+    // Transform backend cart data to frontend format
+    const transformedCarts = {};
+    cartData?.clients?.forEach(clientCart => {
+      const clientId = clientCart.seller_data._id || clientCart.seller_data;
+      transformedCarts[clientId] = clientCart.items.map(item => ({
+        // USE A CONSISTENT ID GENERATION METHOD
+        id: item.id || `${item.product_data._id}-${item.color}-${item.size}`,
+        product: item.product_data,
+        color: item.color,
+        size: item.size,
+        quantity: parseInt(item.quantity) || 1,
+        instructions: item.instructions || "",
+        subtotal: parseFloat(item.subtotal) || 0
+      }));
+    });
+    
+    setClientCarts(transformedCarts);
+    setActiveClientCarts(cartData);
+  }
+}, [cartPending, getCart]);
+    console.log("active after set up",activeClientCart)
+
+    const generateCartItemId = (productId, color, size) => {
+      return `${productId}-${color}-${size}`;
+    };
+
+    
+    const { mutate: addCart, isPending: isAddCartPending } = useAddCart({
+      onSuccess: () => {
+        // Refetch or update the list
+        setCurrentPage(1);
+      }
+    });
+    // console.log("data for cart",clientCarts)
+    
+    const { mutate: updateCart, isPending: isUpdateCartPending } = useUpdateCart({
+      onSuccess: () => {
+        // Data will be refetched automatically
+      }
+    });
+    
+    const { mutate: deleteCart, isPending: isDeleteCartPending } = useDeleteCart({
+      onSuccess: () => {
+        // Data will be refetched automatically
+      }
+    });
   const { data: getSellerList, isPending: sellerPending } = useGetAllSeller();
-  const { data: getAllOrders } = useGetAllOrders();
+  const { mutate: updateOrderSeller, isPending: isUpdateOrderSellerPending, isError:isUpdateOrderSellerError,Error:updateOrderSellerError } = useUpdateOrderSeller()
+  const {mutate:addPayment,isPending: isPaymentPending, isError : isPaymentError, error: paymentError} = useAddPayment()
+  const { data: getCompanyList, isPending: companyListPending, isError: isCompanyListError, error: companyListError } = useGetAllCompany({
+      page: 1,
+      limit: 100,
+      search: "",
+      status: "",
+      sortField: "name",
+      sortDirection: "asc"
+    });
   
   const { 
     data: getProductList, 
@@ -166,8 +261,10 @@ export default function AddOrder() {
     companyId: filterCompany && filterCompany !== "all-companies" ? filterCompany : undefined,
   });
 
+    const { data: categoriesAll } = useGetAllCategory();
+
   // Set clients data
-  console.log("sellers daya",getSellerList?.seller?.data[0])
+  // console.log("sellers daya",getSellerList?.seller?.data[0])
   useEffect(() => {
     if (getSellerList?.seller?.data) {
       setClientsdata(getSellerList.seller.data);
@@ -182,11 +279,11 @@ export default function AddOrder() {
   }, [getProductList]);
 
   // Set order count and ID
-  useEffect(() => {
-    if (getAllOrders?.count) {
-      setOrderCount(getAllOrders.count);
-    }
-  }, [getAllOrders]);
+  // useEffect(() => {
+  //   if (getAllOrders?.count) {
+  //     setOrderCount(getAllOrders.count);
+  //   }
+  // }, [getAllOrders]);
 
   useEffect(() => {
     if (userInfo?.tenant && orderCount !== undefined) {
@@ -195,12 +292,8 @@ export default function AddOrder() {
   }, [userInfo, orderCount]);
 
   // Get unique companies and categories
-  const companies = products
-    .map(p => p.companyId)
-    .filter((company, index, self) =>
-      index === self.findIndex(c => c._id === company._id)
-    );
-  const categories = [...new Set(products.map(p => p.category))].sort();
+  const companies = [...new Set(getCompanyList?.company?.data)]
+  const categories = [...new Set(categoriesAll?.category)].sort();
 
   // Pagination
   const totalPages = getProductList?.totalPages || 1;
@@ -221,17 +314,17 @@ export default function AddOrder() {
   };
   
   // Get all active client carts
-  const activeClientCarts = Object.entries(clientCarts)
-    .filter(([_, items]) => items && items.length > 0)
-    .map(([clientId, items]) => {
-      const client = clientsdata.find(c => c._id === clientId);
-      return {
-        clientId,
-        clientName: client?.name || 'Unknown Client',
-        items,
-        total: items.reduce((sum, item) => sum + item.subtotal, 0)
-      };
-    });
+  const activeClientCartsComputed = Object.entries(clientCarts)
+  .filter(([_, items]) => items && items.length > 0)
+  .map(([clientId, items]) => {
+    const client = clientsdata.find(c => c._id === clientId);
+    return {
+      clientId,
+      clientName: client?.name || 'Unknown Client',
+      items,
+      total: items.reduce((sum, item) => sum + item.subtotal, 0)
+    };
+  });
 
   // Filter clients
   const filteredClients = clientsdata.filter(client => {
@@ -323,21 +416,48 @@ export default function AddOrder() {
     }
   };
 
-  const handleAddToCart = () => {
-    if (!selectedProduct || !selectedSize) {
-      toast.error("Please select size");
-      return;
-    }
 
-    if (!activeClientCart) {
-      toast.error("Please select a client first");
-      return;
-    }
+const handleAddToCart = async () => {
+  if (!selectedProduct || !selectedSize) {
+    toast.error("Please select size");
+    return;
+  }
 
-    const finalColor = selectedColor || (availableColors[0] || selectedProduct.color);
+  if (!activeClientCart) {
+    toast.error("Please select a client first");
+    return;
+  }
 
+  const finalColor = selectedColor || (availableColors[0] || selectedProduct.color);
+  const itemId = generateCartItemId(selectedProduct._id, finalColor, selectedSize);
+
+  // Check if item already exists in cart
+  const existingItemIndex = (clientCarts[activeClientCart] || []).findIndex(
+    item => item.id === itemId
+  );
+
+  let updatedClientCarts;
+
+  if (existingItemIndex !== -1) {
+    // Update existing item quantity
+    updatedClientCarts = {
+      ...clientCarts,
+      [activeClientCart]: clientCarts[activeClientCart].map((item, index) =>
+        index === existingItemIndex
+          ? {
+              ...item,
+              quantity: item.quantity + quantity,
+              subtotal: (selectedSku?.price || selectedProduct.price) * (item.quantity + quantity),
+              instructions: instructions || item.instructions
+            }
+          : item
+      )
+    };
+    toast.success("Product quantity updated in cart!");
+  } else {
+    // Add new item to cart
     const cartItem = {
-      id: `${selectedProduct._id}-${finalColor}-${selectedSize}-${Date.now()}`,
+      id: itemId,
       product: selectedProduct,
       color: finalColor,
       size: selectedSize,
@@ -346,35 +466,184 @@ export default function AddOrder() {
       subtotal: (selectedSku?.price || selectedProduct.price) * quantity
     };
 
-    setClientCarts(prev => ({
-      ...prev,
-      [activeClientCart]: [...(prev[activeClientCart] || []), cartItem]
-    }));
-    
-    setShowProductDetail(false);
+    updatedClientCarts = {
+      ...clientCarts,
+      [activeClientCart]: [...(clientCarts[activeClientCart] || []), cartItem]
+    };
     toast.success("Product added to cart!");
+  }
+
+  setClientCarts(updatedClientCarts);
+
+  // Backend update logic remains the same
+  const existingClients = activeClientCarts?.clients || [];
+  
+  const clientIndex = existingClients.findIndex(
+    client => (client.seller_data._id || client.seller_data) === activeClientCart
+  );
+  
+  let updatedBackendClients;
+  
+  if (clientIndex !== -1) {
+    updatedBackendClients = existingClients.map((client, index) => {
+      if (index === clientIndex) {
+        return {
+          seller_data: activeClientCart,
+          items: updatedClientCarts[activeClientCart].map(item => ({
+            id: item.id,
+            product_data: item.product._id,
+            quantity: item.quantity.toString(),
+            size: item.size,
+            subtotal: item.subtotal.toString(),
+            instructions: item.instructions,
+            color: item.color
+          }))
+        };
+      }
+      return {
+        seller_data: client.seller_data._id || client.seller_data,
+        items: client.items
+      };
+    });
+  } else {
+    updatedBackendClients = [
+      ...existingClients.map(client => ({
+        seller_data: client.seller_data._id || client.seller_data,
+        items: client.items
+      })),
+      {
+        seller_data: activeClientCart,
+        items: updatedClientCarts[activeClientCart].map(item => ({
+          id: item.id,
+          product_data: item.product._id,
+          quantity: item.quantity.toString(),
+          size: item.size,
+          subtotal: item.subtotal.toString(),
+          instructions: item.instructions,
+          color: item.color
+        }))
+      }
+    ];
+  }
+
+  const backendPayload = {
+    cartId: activeClientCarts._id,
+    salesman_data: userInfo.tenant_user_id,
+    clients: updatedBackendClients
   };
 
+  if (activeClientCarts?.clients[0]._id) {
+    updateCart(backendPayload);
+  } else {
+    addCart({
+      salesman_data: userInfo.tenant_user_id,
+      clients: backendPayload.clients
+    });
+  }
+
+  setShowProductDetail(false);
+};
+
   const handleRemoveFromCart = (clientId, itemId) => {
-    setClientCarts(prev => ({
-      ...prev,
-      [clientId]: prev[clientId].filter(item => item.id !== itemId)
-    }));
+    const updatedClientCarts = {
+      ...clientCarts,
+      [clientId]: clientCarts[clientId].filter(item => item.id !== itemId)
+    };
+    setClientCarts(updatedClientCarts);
+
+    // FIX: Keep existing backend clients
+    const existingClients = activeClientCarts?.clients || [];
+    
+    const updatedBackendClients = existingClients.map(client => {
+      const sellerId = client.seller_data._id || client.seller_data;
+      if (sellerId === clientId) {
+        return {
+          seller_data: clientId,
+          items: updatedClientCarts[clientId].map(item => ({
+            id:item.id,
+            product_data: item.product._id,
+            quantity: item.quantity.toString(),
+            size: item.size,
+            subtotal: item.subtotal.toString(),
+            instructions: item.instructions,
+            color: item.color
+          }))
+        };
+      }
+      return {
+        seller_data: sellerId,
+        items: client.items
+      };
+    }).filter(client => client.items.length > 0); // Remove empty clients
+
+    const backendPayload = {
+      cartId: activeClientCarts._id,
+      salesman_data: userInfo.tenant_user_id,
+      clients: updatedBackendClients
+    };
+
+    updateCart(backendPayload);
     toast.success("Item removed from cart");
   };
 
-  const handleQuantityChange = (clientId, itemId, newQuantity) => {
-    if (newQuantity < 1) return;
-    
-    setClientCarts(prev => ({
-      ...prev,
-      [clientId]: prev[clientId].map(item => 
-        item.id === itemId 
-          ? { ...item, quantity: newQuantity, subtotal: (item.product.price || item.product.skus?.[0]?.price) * newQuantity }
-          : item
-      )
-    }));
+  
+const handleQuantityChange = (clientId, itemId, newQuantity) => {
+  if (newQuantity < 1) return;
+  
+  console.log("clientId", clientId, "itemId", itemId, "newQuantity", newQuantity);
+  
+  const updatedClientCarts = {
+    ...clientCarts,
+    [clientId]: clientCarts[clientId].map(item => {
+      console.log("Comparing item.id:", item.id, "with itemId:", itemId, "Match:", item.id === itemId);
+      
+      if (item.id === itemId) {
+        const price = item.product.price || item.product.skus?.[0]?.price;
+        return { 
+          ...item, 
+          quantity: newQuantity, 
+          subtotal: price * newQuantity 
+        };
+      }
+      return item;
+    })
   };
+  
+  setClientCarts(updatedClientCarts);
+
+  // Backend update
+  const existingClients = activeClientCarts?.clients || [];
+  
+  const updatedBackendClients = existingClients.map(client => {
+    const sellerId = client.seller_data._id || client.seller_data;
+    if (sellerId === clientId) {
+      return {
+        seller_data: clientId,
+        items: updatedClientCarts[clientId].map(item => ({
+          id: item.id,
+          product_data: item.product._id,
+          quantity: item.quantity.toString(),
+          size: item.size,
+          subtotal: item.subtotal.toString(),
+          instructions: item.instructions,
+          color: item.color
+        }))
+      };
+    }
+    return {
+      seller_data: sellerId,
+      items: client.items
+    };
+  });
+
+  const backendPayload = {
+    cartId: activeClientCarts._id,
+    salesman_data: userInfo.tenant_user_id,
+    clients: updatedBackendClients
+  };
+
+  updateCart(backendPayload);
+};
 
   const handleProductQuantityChange = (productId, size, delta) => {
     setProductQuantities(prev => {
@@ -395,55 +664,152 @@ export default function AddOrder() {
     return productQuantities[productId]?.[size] || 0;
   };
 
-  const handleQuickAddToCart = (product) => {
-    if (!activeClientCart) {
-      toast.error("Please select a client first");
-      return;
-    }
 
-    const productQtys = productQuantities[product._id] || {};
-    const sizesWithQty = Object.entries(productQtys).filter(([_, qty]) => qty > 0);
-    
-    if (sizesWithQty.length === 0) {
-      toast.error("Please select at least one size with quantity");
-      return;
-    }
+const handleQuickAddToCart = (product) => {
+  if (!activeClientCart) {
+    toast.error("Please select a client first");
+    return;
+  }
 
-    const productInstr = productInstructions[product._id] || "";
-    const newItems = [];
+  const productQtys = productQuantities[product._id] || {};
+  const sizesWithQty = Object.entries(productQtys).filter(([_, qty]) => qty > 0);
+  
+  if (sizesWithQty.length === 0) {
+    toast.error("Please select at least one size with quantity");
+    return;
+  }
+
+  const productInstr = productInstructions[product._id] || "";
+  const currentCart = clientCarts[activeClientCart] || [];
+  let updatedCart = [...currentCart];
+  let addedCount = 0;
+  let updatedCount = 0;
+  
+  sizesWithQty.forEach(([size, qty]) => {
+    const matchingSku = product.skus?.find(sku => sku.size === size);
+    const price = matchingSku?.price || product.price;
+    const productColor = product.color || (product.skus?.[0]?.color || "Default");
     
-    sizesWithQty.forEach(([size, qty]) => {
-      const matchingSku = product.skus?.find(sku => sku.size === size);
-      const price = matchingSku?.price || product.price;
-      
+    // Generate consistent ID
+    const itemId = generateCartItemId(product._id, productColor, size);
+    
+    // Check if this item already exists
+    const existingItemIndex = updatedCart.findIndex(item => item.id === itemId);
+
+    if (existingItemIndex !== -1) {
+      // Update existing item
+      updatedCart[existingItemIndex] = {
+        ...updatedCart[existingItemIndex],
+        quantity: updatedCart[existingItemIndex].quantity + qty,
+        subtotal: price * (updatedCart[existingItemIndex].quantity + qty),
+        instructions: productInstr || updatedCart[existingItemIndex].instructions
+      };
+      updatedCount++;
+    } else {
+      // Add new item
       const cartItem = {
-        id: `${product._id}-${product.color}-${size}-${Date.now()}-${Math.random()}`,
+        id: itemId,
         product: product,
-        color: product.color || (product.skus?.[0]?.color || "Default"),
+        color: productColor,
         size: size,
         quantity: qty,
         instructions: productInstr,
         subtotal: price * qty
       };
-      newItems.push(cartItem);
-    });
+      updatedCart.push(cartItem);
+      addedCount++;
+    }
+  });
 
-    setClientCarts(prev => ({
-      ...prev,
-      [activeClientCart]: [...(prev[activeClientCart] || []), ...newItems]
-    }));
-
-    setProductQuantities(prev => ({
-      ...prev,
-      [product._id]: {}
-    }));
-    setProductInstructions(prev => ({
-      ...prev,
-      [product._id]: ""
-    }));
-
-    toast.success(`${newItems.length} item${newItems.length > 1 ? 's' : ''} added to cart!`);
+  const updatedClientCarts = {
+    ...clientCarts,
+    [activeClientCart]: updatedCart
   };
+  setClientCarts(updatedClientCarts);
+
+  // Backend update logic remains the same
+  const existingClients = activeClientCarts?.clients || [];
+  
+  const clientIndex = existingClients.findIndex(
+    client => (client.seller_data._id || client.seller_data) === activeClientCart
+  );
+  
+  let updatedBackendClients;
+  
+  if (clientIndex !== -1) {
+    updatedBackendClients = existingClients.map((client, index) => {
+      if (index === clientIndex) {
+        return {
+          seller_data: activeClientCart,
+          items: updatedClientCarts[activeClientCart].map(item => ({
+            id: item.id,
+            product_data: item.product._id,
+            quantity: item.quantity.toString(),
+            size: item.size,
+            subtotal: item.subtotal.toString(),
+            instructions: item.instructions,
+            color: item.color
+          }))
+        };
+      }
+      return {
+        seller_data: client.seller_data._id || client.seller_data,
+        items: client.items
+      };
+    });
+  } else {
+    updatedBackendClients = [
+      ...existingClients.map(client => ({
+        seller_data: client.seller_data._id || client.seller_data,
+        items: client.items
+      })),
+      {
+        seller_data: activeClientCart,
+        items: updatedClientCarts[activeClientCart].map(item => ({
+          id: item.id,
+          product_data: item.product._id,
+          quantity: item.quantity.toString(),
+          size: item.size,
+          subtotal: item.subtotal.toString(),
+          instructions: item.instructions,
+          color: item.color
+        }))
+      }
+    ];
+  }
+
+  const backendPayload = {
+    cartId: activeClientCarts?._id,
+    salesman_data: userInfo.tenant_user_id,
+    clients: updatedBackendClients
+  };
+
+  if (activeClientCarts?._id) {
+    updateCart(backendPayload);
+  } else {
+    addCart({
+      salesman_data: userInfo.tenant_user_id,
+      clients: backendPayload.clients
+    });
+  }
+
+  setProductQuantities(prev => ({
+    ...prev,
+    [product._id]: {}
+  }));
+  setProductInstructions(prev => ({
+    ...prev,
+    [product._id]: ""
+  }));
+
+  if (updatedCount > 0 && addedCount > 0) {
+    toast.success(`${addedCount} new item${addedCount > 1 ? 's' : ''} added, ${updatedCount} item${updatedCount > 1 ? 's' : ''} updated!`);
+  } else if (updatedCount > 0) {
+    toast.success(`${updatedCount} item${updatedCount > 1 ? 's' : ''} updated in cart!`);
+  } else {
+    toast.success(`${addedCount} item${addedCount > 1 ? 's' : ''} added to cart!`);
+  }
+};
 
   const getTotalAmount = () => {
     return cart.reduce((total, item) => total + item.subtotal, 0);
@@ -464,23 +830,207 @@ export default function AddOrder() {
   };
 
   const handleSendToPacking = () => {
-    setShowOrderCompletion(false);
-    setShowPaymentDialog(true);
-    setPaymentData({
-      amount: getTotalAmount().toFixed(2),
-      type: "",
-      date: new Date().toISOString().split('T')[0]
-    });
+  const client = clientsdata.find(c => c._id === activeClientCart);
+  
+  if (!client || cart.length === 0) {
+    toast.error("Invalid order data");
+    return;
+  }
+
+  // Calculate totals
+  const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+  const totalAmount = getTotalAmount();
+
+  // Prepare order data
+  const orderData = {
+    order_id: orderId,
+    order_seller: activeClientCart,
+    order_salesman: userInfo.tenant_user_id,
+    status: 'pending',
+    order_firm: userInfo.tenant || null,
+    date: new Date(),
+    totalItems: totalItems.toString(),
+    totalAmount: totalAmount.toFixed(2).toString(),
+    items: cart.map(item => ({
+      id: item.id,
+      product_data: item.product._id,
+      quantity: item.quantity.toString(),
+      size: item.size,
+      subtotal: item.subtotal.toString(),
+      instructions: item.instructions || "",
+      color: item.color || "default"
+    }))
   };
 
-  const handleRecordPayment = () => {
-    if (!paymentData.amount || !paymentData.type) {
-      toast.error("Please enter payment details");
-      return;
-    }
+  console.log("Creating order:", orderData);
+  const Order_seller = {
+    id:activeClientCart,
+    lastOrder:Date.now(),
+    totalOrders:client.totalOrders+1,
+    pendingOrders:client.pendingOrders+1
+  }
+  console.log("order seller udpte",Order_seller);
+  // Create the order
+  addOrders(orderData, {
+    onSuccess: () => {
+      // Order created successfully
+      toast.success("Order created and sent to packing!");
+      
+      // Remove this client from local cart state
+      const updatedLocalCarts = { ...clientCarts };
+      delete updatedLocalCarts[activeClientCart];
+      setClientCarts(updatedLocalCarts);
 
-    const client = clientsdata.find(c => c._id === activeClientCart);
-    
+      // Update backend cart - remove this client
+      const existingClients = activeClientCarts?.clients || [];
+      const updatedBackendClients = existingClients.filter(
+        client => (client.seller_data._id || client.seller_data) !== activeClientCart
+      );
+
+      // If no clients left, delete the entire cart
+      if (updatedBackendClients.length === 0) {
+        deleteCart({ cartId: activeClientCarts._id });
+        console.log("No more clients in cart, deleting entire cart");
+      } else {
+        // Update cart without this client
+        const backendPayload = {
+          cartId: activeClientCarts._id,
+          salesman_data: userInfo.tenant_user_id,
+          clients: updatedBackendClients.map(client => ({
+            seller_data: client.seller_data._id || client.seller_data,
+            items: client.items
+          }))
+        };
+        
+        console.log("Updating cart, removing client:", activeClientCart);
+        updateCart(backendPayload);
+      }
+
+      // Keep selectedClient for payment but clear activeClientCart
+      setActiveClientCart("");
+      // DON'T clear selectedClient yet - we need it for payment
+
+      //update order info in sellers data
+      updateOrderSeller(Order_seller)
+      
+      // Increment order count for next order
+      updateOrderCount({
+        id: userlimits._id,
+        updates: {
+          placedOrderCount: orderCount + 1
+        }
+      });
+
+      // Proceed to payment dialog (OPTIONAL - can be closed without payment)
+      setShowOrderCompletion(false);
+      setShowPaymentDialog(true);
+      setPaymentData({
+        amount: totalAmount.toFixed(2),
+        type: "",
+        date: new Date().toISOString().split('T')[0],
+        note: ""
+      });
+    },
+    onError: (error) => {
+      toast.error("Failed to create order: " + error.message);
+      console.error("Order creation failed:", error);
+    }
+  });
+};
+
+  const handleRecordPayment = () => {
+  // Validation is optional - can skip payment
+  if (!paymentData.amount && !paymentData.type) {
+    // User wants to skip payment - just close dialog
+    handleSkipPayment();
+    return;
+  }
+
+  // If user entered partial data, validate it
+  if (paymentData.amount && !paymentData.type) {
+    toast.error("Please select payment type");
+    return;
+  }
+  
+  if (!paymentData.amount && paymentData.type) {
+    toast.error("Please enter payment amount");
+    return;
+  }
+
+  // Get client from selectedClient (still available after order creation)
+  const client = clientsdata.find(c => c._id === selectedClient);
+  
+  if (!client) {
+    toast.error("Client information not found");
+    return;
+  }
+
+  // Payment API payload
+  const payload = {
+    payment_client: client._id,
+    payment_salesman: userInfo.tenant_user_id,
+    payment_amount: paymentData.amount,
+    payment_type: paymentData.type,
+    payment_date: dayjs(paymentData.date).format("DD-MM-YYYY"),
+    order_with_payment: true,
+    order_id: orderId, // Link payment to the order
+    status: {
+      status: "pending",
+      adminId: null,
+      notes: paymentData.note || ""
+    }
+  };
+
+  console.log("Recording payment:", payload);
+
+  // Call payment API
+  addPayment(payload, {
+    onSuccess: () => {
+      toast.success(`Payment of ${paymentData.amount} recorded for order ${orderId}`);
+      
+      // Get order details for WhatsApp
+      const orderDetails = `
+🛍️ *NEW ORDER CONFIRMATION*
+
+📋 *Order Number:* ${orderId}
+📅 *Order Date:* ${new Date().toLocaleDateString()}
+
+👤 *CUSTOMER INFORMATION*
+• Name: ${client?.name}
+• Phone: ${client?.phone}
+• Email: ${client?.email}
+
+💰 *ORDER SUMMARY*
+• Order Total: ${paymentData.amount}
+
+💳 *Payment Details:*
+• Amount: ${paymentData.amount}
+• Type: ${paymentData.type}
+• Date: ${new Date(paymentData.date).toLocaleDateString()}
+${paymentData.note ? `• Note: ${paymentData.note}` : ''}
+
+✅ *Status:* Payment Confirmed & Sent to Packing Department
+      `.trim();
+
+      // Send WhatsApp message
+      const whatsappUrl = `https://wa.me/${client?.phone?.replace(/[^\d]/g, '')}?text=${encodeURIComponent(orderDetails)}`;
+      window.open(whatsappUrl, '_blank');
+
+      // Reset payment dialog and clear states
+      cleanupAfterPayment();
+    },
+    onError: (error) => {
+      toast.error("Failed to record payment: " + error.message);
+      console.error("Payment recording failed:", error);
+    }
+  });
+};
+
+const handleSkipPayment = () => {
+  const client = clientsdata.find(c => c._id === selectedClient);
+  
+  if (client) {
+    // Send WhatsApp without payment details
     const orderDetails = `
 🛍️ *NEW ORDER CONFIRMATION*
 
@@ -492,44 +1042,53 @@ export default function AddOrder() {
 • Phone: ${client?.phone}
 • Email: ${client?.email}
 
-📦 *ORDER DETAILS*
-${cart.map(item => 
-  `• ${item.product.name}\n  - Color: ${item.color}\n  - Size: ${item.size}\n  - Qty: ${item.quantity}\n  - Price: $${item.subtotal.toFixed(2)}`
-).join('\n\n')}
+✅ *Status:* Order Sent to Packing Department
 
-💰 *ORDER SUMMARY*
-• Total Items: ${cart.reduce((sum, item) => sum + item.quantity, 0)}
-• Order Total: $${getTotalAmount().toFixed(2)}
-
-💳 *Payment Details:*
-• Amount: $${paymentData.amount}
-• Type: ${paymentData.type}
-• Date: ${new Date(paymentData.date).toLocaleDateString()}
-
-✅ *Status:* Payment Confirmed & Sent to Packing Department
+💡 Payment can be recorded later.
     `.trim();
 
-    toast.success(`Payment of $${paymentData.amount} recorded for order ${orderId}`);
-    
     const whatsappUrl = `https://wa.me/${client?.phone?.replace(/[^\d]/g, '')}?text=${encodeURIComponent(orderDetails)}`;
     window.open(whatsappUrl, '_blank');
+  }
 
-    setClientCarts(prev => ({
-      ...prev,
-      [activeClientCart]: []
-    }));
+  toast.success("Order completed without payment record");
+  cleanupAfterPayment();
+};
+
+const cleanupAfterPayment = () => {
+  // Reset payment dialog
+  setShowPaymentDialog(false);
+  setPaymentData({
+    amount: "",
+    type: "",
+    date: new Date().toISOString().split('T')[0],
+    note: ""
+  });
+  
+  // Clear selected client
+  setSelectedClient("");
+  setClientSearchQuery("");
+};
+
+const handlePaymentDialogClose = (open) => {
+  if (!open) {
+    // User is closing the dialog - ask for confirmation
+    const hasPaymentData = paymentData.amount || paymentData.type;
     
-    setShowPaymentDialog(false);
-    setPaymentData({
-      amount: "",
-      type: "",
-      date: new Date().toISOString().split('T')[0]
-    });
+    if (hasPaymentData) {
+      // User entered some data - confirm before closing
+      const confirmClose = window.confirm(
+        "You have entered payment details. Do you want to close without saving?"
+      );
+      if (!confirmClose) return;
+    }
     
-    setSelectedClient("");
-    setActiveClientCart("");
-    setClientSearchQuery("");
-  };
+    // Close without saving
+    handleSkipPayment();
+  } else {
+    setShowPaymentDialog(true);
+  }
+};
 
   const selectedClientData = clientsdata.find(c => c._id === selectedClient);
 
@@ -542,7 +1101,7 @@ ${cart.map(item =>
           <h1 className="text-xl sm:text-2xl lg:text-3xl truncate">Add New Order</h1>
           <p className="text-sm sm:text-base text-muted-foreground">Create orders for multiple clients</p>
         </div>
-        {activeClientCarts.length > 0 && (
+        {activeClientCarts?.length > 0 && (
           <Badge variant="secondary" className="text-xs sm:text-sm">
             <Users className="h-3 w-3 mr-1" />
             {activeClientCarts.length} Active Cart{activeClientCarts.length > 1 ? 's' : ''}
@@ -551,7 +1110,8 @@ ${cart.map(item =>
       </div>
 
       {/* Active Client Carts Display */}
-      {activeClientCarts.length > 0 && (
+      {console.log("active cleint card",activeClientCarts)}
+      {activeClientCarts?.clients.length > 0 && (
         <Card className="bg-gradient-to-r from-primary/5 to-primary/10 border-primary/20">
           <CardHeader className="pb-3 sm:pb-4">
             <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
@@ -565,27 +1125,30 @@ ${cart.map(item =>
           <CardContent>
             <ScrollArea className="w-full">
               <div className="flex gap-2 pb-2">
-                {activeClientCarts.map((clientCart) => (
+                
+                {activeClientCarts.clients.map((clientCart) => (
                   <Card
-                    key={clientCart.clientId}
+                    key={clientCart.seller_data._id}
                     className={`flex-shrink-0 w-64 cursor-pointer transition-all ${
-                      activeClientCart === clientCart.clientId
+                      activeClientCart === clientCart.seller_data._id
                         ? 'border-primary bg-primary/10 shadow-md'
                         : 'hover:border-primary/50 hover:shadow-sm'
                     }`}
                     onClick={() => {
-                      setActiveClientCart(clientCart.clientId);
-                      setSelectedClient(clientCart.clientId);
-                      const client = clientsdata.find(c => c._id === clientCart.clientId);
+                      setActiveClientCart(clientCart.seller_data._id);
+                      setSelectedClient(clientCart.seller_data._id);
+                      // console.log("client fata fro",clientCart)
+                      const client = clientsdata.find(c => c._id === clientCart.seller_data._id);
                       if (client) setClientSearchQuery(client.name);
                     }}
                   >
+                    {/* {console.log("client cart data",clientCart)} */}
                     <CardContent className="p-3 sm:p-4">
                       <div className="flex items-start justify-between gap-2 mb-2">
                         <div className="flex-1 min-w-0">
-                          <h4 className="font-semibold text-sm truncate">{clientCart.clientName}</h4>
+                          <h4 className="font-semibold text-sm truncate">{clientCart?.seller_data?.name}</h4>
                           <p className="text-xs text-muted-foreground">
-                            {clientCart.items.length} item{clientCart.items.length > 1 ? 's' : ''}
+                            {clientCart?.items?.length} item{clientCart?.items.length > 1 ? 's' : ''}
                           </p>
                         </div>
                         <Button
@@ -593,12 +1156,31 @@ ${cart.map(item =>
                           size="sm"
                           onClick={(e) => {
                             e.stopPropagation();
-                            setClientCarts(prev => {
-                              const newCarts = { ...prev };
-                              delete newCarts[clientCart.clientId];
-                              return newCarts;
-                            });
-                            if (activeClientCart === clientCart.clientId) {
+                            const sellerId = clientCart.seller_data._id;
+                            
+                            const updatedCarts = { ...clientCarts };
+                            delete updatedCarts[sellerId];
+                            setClientCarts(updatedCarts);
+                            
+                            // FIX: Keep other clients, remove only this one
+                            const existingClients = activeClientCarts?.clients || [];
+                            const updatedBackendClients = existingClients.filter(
+                              client => (client.seller_data._id || client.seller_data) !== sellerId
+                            );
+                            
+                            const backendPayload = {
+                              cartId: activeClientCarts._id,
+                              salesman_data: userInfo.tenant_user_id,
+                              clients: updatedBackendClients
+                            };
+                            
+                            if (updatedBackendClients.length === 0) {
+                              deleteCart({ cartId: activeClientCarts._id });
+                            } else {
+                              updateCart(backendPayload);
+                            }
+                            
+                            if (activeClientCart === sellerId) {
                               setActiveClientCart("");
                               setSelectedClient("");
                               setClientSearchQuery("");
@@ -611,9 +1193,9 @@ ${cart.map(item =>
                         </Button>
                       </div>
                       <div className="flex items-center justify-between">
-                        <span className="text-lg font-bold text-primary">
+                        {/* <span className="text-lg font-bold text-primary">
                           ${clientCart.total.toFixed(2)}
-                        </span>
+                        </span> */}
                         {activeClientCart === clientCart.clientId && (
                           <Badge variant="default" className="text-xs">Active</Badge>
                         )}
@@ -761,7 +1343,7 @@ ${cart.map(item =>
                   <SelectTrigger className="text-sm sm:text-base">
                     <SelectValue placeholder="Filter by company" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="bg-white">
                     <SelectItem value="all-companies">All Companies</SelectItem>
                     {companies.map((company) => (
                       <SelectItem key={company._id} value={company._id}>
@@ -780,11 +1362,11 @@ ${cart.map(item =>
                 <SelectTrigger className="text-sm sm:text-base">
                   <SelectValue placeholder="Filter by category" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="bg-white">
                   <SelectItem value="all-categories">All Categories</SelectItem>
                   {categories.map((category) => (
-                    <SelectItem key={category} value={category}>
-                      {category}
+                    <SelectItem key={category._id} value={category.name}>
+                      {category.name}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -1035,11 +1617,11 @@ ${cart.map(item =>
 
       {/* Multi-Client Cart Sheet - same as before */}
       <Sheet open={showCartDialog} onOpenChange={setShowCartDialog}>
-        <SheetContent side="right" className="w-full sm:max-w-xl md:max-w-2xl lg:max-w-3xl flex flex-col p-0 h-full">
+        <SheetContent side="right" className="w-full bg-white sm:max-w-xl md:max-w-2xl lg:max-w-3xl flex flex-col p-0 h-full">
           <SheetHeader className="flex-shrink-0 p-3 sm:p-4 lg:p-6 border-b bg-background">
             <SheetTitle className="flex items-center gap-2 text-sm sm:text-base lg:text-lg">
               <ShoppingCart className="h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0" />
-              <span className="truncate">All Client Carts ({activeClientCarts.length} client{activeClientCarts.length > 1 ? 's' : ''})</span>
+              <span className="truncate">All Client Carts ({activeClientCarts?.clients.length} client{activeClientCarts?.clients.length > 1 ? 's' : ''})</span>
             </SheetTitle>
             <SheetDescription className="text-xs sm:text-sm lg:text-base">
               Manage orders for all your clients
@@ -1048,7 +1630,7 @@ ${cart.map(item =>
           
           <div className="flex-1 overflow-y-auto overscroll-contain">
             <div className="px-3 sm:px-4 lg:px-6">
-              {activeClientCarts.length === 0 ? (
+              {activeClientCarts?.length === 0 ? (
                 <div className="text-center py-8 sm:py-12 lg:py-16">
                   <ShoppingCart className="h-12 w-12 sm:h-16 sm:w-16 lg:h-20 lg:w-20 mx-auto text-muted-foreground/50 mb-3 sm:mb-4" />
                   <p className="text-sm sm:text-base lg:text-lg text-muted-foreground font-medium">No client carts yet</p>
@@ -1056,14 +1638,15 @@ ${cart.map(item =>
                 </div>
               ) : (
                 <div className="space-y-3 sm:space-y-4 lg:space-y-6 py-3 sm:py-4 lg:py-6">
-                  {activeClientCarts.map((clientCart) => (
-                    <Card key={clientCart.clientId} className="border-2 shadow-sm hover:shadow-md transition-shadow">
+                  {/* {console.log("active client data",activeClientCarts)} */}
+                  {activeClientCarts && activeClientCarts.clients.map((clientCart) => (
+                    <Card key={clientCart.seller_data._id} className="border-2 shadow-sm hover:shadow-md transition-shadow">
                       <CardHeader className="pb-2 sm:pb-3 p-3 sm:p-4 lg:p-6">
                         <div className="flex items-start justify-between gap-2">
                           <div className="flex-1 min-w-0">
-                            <CardTitle className="text-sm sm:text-base lg:text-lg truncate">{clientCart.clientName}</CardTitle>
+                            <CardTitle className="text-sm sm:text-base lg:text-lg truncate">{clientCart.seller_data.name}</CardTitle>
                             <CardDescription className="text-xs sm:text-sm mt-0.5 sm:mt-1">
-                              {clientCart.items.length} item{clientCart.items.length > 1 ? 's' : ''} · ${clientCart.total.toFixed(2)}
+                              {clientCart?.items.length} item{clientCart?.items.length > 1 ? 's' : ''}
                             </CardDescription>
                           </div>
                           <div className="flex gap-1.5 sm:gap-2 flex-shrink-0">
@@ -1095,17 +1678,18 @@ ${cart.map(item =>
                       </CardHeader>
                       <CardContent className="space-y-2 sm:space-y-3 p-3 sm:p-4 lg:p-6 pt-0">
                         <div className="max-h-64 sm:max-h-80 lg:max-h-96 overflow-y-auto overscroll-contain space-y-2 sm:space-y-3 pr-1">
-                          {clientCart.items.map((item) => (
-                            <div key={item.id} className="flex gap-2 sm:gap-3 p-2 sm:p-3 border rounded-lg bg-card hover:bg-muted/30 transition-colors">
+                          {/* {console.log("side bar cleint cart",clientCart)} */}
+                          {clientCart?.items.map((item,index) => (
+                            <div key={index} className="flex gap-2 sm:gap-3 p-2 sm:p-3 border rounded-lg bg-card hover:bg-muted/30 transition-colors">
                               <div className="w-12 h-12 sm:w-14 sm:h-14 lg:w-16 lg:h-16 overflow-hidden rounded flex-shrink-0 bg-muted">
                                 <ImageWithFallback
-                                  src={item.product.images?.[0]?.url || item.product.image}
-                                  alt={item.product.name}
+                                  src={item.product_data?.images?.[0]?.url || item?.product_data?.image}
+                                  alt={item?.product_data?.name}
                                   className="w-full h-full object-cover"
                                 />
                               </div>
                               <div className="flex-1 min-w-0 space-y-1">
-                                <h4 className="text-xs sm:text-sm font-medium line-clamp-2">{item.product.name}</h4>
+                                <h4 className="text-xs sm:text-sm font-medium line-clamp-2">{item.product_data?.name}</h4>
                                 <div className="flex flex-wrap gap-1 text-xs text-muted-foreground">
                                   <span>Color: {item.color}</span>
                                   <span>•</span>
@@ -1117,12 +1701,12 @@ ${cart.map(item =>
                                   </p>
                                 )}
                                 <div className="flex items-center justify-between pt-1">
-                                  <p className="text-xs sm:text-sm font-semibold text-primary">${item.subtotal.toFixed(2)}</p>
+                                  <p className="text-xs sm:text-sm font-semibold text-primary">${item.subtotal}</p>
                                   <div className="flex items-center gap-1">
                                     <Button
                                       size="sm"
                                       variant="outline"
-                                      onClick={() => handleQuantityChange(clientCart.clientId, item.id, item.quantity - 1)}
+                                      onClick={() => handleQuantityChange(clientCart.seller_data._id, item.id, Number(item.quantity) - 1)}
                                       className="h-6 w-6 sm:h-7 sm:w-7 p-0"
                                     >
                                       <Minus className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
@@ -1131,7 +1715,7 @@ ${cart.map(item =>
                                     <Button
                                       size="sm"
                                       variant="outline"
-                                      onClick={() => handleQuantityChange(clientCart.clientId, item.id, item.quantity + 1)}
+                                      onClick={() => handleQuantityChange(clientCart.seller_data._id, item.id, Number(item.quantity) + 1)}
                                       className="h-6 w-6 sm:h-7 sm:w-7 p-0"
                                     >
                                       <Plus className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
@@ -1139,7 +1723,7 @@ ${cart.map(item =>
                                     <Button
                                       size="sm"
                                       variant="ghost"
-                                      onClick={() => handleRemoveFromCart(clientCart.clientId, item.id)}
+                                      onClick={() => handleRemoveFromCart(clientCart.seller_data._id, item._id)}
                                       className="text-destructive hover:text-destructive hover:bg-destructive/10 h-6 w-6 sm:h-7 sm:w-7 p-0 ml-0.5 sm:ml-1"
                                     >
                                       <X className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
@@ -1153,9 +1737,9 @@ ${cart.map(item =>
                         <div className="pt-2 sm:pt-3 border-t">
                           <Button
                             onClick={() => {
-                              setActiveClientCart(clientCart.clientId);
-                              setSelectedClient(clientCart.clientId);
-                              const client = clientsdata.find(c => c._id === clientCart.clientId);
+                              setActiveClientCart(clientCart.seller_data._id);
+                              setSelectedClient(clientCart.seller_data._id);
+                              const client = clientsdata.find(c => c._id === clientCart.seller_data._id);
                               if (client) setClientSearchQuery(client.name);
                               setShowCartDialog(false);
                               setShowOrderCompletion(true);
@@ -1163,7 +1747,7 @@ ${cart.map(item =>
                             className="w-full h-9 sm:h-10 lg:h-11 text-xs sm:text-sm"
                           >
                             <Package className="h-3 w-3 sm:h-4 sm:w-4 mr-1.5 sm:mr-2" />
-                            <span className="truncate">Complete Order for {clientCart.clientName}</span>
+                            <span className="truncate">Complete Order for {clientCart.seller_data.name}</span>
                           </Button>
                         </div>
                       </CardContent>
@@ -1179,7 +1763,7 @@ ${cart.map(item =>
       {/* Product Detail Dialog - Simplified */}
       <Dialog open={showProductDetail} onOpenChange={setShowProductDetail} >
         <DialogContent className="max-w-2xl bg-white max-h-[95vh] overflow-hidden flex flex-col p-0">
-          {console.log(selectedProduct,selectedSku)}
+          {/* {console.log(selectedProduct,selectedSku)} */}
           {selectedProduct && (
             <>
               <div className="relative overflow-hidden">
@@ -1467,7 +2051,7 @@ ${cart.map(item =>
 
       {/* Order Completion Dialog */}
       <Dialog open={showOrderCompletion} onOpenChange={setShowOrderCompletion}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-md bg-white">
           <DialogHeader>
             <DialogTitle>Complete Order</DialogTitle>
             <DialogDescription>
@@ -1517,19 +2101,18 @@ ${cart.map(item =>
       </Dialog>
 
       {/* Payment Dialog */}
-      <Dialog open={showPaymentDialog} onOpenChange={setShowPaymentDialog}>
-        <DialogContent className="max-w-md">
+      <Dialog open={showPaymentDialog} onOpenChange={handlePaymentDialogClose}>
+        <DialogContent className="max-w-md bg-white">
           <DialogHeader>
-            <DialogTitle>Record Payment</DialogTitle>
+            <DialogTitle>Record Payment (Optional)</DialogTitle>
             <DialogDescription>
-              Enter payment details for order {orderId}
+              Enter payment details for order {orderId} or skip to complete without payment
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-6">
-            {/* Payment Form */}
             <div className="space-y-4">
               <div>
-                <Label>Payment Amount</Label>
+                <Label>Payment Amount (Optional)</Label>
                 <Input
                   type="number"
                   placeholder="0.00"
@@ -1543,7 +2126,7 @@ ${cart.map(item =>
               </div>
               
               <div>
-                <Label>Payment Type</Label>
+                <Label>Payment Type (Optional)</Label>
                 <Select 
                   value={paymentData.type} 
                   onValueChange={(value) => setPaymentData(prev => ({
@@ -1554,7 +2137,7 @@ ${cart.map(item =>
                   <SelectTrigger className="mt-2">
                     <SelectValue placeholder="Select payment type" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="bg-white">
                     <SelectItem value="cash">Cash</SelectItem>
                     <SelectItem value="credit-card">Credit Card</SelectItem>
                     <SelectItem value="debit-card">Debit Card</SelectItem>
@@ -1577,17 +2160,43 @@ ${cart.map(item =>
                   className="mt-2"
                 />
               </div>
+
+              <div>
+                <Label>Payment Note (Optional)</Label>
+                <Textarea
+                  placeholder="Add notes about payment..."
+                  value={paymentData.note}
+                  onChange={(e) => setPaymentData(prev => ({
+                    ...prev,
+                    note: e.target.value
+                  }))}
+                  className="mt-2"
+                  rows={3}
+                />
+              </div>
             </div>
 
             <div className="flex gap-2">
-              <Button variant="outline" onClick={() => setShowPaymentDialog(false)} className="flex-1">
-                Cancel
+              <Button 
+                variant="outline" 
+                onClick={handleSkipPayment} 
+                className="flex-1"
+              >
+                Skip Payment
               </Button>
-              <Button onClick={handleRecordPayment} className="flex-1">
+              <Button 
+                onClick={handleRecordPayment} 
+                className="flex-1"
+                disabled={!paymentData.amount || !paymentData.type}
+              >
                 <Check className="h-4 w-4 mr-2" />
-                Done
+                Record Payment
               </Button>
             </div>
+            
+            <p className="text-xs text-center text-muted-foreground">
+              You can skip payment recording and add it later if needed
+            </p>
           </div>
         </DialogContent>
       </Dialog>

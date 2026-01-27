@@ -27,7 +27,7 @@ export function OrderList({
   onOrderSelect, 
   language, 
   globalSelectedItems,
-  onGlobalItemSelect,
+  onGlobalItemSelect, 
   onUpdateQuantity,
   onSendToBilling,
   client
@@ -35,6 +35,7 @@ export function OrderList({
   const { t } = useTranslation(language);
   const [expandedOrders, setExpandedOrders] = useState(new Set());
   const [showCartoonDialog, setShowCartoonDialog] = useState(false);
+  console.log("orders",orders)
 
   const getStatusIcon = (status) => {
     switch (status) {
@@ -120,7 +121,7 @@ export function OrderList({
   let totalSelectedAmount = 0;
   
   orders.forEach(order => {
-    const orderSelections = globalSelectedItems.get(order.id);
+    const orderSelections = globalSelectedItems.get(order._id);
     if (orderSelections) {
       order.items.forEach(item => {
         if (orderSelections.has(item.id) && !item.sentToBilling) {
@@ -138,8 +139,8 @@ export function OrderList({
         <div className="flex-1 overflow-y-auto p-2 sm:p-3 md:p-4">
           <div className="space-y-2 sm:space-y-3">
             {orders.map((order) => {
-              const isExpanded = expandedOrders.has(order.id);
-              const orderSelections = globalSelectedItems.get(order.id) || new Set();
+              const isExpanded = expandedOrders.has(order._id);
+              const orderSelections = globalSelectedItems.get(order._id) || new Set();
               const selectedItemsInOrder = Array.from(orderSelections).filter(itemId => {
                 const item = order.items.find(i => i.id === itemId);
                 return item && !item.sentToBilling;
@@ -147,12 +148,12 @@ export function OrderList({
 
               return (
                 <Card 
-                  key={order.id} 
+                  key={order._id} 
                   className="overflow-hidden hover:shadow-md transition-shadow duration-200"
                 >
                   {/* Order Header */}
                   <div
-                    onClick={() => toggleOrderExpansion(order.id)}
+                    onClick={() => toggleOrderExpansion(order._id)}
                     className="p-3 sm:p-4 cursor-pointer hover:bg-accent/50 transition-colors active:scale-[0.99] touch-manipulation"
                   >
                     <div className="flex items-start gap-3 sm:gap-4">
@@ -165,7 +166,7 @@ export function OrderList({
                       <div className="flex-1 min-w-0">
                         <div className="flex items-start justify-between gap-2 mb-1">
                           <h3 className="text-sm sm:text-base md:text-lg font-semibold text-foreground truncate">
-                            {t('Order')} #{order.orderNumber}
+                            {t('Order')} #{order.order_id}
                           </h3>
                           <div className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
                             {getStatusIcon(order.status)}
@@ -184,12 +185,12 @@ export function OrderList({
                           <div className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground">
                             <div className="flex items-center gap-1">
                               <ShoppingBag className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
-                              <span>{order.totalItems} {t('Items')}</span>
+                              <span>{order?.totalItems} {t('Items')}</span>
                             </div>
                             <span>•</span>
                             <div className="flex items-center gap-1">
                               <DollarSign className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
-                              <span>${order.totalAmount.toFixed(2)}</span>
+                              <span>${order?.totalAmount}</span>
                             </div>
                             {selectedItemsInOrder > 0 && (
                               <>
@@ -222,7 +223,7 @@ export function OrderList({
                           
                           return (
                             <Card 
-                              key={item.id} 
+                              key={item._id} 
                               className={`p-3 sm:p-4 transition-all duration-200 ${
                                 item.sentToBilling 
                                   ? 'opacity-60 bg-muted/30' 
@@ -238,7 +239,7 @@ export function OrderList({
                                 <div className="flex-shrink-0 pt-1">
                                   <Checkbox
                                     checked={isSelected}
-                                    onCheckedChange={() => handleItemToggle(order.id, item.id, item)}
+                                    onCheckedChange={() => handleItemToggle(order._id, item.id, item)}
                                     disabled={item.sentToBilling}
                                     className="w-5 h-5 sm:w-6 sm:h-6"
                                   />
@@ -252,13 +253,13 @@ export function OrderList({
                                       <h4 className={`text-sm sm:text-base font-semibold mb-1 ${
                                         item.sentToBilling ? 'text-muted-foreground line-through' : 'text-foreground'
                                       }`}>
-                                        {item.name}
+                                        {item.product_data.name}
                                       </h4>
-                                      {item.description && (
+                                      {item.product_data.description && (
                                         <p className={`text-xs sm:text-sm mb-2 ${
                                           item.sentToBilling ? 'line-through text-muted-foreground' : 'text-muted-foreground'
                                         }`}>
-                                          {item.description}
+                                          {item.product_data.description}
                                         </p>
                                       )}
                                     </div>
@@ -372,6 +373,7 @@ export function OrderList({
         </div>
 
         {/* Fixed Bottom Bar for Send to Billing */}
+        {console.log("selected",totalSelectedItems)}
         {totalSelectedItems > 0 && (
           <div className="p-3 sm:p-4 md:p-5 bg-card border-t border-border shadow-lg shrink-0">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3 sm:mb-4">

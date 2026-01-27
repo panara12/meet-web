@@ -2,6 +2,7 @@ import { Badge } from '../distributer/ui/badge';
 import { User, Calendar, ShoppingBag } from 'lucide-react';
 
 export function ClientList({ clients, onClientSelect, language }) {
+  console.log("client lsit",clients)
   return (
     <div
       className="flex-1 overflow-y-auto p-2 sm:p-4 md:p-6"
@@ -10,7 +11,7 @@ export function ClientList({ clients, onClientSelect, language }) {
       <div className="space-y-2 sm:space-y-3">
         {clients.map((client) => (
           <div
-            key={client.id}
+            key={client._id}
             onClick={() => onClientSelect(client)}
             className="group relative bg-card hover:bg-accent/50 rounded-lg border border-border hover:border-primary/50 transition-all duration-200 cursor-pointer overflow-hidden active:scale-[0.98] touch-manipulation"
           >
@@ -44,7 +45,7 @@ export function ClientList({ clients, onClientSelect, language }) {
                   <div className="flex items-center gap-1 text-muted-foreground flex-shrink-0">
                     <Calendar className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
                     <span className="text-[10px] sm:text-xs whitespace-nowrap">
-                      {client.lastOrderDate}
+                      {client.lastOrder}
                     </span>
                   </div>
                 </div>

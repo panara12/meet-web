@@ -23,13 +23,11 @@ const appSlice = createSlice({
     },
     setResetEmail: (state, action) => {
       state.userEmail = action.payload
-      console.log('emiL',state.userEmail)
     },
 
     //userlist
     setUserAllList:(state, action)=>{
       state.userAllList = action.payload
-      console.log("redux all user data",state.userAllList)
     }
   }
 });

@@ -28,6 +28,12 @@ const clientServices = {
         console.log("response data", res);
         return res;
     },
+    updateOrderSeller: async (payload) => {
+        console.log("update order seller method", payload);
+        const res = await apiHelper.post('/seller/updatesellerorders/' + payload.id, payload);
+        console.log("seller response data", res);
+        return res;
+    },
     deleteSeller: async (payload) => {
         const res = await apiHelper.delete('/seller/deleteseller/' + payload.id);
         return res.data;

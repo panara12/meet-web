@@ -107,7 +107,26 @@ router.post('/updateseller/:id',user_session_checker("edit_seller"),async(req,re
     }
 })
 
+router.post("/updatesellerorders/:id",user_session_checker("udpate_seller_orders"),async(req,res)=>{
+    manualLog('entered in update order details')
+    try{
+        const {id} = req.params
+        const SellerModel = req.db.model("Seller");
+        const updated_seller = await SellerModel.findOneAndUpdate({_id:id},{$set:req.body},{new:true})
+        manualLog(`seller updated successfully :: ${updated_seller._id}`)
+        res.status(200).json({
+            message:"seller updated",
+            seller:{updated_seller}
+        })
+    }catch(error){
+        console.log('failed to update order seller')
+        manualLog(`there is error in update order seller :: ${JSON.stringify(error)}`)
+        res.status(500).json({message:"seller order not updated"})  
+    }
+})
+
 router.get('/allseller', user_session_checker("get_all_seller"), async (req, res) => {
+     manualLog('entered in all seller route')
     try {
         const Seller = req.db.model('Seller'); // or 'Company' based on your model name
         

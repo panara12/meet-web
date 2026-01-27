@@ -1,12 +1,29 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Menu, LogOut } from "lucide-react";
 import { useLogout } from "../../hooks/auth/useLogOut";
+import { useAddLocation } from "../../hooks/location/useAddLocation";
+import { useGeolocation } from "../../hooks/location/useGeolocation";
+import { useSelector } from "react-redux";
 
 export default function Header({sidebarOpen,setSidebarOpen}) {
-
+  const userInfo = useSelector((state) => state.app.userInfo);
   const {mutate:logout} = useLogout();
+  
+  const { mutate: addUserLocation,isPending:isAddLocationPending } = useAddLocation({
+    onSuccess:()=>{
+      logout();
+    }
+  });
+  const { location } = useGeolocation();
 
   const handleLogout = () => {
+    if(userInfo.user_role == "salesman"){
+      // Send immediately
+      addUserLocation({
+          latitude: location.latitude,
+          longitude: location.longitude
+        });
+    }
     logout();
   };
 

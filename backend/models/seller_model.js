@@ -67,9 +67,13 @@ const sellerSchema = mongoose.Schema({
         type: String,
         default: null
     },
+    pendingOrders:{
+        type:Number,
+        default:0
+    },
     totalOrders: {
-        type: String,
-        default: "0"
+        type: Number,
+        default:0
     },
     totalSpent: {
         type: String,

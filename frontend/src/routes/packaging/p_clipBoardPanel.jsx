@@ -29,8 +29,8 @@ const groupOrdersByClient = (ordersWithClients) => {
   const clientMap = new Map();
 
   ordersWithClients.forEach(({ client, order }) => {
-    if (!clientMap.has(client.id)) {
-      clientMap.set(client.id, {
+    if (!clientMap.has(client._id)) {
+      clientMap.set(client._id, {
         client,
         orders: [],
         allItems: [],
@@ -40,10 +40,10 @@ const groupOrdersByClient = (ordersWithClients) => {
       });
     }
 
-    const merged = clientMap.get(client.id);
+    const merged = clientMap.get(client._id);
     merged.orders.push(order);
     merged.allItems.push(...order.items);
-    merged.orderNumbers.push(order.orderNumber);
+    merged.orderNumbers.push(order.order_id);
     merged.totalQuantity += order.items.reduce(
       (sum, item) => sum + item.quantity,
       0
@@ -52,7 +52,7 @@ const groupOrdersByClient = (ordersWithClients) => {
     if (new Date(order.date) < new Date(merged.earliestDate)) {
       merged.earliestDate = order.date;
     }
-  });
+  }); 
 
   return Array.from(clientMap.values());
 };
@@ -63,11 +63,12 @@ export function ClipboardPanel({ allOrders }) {
 
   const pendingOrders = filterPendingOrders(allOrders);
   const mergedClientOrders = groupOrdersByClient(pendingOrders);
+  console.log("mergedClientOrders",mergedClientOrders)
 
   // Clear selections if clients no longer have pending orders
   useEffect(() => {
     const pendingClientIds = new Set(
-      mergedClientOrders.map(merged => merged.client.id)
+      mergedClientOrders.map(merged => merged.client._id)
     );
 
     const currentSelectedIds = new Set(
@@ -99,7 +100,7 @@ export function ClipboardPanel({ allOrders }) {
   const handlePrintAll = () => {
     if (mergedClientOrders.length === 0) return;
     const allClientIds = new Set(
-      mergedClientOrders.map(merged => merged.client.id)
+      mergedClientOrders.map(merged => merged.client._id)
     );
     setSelectedClientIds(allClientIds);
     setShowPrintDialog(true);
@@ -111,7 +112,7 @@ export function ClipboardPanel({ allOrders }) {
   };
 
   const selectedOrdersWithClients = pendingOrders.filter(({ client }) =>
-    selectedClientIds.has(client.id)
+    selectedClientIds.has(client._id)
   );
 
   return (
@@ -189,16 +190,16 @@ export function ClipboardPanel({ allOrders }) {
             <div className="space-y-2 sm:space-y-3">
               {mergedClientOrders.map(merged => (
                 <Card
-                  key={merged.client.id}
+                  key={merged.client._id}
                   className={`p-3 sm:p-4 cursor-pointer transition-all duration-200 hover:shadow-lg hover:border-primary/50 active:scale-[0.99] touch-manipulation ${
-                    selectedClientIds.has(merged.client.id)
+                    selectedClientIds.has(merged.client._id)
                       ? 'border-primary bg-primary/5 shadow-md'
                       : 'border-border bg-card'
                   }`}
                   onClick={() =>
                     handleSelectClient(
-                      merged.client.id,
-                      !selectedClientIds.has(merged.client.id)
+                      merged.client._id,
+                      !selectedClientIds.has(merged.client._id)
                     )
                   }
                 >
@@ -206,9 +207,9 @@ export function ClipboardPanel({ allOrders }) {
                     {/* Checkbox */}
                     <div className="flex-shrink-0 pt-1">
                       <Checkbox
-                        checked={selectedClientIds.has(merged.client.id)}
+                        checked={selectedClientIds.has(merged.client._id)}
                         onCheckedChange={(checked) =>
-                          handleSelectClient(merged.client.id, Boolean(checked))
+                          handleSelectClient(merged.client._id, Boolean(checked))
                         }
                         onClick={(e) => e.stopPropagation()}
                         className="w-5 h-5 sm:w-6 sm:h-6"
@@ -222,18 +223,18 @@ export function ClipboardPanel({ allOrders }) {
                         <h3 className="text-sm sm:text-base font-bold text-foreground truncate">
                           {merged.client.name}
                         </h3>
-                        {merged.client.city && (
+                        {merged.client.address && (
                           <div className="flex items-center gap-1 mt-1">
                             <MapPin className="w-3 h-3 text-muted-foreground flex-shrink-0" />
                             <p className="text-[10px] sm:text-xs text-muted-foreground truncate">
-                              {merged.client.city}
+                              {merged.client.address}
                             </p>
                           </div>
                         )}
                         <div className="flex items-center gap-1 mt-1">
                           <FileText className="w-3 h-3 text-muted-foreground flex-shrink-0" />
                           <p className="text-[10px] sm:text-xs text-muted-foreground">
-                            Orders #{merged.orderNumbers.join(', #')}
+                            Orders #{merged?.orders?.map((order)=>order.order_id).join(', #')}
                           </p>
                         </div>
                       </div>
@@ -247,7 +248,7 @@ export function ClipboardPanel({ allOrders }) {
                           >
                             <div className="flex justify-between items-start gap-2">
                               <span className="text-xs sm:text-sm font-medium text-foreground flex-1 min-w-0">
-                                {item.name}
+                                {item.product_data.name}
                               </span>
                               <Badge variant="secondary" className="text-[10px] sm:text-xs flex-shrink-0">
                                 Qty: {item.quantity}
@@ -257,7 +258,7 @@ export function ClipboardPanel({ allOrders }) {
                               <div className="mt-2 pt-2 border-t border-border/50">
                                 <p className="text-[10px] sm:text-xs text-muted-foreground">
                                   <span className="font-semibold text-foreground">Instructions: </span>
-                                  {item.instructions}
+                                  {item.instructions || "not added"}
                                 </p>
                               </div>
                             )}

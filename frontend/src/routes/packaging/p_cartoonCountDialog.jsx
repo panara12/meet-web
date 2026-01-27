@@ -17,7 +17,7 @@ import { Package, Calendar, AlertCircle, CheckCircle2 } from 'lucide-react';
 export function CartoonCountDialog({
   isOpen,
   onClose,
-  onConfirm,
+  onConfirm, 
   selectedItemsCount,
   language
 }) {
@@ -26,22 +26,21 @@ export function CartoonCountDialog({
   const { t } = useTranslation(language);
 
   const handleConfirm = () => {
-    const count = parseInt(cartoonCount, 10);
-    if (count > 0 && billingDate) {
-      onConfirm(count, billingDate);
-      setCartoonCount('');
+    // const count = parseInt(cartoonCount, 10);
+    if (billingDate) {
+      onConfirm(4, billingDate);
       setBillingDate('');
       onClose();
     }
   };
 
   const handleCancel = () => {
-    setCartoonCount('');
+    // setCartoonCount('');
     setBillingDate('');
     onClose();
   };
 
-  const isValid = cartoonCount && parseInt(cartoonCount, 10) > 0 && billingDate;
+  const isValid = billingDate;
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -72,7 +71,7 @@ export function CartoonCountDialog({
         {/* Form Content */}
         <div className="px-4 sm:px-6 py-4 space-y-4 sm:space-y-5">
           {/* Cartoon Count Input */}
-          <div className="space-y-2">
+          {/* <div className="space-y-2">
             <Label 
               htmlFor="cartoonCount" 
               className="text-xs sm:text-sm font-semibold text-foreground flex items-center gap-2"
@@ -97,7 +96,7 @@ export function CartoonCountDialog({
                 <span>Count must be greater than 0</span>
               </div>
             )}
-          </div>
+          </div> */}
 
           {/* Billing Date Input */}
           <div className="space-y-2">

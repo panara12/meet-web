@@ -85,7 +85,7 @@ export function OrderDetails({ order, onUpdateOrder, onUpdateQuantity, language 
           : item.billingDate
     }));
 
-    onUpdateOrder(order.id, updatedItems, cartoonCount);
+    onUpdateOrder(order._id, updatedItems, cartoonCount);
 
     toast.success(
       `${newlySelectedCount} ${t('Items')} sent to billing department with ${cartoonCount} cartoons on ${billingDate}`
@@ -136,7 +136,7 @@ export function OrderDetails({ order, onUpdateOrder, onUpdateQuantity, language 
         <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 mb-4">
           <div className="flex-1 min-w-0">
             <h2 className="text-base sm:text-lg md:text-xl font-bold text-foreground mb-1">
-              {t('Order')} #{order.orderNumber}
+              {t('Order')} #{order.order_id}
             </h2>
             <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs sm:text-sm text-muted-foreground">
               <div className="flex items-center gap-1">
@@ -229,13 +229,13 @@ export function OrderDetails({ order, onUpdateOrder, onUpdateQuantity, language 
                       <h4 className={`text-sm sm:text-base font-semibold mb-1 ${
                         item.sentToBilling ? 'line-through text-muted-foreground' : 'text-foreground'
                       }`}>
-                        {item.name}
+                        {item.product_data.name}
                       </h4>
                       {item.description && (
                         <p className={`text-xs sm:text-sm mb-2 ${
                           item.sentToBilling ? 'line-through text-muted-foreground' : 'text-muted-foreground'
                         }`}>
-                          {item.description}
+                          {item.product_data.description}
                         </p>
                       )}
                       {item.instructions && (

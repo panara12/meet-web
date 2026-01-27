@@ -10,11 +10,10 @@ router.post('/addorder', user_session_checker("add_order"), async (req, res) => 
         const { 
             order_id, 
             order_seller, 
-            order_date, 
-            order_items, 
-            order_cartoons, 
-            order_total_amount, 
-            order_status, 
+            date, 
+            items, 
+            totalAmount, 
+            status, 
             order_firm 
         } = req.body;
         
@@ -22,13 +21,12 @@ router.post('/addorder', user_session_checker("add_order"), async (req, res) => 
         const new_order = await Order.create({
             order_id,
             order_seller,
-            order_date,
+            date,
             order_salesman: req.session.user.user_id,
-            order_items,
-            order_cartoons,
-            order_total_amount,
-            order_status,
-            order_firm
+            items,
+            totalAmount,
+            status,
+            order_firm : order_firm || ""
         });
         manualLog("order added successfully");
         res.status(200).send({
@@ -50,11 +48,10 @@ router.put('/updateorder/:id', user_session_checker("update_order"), async (req,
         const { 
             order_id, 
             order_seller, 
-            order_date, 
-            order_items, 
-            order_cartoons, 
-            order_total_amount, 
-            order_status, 
+            date, 
+            items,  
+            totalAmount, 
+            status, 
             order_firm 
         } = req.body;
         
@@ -64,11 +61,10 @@ router.put('/updateorder/:id', user_session_checker("update_order"), async (req,
             {
                 order_id,
                 order_seller,
-                order_date,
-                order_items,
-                order_cartoons,
-                order_total_amount,
-                order_status,
+                date,
+                items,
+                totalAmount,
+                status,
                 order_firm
             },
             { new: true }
@@ -125,7 +121,7 @@ router.get('/getorder/:id', user_session_checker("get_order"), async (req, res) 
         const order = await Order.findById(req.params.id)
             .populate('order_seller')
             .populate('order_salesman')
-            .populate('order_items.product_details');
+            .populate('items.product_data');
         if (!order) {
             return res.status(404).send({
                 message: "order not found",
@@ -153,7 +149,7 @@ router.get('/getallorders', user_session_checker("get_all_orders"), async (req, 
         const orders = await Order.find()
             .populate('order_seller')
             .populate('order_salesman')
-            .populate('order_items.product_details')
+            .populate('items.product_data')
             .sort({ createdAt: -1 });
         manualLog("all orders retrieved successfully");
         res.status(200).send({
@@ -177,7 +173,7 @@ router.get('/getmyorders', user_session_checker("get_my_orders"), async (req, re
         const orders = await Order.find({ order_salesman: req.session.user.user_id })
             .populate('order_seller')
             .populate('order_salesman')
-            .populate('order_items.product_details')
+            .populate('items.product_data')
             .sort({ createdAt: -1 });
         manualLog("salesman orders retrieved successfully");
         res.status(200).send({
@@ -201,7 +197,7 @@ router.get('/getordersbystatus/:status', user_session_checker("get_orders_by_sta
         const orders = await Order.find({ order_status: req.params.status })
             .populate('order_seller')
             .populate('order_salesman')
-            .populate('order_items.product_details')
+            .populate('items.product_data')
             .sort({ createdAt: -1 });
         manualLog("orders by status retrieved successfully");
         res.status(200).send({

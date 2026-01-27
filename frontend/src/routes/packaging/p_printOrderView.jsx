@@ -47,7 +47,7 @@ export function PrintOrderView({
             .order-card {
               page-break-inside: avoid;
               margin-bottom: 40px;
-              border: 3px solid #2563eb;
+              border: 3px solid #E5E7EB;
               padding: 25px;
               border-radius: 12px;
               background: #ffffff;
@@ -87,8 +87,8 @@ export function PrintOrderView({
               gap: 6px;
             }
             .order-badge {
-              background: #dbeafe;
-              color: #1e40af;
+              background: #E5E7EB;
+              color: black;
               padding: 6px 12px;
               border-radius: 6px;
               font-size: 14px;
@@ -103,7 +103,7 @@ export function PrintOrderView({
               padding: 18px;
               background: linear-gradient(to right, #f9fafb, #ffffff);
               border: 2px solid #e5e7eb;
-              border-left: 4px solid #2563eb;
+              border-left: 4px solid #E5E7EB;
               border-radius: 8px;
               transition: all 0.2s;
             }
@@ -126,8 +126,8 @@ export function PrintOrderView({
             .item-quantity {
               font-size: 18px;
               font-weight: 700;
-              color: #2563eb;
-              background: #dbeafe;
+              color: black;
+              background: #E5E7EB;
               padding: 4px 12px;
               border-radius: 6px;
               white-space: nowrap;
@@ -135,14 +135,14 @@ export function PrintOrderView({
             .item-instructions {
               margin-top: 12px;
               padding: 12px;
-              background: #fef3c7;
-              border-left: 3px solid #f59e0b;
+              background: #E5E7EB;
+              border-left: 3px solid #E5E7EB;
               border-radius: 6px;
               font-size: 14px;
               line-height: 1.5;
             }
             .item-instructions strong {
-              color: #92400e;
+              color: black;
               display: block;
               margin-bottom: 4px;
             }
@@ -169,7 +169,7 @@ export function PrintOrderView({
               text-align: center;
               margin-bottom: 30px;
               padding-bottom: 20px;
-              border-bottom: 3px solid #2563eb;
+              border-bottom: 3px solid #E5E7EB;
             }
             .print-title {
               font-size: 32px;
@@ -269,7 +269,7 @@ export function PrintOrderView({
           <div id="print-content" className="space-y-4 sm:space-y-6">
             {ordersWithClients.map(({ client, order }) => (
               <div
-                key={order.id}
+                key={order._id}
                 className="order-card border-2 border-primary/20 rounded-lg p-4 sm:p-6 bg-card hover:shadow-lg transition-shadow duration-200"
               >
                 {/* Order Header */}
@@ -281,16 +281,16 @@ export function PrintOrderView({
                     {client.city && (
                       <div className="party-city flex items-center gap-2 text-sm sm:text-base text-muted-foreground mb-1">
                         <MapPin className="w-4 h-4" />
-                        {client.city}
+                        {client.address}
                       </div>
                     )}
                     <div className="order-meta flex items-center gap-2 text-xs sm:text-sm text-muted-foreground">
                       <FileText className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
-                      Order #{order.orderNumber}
+                      Order #{order.order_id}
                     </div>
                   </div>
                   <Badge className="order-badge text-xs sm:text-sm px-3 py-1 mt-2 sm:mt-0">
-                    Order #{order.orderNumber}
+                    Order #{order.order_id}
                   </Badge>
                 </div>
 
@@ -303,7 +303,7 @@ export function PrintOrderView({
                     >
                       <div className="item-header flex justify-between items-start gap-3">
                         <span className="item-name text-sm sm:text-base md:text-lg font-bold text-foreground flex-1">
-                          {item.name}
+                          {item.product_data.name}
                         </span>
                         <span className="item-quantity text-sm sm:text-base font-bold text-primary bg-primary/10 px-2.5 sm:px-3 py-1 rounded-md whitespace-nowrap">
                           Qty: {item.quantity}
@@ -312,7 +312,7 @@ export function PrintOrderView({
 
                       {item.description && (
                         <p className="text-xs sm:text-sm text-muted-foreground mt-2">
-                          {item.description}
+                          {item.product_data.description}
                         </p>
                       )}
 

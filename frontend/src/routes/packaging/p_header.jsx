@@ -3,6 +3,7 @@ import logo from '../../assets/logo.png';
 import { Button } from '../distributer/ui/button';
 
 export function Header({ title, onBack, onLogout }) {
+
   return (
     <header className="flex items-center gap-2 sm:gap-3 md:gap-4 px-3 py-2.5 sm:px-4 sm:py-3 md:px-6 md:py-4 bg-card border-b border-border shrink-0 shadow-sm">
       {/* Back Button */}

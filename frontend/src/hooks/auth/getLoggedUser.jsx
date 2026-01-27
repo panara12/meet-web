@@ -10,8 +10,7 @@ export function useGetLoggedUser() {
     queryKey:["currentUser"],
     queryFn:()=>authServices.getLoggedUser(),
     onSuccess:()=>{
-      dispatch(setUserInfo(user));
-      dispatch(setLimitsInfo(limits))
+      
     },
     onError:()=>{
       dispatch(setUserInfo(null));

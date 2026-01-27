@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Header } from './p_header';
 import { ClientList } from './p_clientList';
 import { OrderList } from './p_orderList';
@@ -10,8 +10,24 @@ import { mockClients, mockOrders } from './mockData';
 import { useTranslation } from './translations';
 import { toast } from 'sonner';
 import { Clipboard, Package } from 'lucide-react';
+import { useGetAllOrders } from '../../hooks/order/useGetAllOrder';
+import { useUpdateOrder } from '../../hooks/order/useUpdateOrder';
+import { useUpdateOrderSeller } from '../../hooks/seller/useUpdateOrderSeller';
+import { useLogout } from '../../hooks/auth/useLogOut';
 
 export default function Dashboard() {
+  const {
+    data: getAllOrders,
+    isPending: isGetAllOrdersPending,
+    isError: isGetAllOrdersError,
+    error: getAllOrdersError
+  } = useGetAllOrders();
+
+  const {mutate:updateOrder,isPending:isUpdateOrderPending,isError:isUpdateOrderError,Error:updateOrderError} = useUpdateOrder()
+  const {mutate:updateSellerOrder,isPending:isUpdateSellerOrderPending,isError:isUpdateSellerOrderError,Error:updateSellerOrderError} = useUpdateOrderSeller()
+  
+  const {mutate:logout} = useLogout();
+
   const [appState, setAppState] = useState({
     currentView: 'clients',
     selectedClient: null,
@@ -20,20 +36,38 @@ export default function Dashboard() {
     globalSelectedItems: new Map()
   });
 
-  const [orders, setOrders] = useState(mockOrders);
+  const [orders, setOrders] = useState([]);
   const [mobileTab, setMobileTab] = useState('main');
 
+  // Initialize orders from API response
+  useEffect(() => {
+    if (!isGetAllOrdersPending && getAllOrders?.orders) {
+      setOrders(getAllOrders.orders);
+    }
+  }, [getAllOrders, isGetAllOrdersPending]);
+
+  // Extract unique clients from orders
+  const clientData = orders && orders.length > 0
+    ? [...new Map(
+        orders
+          .filter(o => o.order_seller)
+          .map(o => [o.order_seller._id, o.order_seller])
+      ).values()]
+    : [];
+
+  // Get orders grouped by client
+  const getOrdersByClient = (clientId) => {
+    return orders.filter(order => order.order_seller?._id === clientId);
+  };
+
+  // Get all orders with their clients for clipboard
   const getAllOrdersWithClients = () => {
-    const allOrders = [];
-
-    mockClients.forEach(client => {
-      const clientOrders = orders[client.id] || [];
-      clientOrders.forEach(order => {
-        allOrders.push({ client, order });
-      });
-    });
-
-    return allOrders;
+    return orders
+      .filter(order => order.order_seller)
+      .map(order => ({
+        client: order.order_seller,
+        order: order
+      }));
   };
 
   const handleClientSelect = (client) => {
@@ -84,34 +118,31 @@ export default function Dashboard() {
     } else if (hasItemsSentToBilling) {
       newStatus = 'processing';
     } else {
-      newStatus = 'processing';
+      newStatus = 'pending';
     }
 
-    const totalItems = updatedItems.reduce((sum, item) => sum + item.quantity, 0);
+    const totalItems = updatedItems.reduce((sum, item) => sum + parseInt(item.quantity || 0), 0);
     const totalAmount = updatedItems.reduce(
-      (sum, item) => sum + item.price * item.quantity,
+      (sum, item) => sum + parseFloat(item.subtotal || 0),
       0
     );
 
-    const clientOrders = orders[appState.selectedClient.id] || [];
-    const updatedOrders = clientOrders.map(order =>
-      order.id === orderId
+    // Update orders array
+    const updatedOrders = orders.map(order =>
+      order._id === orderId
         ? {
             ...order,
             items: updatedItems,
             status: newStatus,
             totalItems,
-            totalAmount
+            totalAmount: totalAmount.toFixed(2)
           }
         : order
     );
 
-    setOrders({
-      ...orders,
-      [appState.selectedClient.id]: updatedOrders
-    });
+    setOrders(updatedOrders);
 
-    const updatedOrder = updatedOrders.find(order => order.id === orderId);
+    const updatedOrder = updatedOrders.find(order => order._id === orderId);
     if (updatedOrder) {
       setAppState({
         ...appState,
@@ -123,30 +154,27 @@ export default function Dashboard() {
   const handleUpdateQuantity = (orderId, updatedItems) => {
     if (!appState.selectedClient) return;
 
-    const totalItems = updatedItems.reduce((sum, item) => sum + item.quantity, 0);
+    const totalItems = updatedItems.reduce((sum, item) => sum + parseInt(item.quantity || 0), 0);
     const totalAmount = updatedItems.reduce(
-      (sum, item) => sum + item.price * item.quantity,
+      (sum, item) => sum + parseFloat(item.subtotal || 0),
       0
     );
 
-    const clientOrders = orders[appState.selectedClient.id] || [];
-    const updatedOrders = clientOrders.map(order =>
-      order.id === orderId
+    // Update orders array
+    const updatedOrders = orders.map(order =>
+      order._id === orderId
         ? {
             ...order,
             items: updatedItems,
             totalItems,
-            totalAmount
+            totalAmount: totalAmount.toFixed(2)
           }
         : order
     );
 
-    setOrders({
-      ...orders,
-      [appState.selectedClient.id]: updatedOrders
-    });
+    setOrders(updatedOrders);
 
-    const updatedOrder = updatedOrders.find(order => order.id === orderId);
+    const updatedOrder = updatedOrders.find(order => order._id === orderId);
     if (updatedOrder) {
       setAppState({
         ...appState,
@@ -179,14 +207,21 @@ export default function Dashboard() {
     });
   };
 
+  const updateOrderDetails = {};
+
   const handleSendMultipleOrdersToBilling = (cartoonCount, billingDate) => {
     if (!appState.selectedClient) return;
 
-    const clientOrders = orders[appState.selectedClient.id] || [];
+    const clientOrders = getOrdersByClient(appState.selectedClient._id);
     let totalItemsSent = 0;
 
-    const updatedOrders = clientOrders.map(order => {
-      const selectedItems = appState.globalSelectedItems.get(order.id);
+    const updatedOrders = orders.map(order => {
+      // Only process orders for the selected client
+      if (order.order_seller?._id !== appState.selectedClient._id) {
+        return order;
+      }
+
+      const selectedItems = appState.globalSelectedItems.get(order._id);
       if (!selectedItems || selectedItems.size === 0) {
         return order;
       }
@@ -213,28 +248,38 @@ export default function Dashboard() {
       } else if (hasItemsSentToBilling) {
         newStatus = 'processing';
       } else {
-        newStatus = 'processing';
+        newStatus = 'pending';
       }
 
-      const totalItems = updatedItems.reduce((sum, item) => sum + item.quantity, 0);
+      const totalItems = updatedItems.reduce((sum, item) => sum + parseInt(item.quantity || 0), 0);
       const totalAmount = updatedItems.reduce(
-        (sum, item) => sum + item.price * item.quantity,
+        (sum, item) => sum + parseFloat(item.subtotal || 0),
         0
       );
+      console.log("order details  uapdate",order,"items",updatedItems,"status",newStatus,"totalItems",totalItems,"totalAmount",totalAmount)
+      updateOrder({...order,
+        items: updatedItems,
+        status: newStatus,
+        totalItems,
+        totalAmount: totalAmount.toFixed(2)})
+      
+      if(newStatus=="completed"){
+        updateSellerOrder({
+          id:order.order_seller._id,
+          pendingOrders:order.order_seller.pendingOrders - 1
+        });
+      }
 
       return {
         ...order,
         items: updatedItems,
         status: newStatus,
         totalItems,
-        totalAmount
+        totalAmount: totalAmount.toFixed(2)
       };
     });
 
-    setOrders({
-      ...orders,
-      [appState.selectedClient.id]: updatedOrders
-    });
+    setOrders(updatedOrders);
 
     setAppState({
       ...appState,
@@ -261,9 +306,7 @@ export default function Dashboard() {
       language: 'en',
       globalSelectedItems: new Map()
     });
-
-    setOrders(mockOrders);
-    toast.success('Logged out successfully');
+      logout();
   };
 
   const { t } = useTranslation(appState.language);
@@ -275,7 +318,7 @@ export default function Dashboard() {
       case 'orders':
         return appState.selectedClient?.name || 'Orders';
       case 'order-details':
-        return `Order #${appState.selectedOrder?.orderNumber || ''}`;
+        return `Order #${appState.selectedOrder?.order_id || ''}`;
       default:
         return 'Package Manager';
     }
@@ -291,6 +334,30 @@ export default function Dashboard() {
         return undefined;
     }
   };
+
+  // Loading state
+  if (isGetAllOrdersPending) {
+    return (
+      <div className="h-screen flex items-center justify-center bg-background">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading orders...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Error state
+  if (isGetAllOrdersError) {
+    return (
+      <div className="h-screen flex items-center justify-center bg-background">
+        <div className="text-center">
+          <p className="text-destructive mb-2">Error loading orders</p>
+          <p className="text-sm text-muted-foreground">{getAllOrdersError?.message || 'Unknown error'}</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="h-screen flex flex-col bg-background overflow-hidden">
@@ -351,7 +418,7 @@ export default function Dashboard() {
               <div className="h-full overflow-y-auto">
                 {appState.currentView === 'clients' && (
                   <ClientList
-                    clients={mockClients}
+                    clients={clientData}
                     onClientSelect={handleClientSelect}
                     language={appState.language}
                   />
@@ -359,7 +426,7 @@ export default function Dashboard() {
 
                 {appState.currentView === 'orders' && appState.selectedClient && (
                   <OrderList
-                    orders={orders[appState.selectedClient.id] || []}
+                    orders={getOrdersByClient(appState.selectedClient._id)}
                     onOrderSelect={handleOrderSelect}
                     language={appState.language}
                     globalSelectedItems={appState.globalSelectedItems}
@@ -393,11 +460,12 @@ export default function Dashboard() {
                 <div className="flex items-center gap-2">
                   <Clipboard className="w-5 h-5 text-primary" />
                   <h2 className="font-semibold text-base">Clipboard</h2>
-                  {getAllOrdersWithClients().length > 0 && (
+                  {console.log("get all client order",getAllOrdersWithClients())}
+                  {/* {getAllOrdersWithClients().length > 0 && (
                     <span className="ml-auto text-xs px-2 py-0.5 bg-primary/10 text-primary rounded-full font-medium">
                       {getAllOrdersWithClients().length}
                     </span>
-                  )}
+                  )} */}
                 </div>
               </div>
               
@@ -413,7 +481,7 @@ export default function Dashboard() {
             <div className="h-full overflow-y-auto">
               {appState.currentView === 'clients' && (
                 <ClientList
-                  clients={mockClients}
+                  clients={clientData}
                   onClientSelect={handleClientSelect}
                   language={appState.language}
                 />
@@ -421,7 +489,7 @@ export default function Dashboard() {
 
               {appState.currentView === 'orders' && appState.selectedClient && (
                 <OrderList
-                  orders={orders[appState.selectedClient.id] || []}
+                  orders={getOrdersByClient(appState.selectedClient._id)}
                   onOrderSelect={handleOrderSelect}
                   language={appState.language}
                   globalSelectedItems={appState.globalSelectedItems}
