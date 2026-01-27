@@ -24,6 +24,7 @@ const Location = require("./routes/location");
 const email = require("./routes/email");
 const payment = require("./routes/payment");
 const limits = require("./routes/limit");
+const cart = require("./routes/cart");
 const sendScheduleEmails  = require("./routes/vvtmails");
 
 const app = express();
@@ -88,6 +89,7 @@ app.use("/getme",tenent_middleware,get_me);
 app.use("/distributer", tenent_middleware, distributer);
 app.use("/seller", tenent_middleware, seller);
 app.use("/order", tenent_middleware, order);
+app.use("/cart",tenent_middleware, cart);
 app.use("/user", tenent_middleware, user_routes);
 app.use("/product", tenent_middleware, product);
 app.use("/product-category", tenent_middleware, product_category);
