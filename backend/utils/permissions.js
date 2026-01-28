@@ -39,7 +39,10 @@ const permissions = {
         "get_limits",
         "view_location",
         "view_payments",
-        "update_payment_status"
+        "update_payment_status",
+        "get_all_orders",
+        "update_order",
+        "udpate_seller_orders"
     ],
     "billing":[
         "get_by_id_product",

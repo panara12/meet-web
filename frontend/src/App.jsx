@@ -15,6 +15,7 @@ import SalesmanOutlet from './component/ui/salesmanOutlet'
 import { useState } from 'react'
 import TenantRegistrationPage from './routes/tenant/addtenant'
 import RoleProtectedRoute from './routes/RoleProtectedRoute'
+import NotFound from './routes/NotFound'
 
 
 function App() {
@@ -23,6 +24,7 @@ function App() {
     <>
       <BrowserRouter>
         <Routes>
+          <Route path='*' element={<NotFound />}></Route>
           <Route path='/addtenant' element={<TenantRegistrationPage />}></Route>
           <Route path="/loading" element={<LoadingPage/>}></Route>
           <Route path="/forgotpassword" element={<PasswordReset/>}></Route>
@@ -33,7 +35,7 @@ function App() {
             <Route element={<ProtectedRoute/>}>
                 {/* DISTRIBUTER */}
             <Route
-              element={<RoleProtectedRoute allowedRoles={["distributer"]} />}
+              element={<RoleProtectedRoute allowedRoles={["admin"]} />}
             >
               <Route path="/distributer/*" element={<Distributer_router />} />
             </Route>
