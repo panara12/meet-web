@@ -80,22 +80,26 @@ export function OrderList({
   };
 
   const handleQuantityUpdate = (order, itemId, newQuantity) => {
+    console.log("handle quentity update called")
     const item = order.items.find(item => item.id === itemId);
     if (item?.sentToBilling || newQuantity < 1) return;
     
     const updatedItems = order.items.map(item => 
       item.id === itemId ? { ...item, quantity: newQuantity } : item
     );
+    console.log("updated items",updatedItems)
     
-    onUpdateQuantity(order.id, updatedItems);
+    onUpdateQuantity(order._id, updatedItems);
     toast.success(t('Quantity updated successfully'));
   };
 
   const handleQuantityChange = (order, itemId, delta) => {
+    console.log("handle quentity changed called")
     const item = order.items.find(item => item.id === itemId);
     if (!item || item.sentToBilling) return;
     
     const newQuantity = Math.max(1, item.quantity + delta);
+    console.log("new quantity",newQuantity)
     handleQuantityUpdate(order, itemId, newQuantity);
   };
 
@@ -126,7 +130,7 @@ export function OrderList({
       order.items.forEach(item => {
         if (orderSelections.has(item.id) && !item.sentToBilling) {
           totalSelectedItems++;
-          totalSelectedAmount += item.price * item.quantity;
+          totalSelectedAmount += item.product_data.price * item.quantity;
         }
       });
     }
@@ -269,7 +273,7 @@ export function OrderList({
                                       <div className={`text-sm sm:text-base font-semibold mb-2 ${
                                         item.sentToBilling ? 'text-muted-foreground' : 'text-foreground'
                                       }`}>
-                                        ${item.price?.toFixed(2) || '0.00'}
+                                        ${item.product_data.price?.toFixed(2) || '0.00'}
                                       </div>
                                       
                                       {!item.sentToBilling ? (
@@ -279,7 +283,9 @@ export function OrderList({
                                             size="sm"
                                             className="h-7 w-7 sm:h-8 sm:w-8 p-0 touch-manipulation"
                                             onClick={(e) => {
+                                              e.preventDefault();
                                               e.stopPropagation();
+                                              console.log('Minus clicked for item:', item.id);
                                               handleQuantityChange(order, item.id, -1);
                                             }}
                                             disabled={item.quantity <= 1}
@@ -292,6 +298,7 @@ export function OrderList({
                                             max="999"
                                             value={item.quantity}
                                             onChange={(e) => {
+                                              e.preventDefault();
                                               e.stopPropagation();
                                               handleQuantityInputChange(order, item.id, e.target.value);
                                             }}
@@ -303,7 +310,9 @@ export function OrderList({
                                             size="sm"
                                             className="h-7 w-7 sm:h-8 sm:w-8 p-0 touch-manipulation"
                                             onClick={(e) => {
+                                              e.preventDefault();
                                               e.stopPropagation();
+                                              console.log('Plus clicked for item:', item.id);
                                               handleQuantityChange(order, item.id, 1);
                                             }}
                                             disabled={item.quantity >= 999}
@@ -345,7 +354,7 @@ export function OrderList({
                                         item.sentToBilling ? 'opacity-60' : ''
                                       }`}
                                     >
-                                      ${((item.price || 0) * (item.quantity || 0)).toFixed(2)} {t('total')}
+                                      ${((item.product_data.price || 0) * (item.quantity || 0)).toFixed(2)} {t('total')}
                                     </Badge>
                                     {item.sentToBilling && (
                                       <Badge variant="default" className="text-[10px] sm:text-xs">

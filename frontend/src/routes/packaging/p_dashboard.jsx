@@ -153,6 +153,7 @@ export default function Dashboard() {
 
   const handleUpdateQuantity = (orderId, updatedItems) => {
     if (!appState.selectedClient) return;
+    console.log("handle update quantity called",orderId,updatedItems)
 
     const totalItems = updatedItems.reduce((sum, item) => sum + parseInt(item.quantity || 0), 0);
     const totalAmount = updatedItems.reduce(

@@ -10,7 +10,7 @@ const item = {
         ref:"Product"
     },
     quantity:{
-        type:String,
+        type:Number,
         required:[true,"please enter product quantity"]
     },
     size:{

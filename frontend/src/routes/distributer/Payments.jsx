@@ -244,8 +244,8 @@ function Payments() {
   console.log("userInfo in payment page",userInfo)
 
   // ✅ Use data directly from React Query
-  const paymentRequests = getAllPayment?.data?.payments?.data || []
-  console.log("paymentRequests data",getAllPayment?.data?.payments)
+  const paymentRequests = getAllPayment?.payments?.data || []
+  console.log("paymentRequests data",getAllPayment?.payments?.data)
   
 
   // ✅ Show loading state

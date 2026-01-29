@@ -20,9 +20,9 @@ const skuSchema = new mongoose.Schema({
   },
   color: { type: String }, // Added flexibility for product color
   size: { type: String },  // Variant size (e.g., 1L, XL)
-  price: { type: String, default: null }, // Now string or null for easy currency handling
-  costPrice: { type: String, default: null }, // Optional cost
-  stockQuantity: { type: String, default: null }, // Stock as string (nullable)
+  price: { type: Number, default: null }, // Now string or null for easy currency handling
+  costPrice: { type: Number, default: null }, // Optional cost
+  stockQuantity: { type: Number, default: null }, // Stock as string (nullable)
   barcode: { type: String, default: null }, // SKU-level barcode (nullable)
 });
 
@@ -65,7 +65,7 @@ const productSchema = new mongoose.Schema(
     },
 
     price:{
-      type:String,
+      type:Number,
       default:null
     },
 

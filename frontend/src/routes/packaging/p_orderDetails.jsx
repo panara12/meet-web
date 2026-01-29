@@ -39,13 +39,15 @@ export function OrderDetails({ order, onUpdateOrder, onUpdateQuantity, language 
   const handleQuantityUpdate = (itemId, newQuantity) => {
     const item = order.items.find(item => item.id === itemId);
     if (item?.sentToBilling || newQuantity < 1) return;
+    console.log(`Updating quantity for item ${itemId} to ${newQuantity}`);
 
     const updatedItems = order.items.map(item =>
       item.id === itemId ? { ...item, quantity: newQuantity } : item
     );
 
     if (onUpdateQuantity) {
-      onUpdateQuantity(order.id, updatedItems);
+      console.log("called update ")
+      onUpdateQuantity(order._id, updatedItems);
       toast.success(t('Quantity updated successfully'));
     }
   };
@@ -53,7 +55,8 @@ export function OrderDetails({ order, onUpdateOrder, onUpdateQuantity, language 
   const handleQuantityChange = (itemId, delta) => {
     const item = order.items.find(item => item.id === itemId);
     if (!item || item.sentToBilling) return;
-    handleQuantityUpdate(itemId, Math.max(1, item.quantity + delta));
+    console.log(`Changing quantity for item ${itemId} by ${delta}`);
+    handleQuantityUpdate(itemId, Math.max(1, Number(item.quantity) + delta));
   };
 
   const handleQuantityInputChange = (itemId, value) => {
@@ -199,7 +202,7 @@ export function OrderDetails({ order, onUpdateOrder, onUpdateQuantity, language 
         <div className="space-y-2 sm:space-y-3">
           {order.items.map(item => (
             <Card 
-              key={item.id} 
+              key={item._id} 
               className={`p-3 sm:p-4 transition-all duration-200 ${
                 item.sentToBilling 
                   ? 'opacity-60 bg-muted/30' 
@@ -257,7 +260,7 @@ export function OrderDetails({ order, onUpdateOrder, onUpdateQuantity, language 
                       <div className={`text-sm sm:text-base font-semibold mb-2 ${
                         item.sentToBilling ? 'text-muted-foreground' : 'text-foreground'
                       }`}>
-                        ${item.price?.toFixed(2) || '0.00'}
+                        ${item.product_data.price?.toFixed(2) || '0.00'}
                       </div>
                       
                       {!item.sentToBilling ? (
@@ -266,7 +269,12 @@ export function OrderDetails({ order, onUpdateOrder, onUpdateQuantity, language 
                             variant="outline"
                             size="sm"
                             className="h-7 w-7 sm:h-8 sm:w-8 p-0 touch-manipulation"
-                            onClick={() => handleQuantityChange(item.id, -1)}
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              console.log('Minus clicked for item:', item.id);
+                              handleQuantityChange(item.id, -1);
+                            }}
                             disabled={item.quantity <= 1}
                           >
                             <Minus className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
@@ -283,7 +291,12 @@ export function OrderDetails({ order, onUpdateOrder, onUpdateQuantity, language 
                             variant="outline"
                             size="sm"
                             className="h-7 w-7 sm:h-8 sm:w-8 p-0 touch-manipulation"
-                            onClick={() => handleQuantityChange(item.id, 1)}
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              console.log('Plus clicked for item:', item.id);
+                              handleQuantityChange(item.id, 1);
+                            }}
                             disabled={item.quantity >= 999}
                           >
                             <Plus className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
@@ -300,7 +313,7 @@ export function OrderDetails({ order, onUpdateOrder, onUpdateQuantity, language 
                   {/* Item Footer */}
                   <div className="flex items-center gap-2 mt-3 flex-wrap">
                     <Badge variant="outline" className="text-[10px] sm:text-xs">
-                      ${((item.price || 0) * (item.quantity || 0)).toFixed(2)} {t('total')}
+                      ${((item.product_data.price || 0) * (item.quantity || 0)).toFixed(2)} {t('total')}
                     </Badge>
                     {item.sentToBilling && (
                       <Badge variant="default" className="text-[10px] sm:text-xs">
