@@ -8,6 +8,7 @@ import Separator from '../distributer/ui/separator';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '../distributer/ui/dialog';
 import { Eye, EyeOff, Lock, User, Building2, Database, CreditCard, Users, MapPin, Mail, Phone, CheckCircle2 } from 'lucide-react';
 import { toast } from 'sonner';
+import {useAddTenant} from '../../hooks/tenant/useAddTenant';
 
 export default function TenantRegistrationPage() {
   // Login state
@@ -18,6 +19,7 @@ export default function TenantRegistrationPage() {
     username: '',
     password: ''
   });
+  const {mutate:addtenant, isPensing: isAddTenantPending} = useAddTenant()
 
   // Form state - Tenant fields
   const [tenantData, setTenantData] = useState({
@@ -137,7 +139,7 @@ export default function TenantRegistrationPage() {
       // const data = await response.json();
 
       // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      addtenant(payload);
       
       toast.success('Tenant registered successfully!');
       

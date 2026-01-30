@@ -78,7 +78,7 @@ const ImageWithFallback = ({ src, alt, className, onLoad, onError: customOnError
   };
 
   return (
-    <div className="relative w-full h-full">
+    <div className="relative w-full h-full flex justify-center items-center">
       {isLoading && showLoader && (
         <div className="absolute inset-0 flex items-center justify-center bg-muted/50 backdrop-blur-sm z-10">
           <div className="flex flex-col items-center gap-2">
@@ -140,18 +140,18 @@ export default function AddOrder() {
   const [showCartDialog, setShowCartDialog] = useState(false);
   const [showPhotosDialog, setShowPhotosDialog] = useState(false);
   
-  // Filter states
-  const [searchQuery, setSearchQuery] = useState("");
-  const [filterCompany, setFilterCompany] = useState("");
-  const [filterCategory, setFilterCategory] = useState("");
-  
-  // Pagination states
-  const [currentPage, setCurrentPage] = useState(1);
-  const [pageLimit] = useState(12);
-  
   // Quick add states
   const [productQuantities, setProductQuantities] = useState({});
   const [productInstructions, setProductInstructions] = useState({});
+  // Filter & Sort states
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState("");
+  const [companyFilter, setCompanyFilter] = useState("");
+  const [sortField, setSortField] = useState("name");
+  const [sortDirection, setSortDirection] = useState("asc");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [limit, setLimit] = useState(10);
   
   // Payment states
   const [paymentData, setPaymentData] = useState({
@@ -237,6 +237,8 @@ export default function AddOrder() {
         // Data will be refetched automatically
       }
     });
+    
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const { data: getSellerList, isPending: sellerPending } = useGetAllSeller();
   const { mutate: updateOrderSeller, isPending: isUpdateOrderSellerPending, isError:isUpdateOrderSellerError,Error:updateOrderSellerError } = useUpdateOrderSeller()
   const {mutate:addPayment,isPending: isPaymentPending, isError : isPaymentError, error: paymentError} = useAddPayment()
@@ -255,13 +257,27 @@ export default function AddOrder() {
     isError: isProductListError 
   } = useGetAllProduct({
     page: currentPage,
-    limit: pageLimit,
-    search: searchQuery,
-    category: filterCategory && filterCategory !== "all-categories" ? filterCategory : undefined,
-    companyId: filterCompany && filterCompany !== "all-companies" ? filterCompany : undefined,
+    limit: limit ,
+    search: debouncedSearch,
+    status: statusFilter,
+    category: categoryFilter,
+    companyId: companyFilter,
+    sortField: sortField,
+    sortDirection: sortDirection
   });
 
-    const { data: categoriesAll } = useGetAllCategory();
+  const { data: categoriesAll } = useGetAllCategory();
+
+  // Debounce search
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchTerm);
+      setCurrentPage(1); // Reset to first page on search
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
+
 
   // Set clients data
   // console.log("sellers daya",getSellerList?.seller?.data[0])
@@ -296,14 +312,15 @@ export default function AddOrder() {
   const categories = [...new Set(categoriesAll?.category)].sort();
 
   // Pagination
-  const totalPages = getProductList?.totalPages || 1;
-  const totalProducts = getProductList?.totalCount || 0;
+  const totalPages = getProductList?.pagination?.totalPages || 1;
+  const totalProducts = getProductList?.pagination?.totalProducts || 0;
+  const totalRecords = getProductList?.pagination?.totalProducts || 0;
 
-  const handlePageChange = (newPage) => {
-    if (newPage >= 1 && newPage <= totalPages) {
-      setCurrentPage(newPage);
-    }
-  };
+  // const handlePageChange = (newPage) => {
+  //   if (newPage >= 1 && newPage <= totalPages) {
+  //     setCurrentPage(newPage);
+  //   }
+  // };
 
   // Get current active cart
   const cart = activeClientCart ? (clientCarts[activeClientCart] || []) : [];
@@ -335,9 +352,10 @@ export default function AddOrder() {
   });
 
   const clearFilters = () => {
-    setSearchQuery("");
-    setFilterCompany("");
-    setFilterCategory("");
+    setSearchTerm("");
+    setCompanyFilter("");
+    setCategoryFilter("");
+    setStatusFilter("");
     setCurrentPage(1);
   };
 
@@ -527,7 +545,7 @@ const handleAddToCart = async () => {
   }
 
   const backendPayload = {
-    cartId: activeClientCarts._id,
+    cartId: activeClientCarts,
     salesman_data: userInfo.tenant_user_id,
     clients: updatedBackendClients
   };
@@ -1326,9 +1344,9 @@ const handlePaymentDialogClose = (open) => {
               <Search className="absolute left-2.5 sm:left-3 top-2 sm:top-2.5 h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground" />
               <Input
                 placeholder="Search products..."
-                value={searchQuery}
+                value={searchTerm}
                 onChange={(e) => {
-                  setSearchQuery(e.target.value);
+                  setSearchTerm(e.target.value);
                   setCurrentPage(1);
                 }}
                 className="pl-8 sm:pl-10 text-sm sm:text-base"
@@ -1336,8 +1354,8 @@ const handlePaymentDialogClose = (open) => {
             </div>
             {companies.length > 0 && (
               <div>
-                <Select value={filterCompany} onValueChange={(value) => {
-                  setFilterCompany(value);
+                <Select value={companyFilter} onValueChange={(value) => {
+                  setCompanyFilter(value);
                   setCurrentPage(1);
                 }}>
                   <SelectTrigger className="text-sm sm:text-base">
@@ -1355,8 +1373,8 @@ const handlePaymentDialogClose = (open) => {
               </div>
             )}
             <div>
-              <Select value={filterCategory} onValueChange={(value) => {
-                setFilterCategory(value);
+              <Select value={categoryFilter} onValueChange={(value) => {
+                setCategoryFilter(value);
                 setCurrentPage(1);
               }}>
                 <SelectTrigger className="text-sm sm:text-base">
@@ -1383,7 +1401,7 @@ const handlePaymentDialogClose = (open) => {
               </Button>
             </div>
           </div>
-          {(searchQuery || (filterCompany && filterCompany !== "all-companies") || (filterCategory && filterCategory !== "all-categories")) && (
+          {(searchTerm || (companyFilter  && companyFilter !== "all-companies") || (categoryFilter && categoryFilter !== "all-categories")) && (
             <div className="mt-4 flex items-center gap-2 text-sm text-muted-foreground">
               <Filter className="h-4 w-4" />
               <span>
@@ -1546,58 +1564,86 @@ const handlePaymentDialogClose = (open) => {
                 })}
               </div>
               
-              {/* Pagination */}
-              {totalPages > 1 && (
-                <div className="flex items-center justify-center gap-2 mt-6">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handlePageChange(currentPage - 1)}
-                    disabled={currentPage === 1}
-                  >
-                    <ChevronLeft className="h-4 w-4" />
-                    Previous
-                  </Button>
-                  <div className="flex items-center gap-1">
-                    {[...Array(totalPages)].map((_, i) => {
-                      const page = i + 1;
-                      if (
-                        page === 1 ||
-                        page === totalPages ||
-                        (page >= currentPage - 1 && page <= currentPage + 1)
-                      ) {
-                        return (
-                          <Button
-                            key={page}
-                            variant={currentPage === page ? "default" : "outline"}
-                            size="sm"
-                            onClick={() => handlePageChange(page)}
-                            className="w-10"
-                          >
-                            {page}
-                          </Button>
-                        );
-                      } else if (page === currentPage - 2 || page === currentPage + 2) {
-                        return <span key={page} className="px-2">...</span>;
-                      }
-                      return null;
-                    })}
-                  </div>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handlePageChange(currentPage + 1)}
-                    disabled={currentPage === totalPages}
-                  >
-                    Next
-                    <ChevronRight className="h-4 w-4" />
-                  </Button>
-                </div>
-              )}
             </>
           )}
         </CardContent>
       </Card>
+      {totalPages >= 1 && (
+  <Card className="p-4 mt-6">
+    <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div className="text-sm text-muted-foreground">
+        Showing {((currentPage - 1) * limit) + 1} to {Math.min(currentPage * limit, totalRecords)} of {totalRecords} products
+      </div>
+      
+      <div className="flex items-center gap-2">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+          disabled={currentPage === 1}
+        >
+          <ChevronLeft className="h-4 w-4" />
+          Previous
+        </Button>
+        
+        <div className="flex items-center gap-1">
+          {[...Array(Math.min(5, totalPages))].map((_, idx) => {
+            let pageNum;
+            if (totalPages <= 5) {
+              pageNum = idx + 1;
+            } else if (currentPage <= 3) {
+              pageNum = idx + 1;
+            } else if (currentPage >= totalPages - 2) {
+              pageNum = totalPages - 4 + idx;
+            } else {
+              pageNum = currentPage - 2 + idx;
+            }
+            
+            return (
+              <Button
+                key={pageNum}
+                variant={currentPage === pageNum ? "default" : "outline"}
+                size="sm"
+                onClick={() => setCurrentPage(pageNum)}
+                className="w-10"
+              >
+                {pageNum}
+              </Button>
+            );
+          })}
+        </div>
+        
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+          disabled={currentPage === totalPages}
+        >
+          Next
+          <ChevronRight className="h-4 w-4" />
+        </Button>
+      </div>
+      
+      <div className="flex items-center gap-2">
+        <Label className="text-sm">Per page:</Label>
+        <Select value={limit.toString()} onValueChange={(val) => {
+          setLimit(parseInt(val));
+          setCurrentPage(1);
+        }}>
+          <SelectTrigger className="w-[100px]">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent className="bg-white">
+            <SelectItem value="5">5</SelectItem>
+            <SelectItem value="10">10</SelectItem>
+            <SelectItem value="20">20</SelectItem>
+            <SelectItem value="50">50</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+    </div>
+  </Card>
+)}
 
       {/* Floating Cart Button */}
       <div className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-50">
@@ -1678,16 +1724,16 @@ const handlePaymentDialogClose = (open) => {
                       </CardHeader>
                       <CardContent className="space-y-2 sm:space-y-3 p-3 sm:p-4 lg:p-6 pt-0">
                         <div className="max-h-64 sm:max-h-80 lg:max-h-96 overflow-y-auto overscroll-contain space-y-2 sm:space-y-3 pr-1">
-                          {/* {console.log("side bar cleint cart",clientCart)} */}
+                          {console.log("side bar cleint cart",clientCart)}
                           {clientCart?.items.map((item,index) => (
                             <div key={index} className="flex gap-2 sm:gap-3 p-2 sm:p-3 border rounded-lg bg-card hover:bg-muted/30 transition-colors">
-                              <div className="w-12 h-12 sm:w-14 sm:h-14 lg:w-16 lg:h-16 overflow-hidden rounded flex-shrink-0 bg-muted">
+                              {/* <div className="w-12 h-12 sm:w-14 sm:h-14 lg:w-16 lg:h-16 overflow-hidden rounded flex-shrink-0 bg-muted">
                                 <ImageWithFallback
-                                  src={item.product_data?.images?.[0]?.url || item?.product_data?.image}
+                                  src={item.product_data?.images[0]?.url || item?.product_data?.image[0].url}
                                   alt={item?.product_data?.name}
                                   className="w-full h-full object-cover"
                                 />
-                              </div>
+                              </div> */}
                               <div className="flex-1 min-w-0 space-y-1">
                                 <h4 className="text-xs sm:text-sm font-medium line-clamp-2">{item.product_data?.name}</h4>
                                 <div className="flex flex-wrap gap-1 text-xs text-muted-foreground">
@@ -1975,7 +2021,7 @@ const handlePaymentDialogClose = (open) => {
                     disabled={!selectedSize || !activeClientCart}
                   >
                     <ShoppingCart className="h-4 w-4 mr-2" />
-                    Add to Cart - ${(selectedProduct.price * quantity).toFixed(2)}
+                    Add to Cart - ${((selectedSku?.price || selectedProduct.price) * quantity).toFixed(2)}
                   </Button>
                 </div>
               </div>
@@ -1986,68 +2032,98 @@ const handlePaymentDialogClose = (open) => {
 
       {/* Photos Dialog */}
       <Dialog open={showPhotosDialog} onOpenChange={setShowPhotosDialog}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
-          <DialogHeader className="flex-shrink-0">
-            <DialogTitle className="text-lg sm:text-xl">
-              Product Photos - {selectedProduct?.name}
-            </DialogTitle>
-            <DialogDescription className="text-sm sm:text-base">
-              View all available product images
-            </DialogDescription>
-          </DialogHeader>
-          {selectedProduct && (
-            <ScrollArea className="flex-1 overflow-auto">
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 p-1">
-                {/* Main product image */}
-                <div className="col-span-1 sm:col-span-2 lg:col-span-3">
-                  <div className="aspect-video overflow-hidden rounded-lg bg-muted">
-                    <ImageWithFallback
-                      src={selectedProduct.image}
-                      alt={`${selectedProduct.name} - Main`}
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                  <p className="text-sm text-center text-muted-foreground mt-2">Main Product Image</p>
-                </div>
-                
-                {/* Additional product images (simulated with the same image for demonstration) */}
-                {[...Array(5)].map((_, index) => (
-                  <div key={index} className="group relative">
-                    <div className="aspect-square overflow-hidden rounded-lg bg-muted group-hover:ring-2 group-hover:ring-primary transition-all">
+  <DialogContent className="max-w-5xl bg-white max-h-[90vh] overflow-hidden flex flex-col p-4 sm:p-6">
+    <DialogHeader className="flex-shrink-0">
+      <DialogTitle className="text-base sm:text-lg md:text-xl font-semibold">
+        {selectedProduct?.name}
+      </DialogTitle>
+      <DialogDescription className="text-xs sm:text-sm">
+        Product Gallery & Details
+      </DialogDescription>
+    </DialogHeader>
+    {selectedProduct && (
+      <ScrollArea className="flex-1 overflow-auto">
+        <div className="space-y-4 sm:space-y-6">
+          {/* Main product image - Hero Section */}
+          <div className="w-full">
+            <div className="aspect-[4/3] sm:aspect-video overflow-hidden rounded-xl bg-gradient-to-br from-muted/50 to-muted flex items-center justify-center p-6 sm:p-8 shadow-sm">
+              <ImageWithFallback
+                src={selectedProduct.images[0].url}
+                alt={`${selectedProduct.name} - Main`}
+                className="max-w-full max-h-full w-auto flex justify-center items-center h-auto object-contain drop-shadow-lg"
+              />
+              <div className="absolute top-3 right-3 bg-primary text-primary-foreground text-xs font-medium px-3 py-1 rounded-full">
+                Featured
+              </div>
+            </div>
+          </div>
+          
+          {/* Additional product images - Horizontal Scroll */}
+          {selectedProduct.images.length > 1 && (
+            <div>
+              <h4 className="text-sm font-medium mb-3 text-muted-foreground">More Views</h4>
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4">
+                {selectedProduct.images.slice(1).map((image, index) => (
+                  <div 
+                    key={index} 
+                    className="group relative cursor-pointer"
+                  >
+                    <div className="aspect-square overflow-hidden rounded-lg bg-gradient-to-br from-muted/30 to-muted border border-border group-hover:border-primary group-hover:shadow-md transition-all duration-300 flex items-center justify-center p-3">
                       <ImageWithFallback
-                        src={selectedProduct.image}
+                        src={image.url}
                         alt={`${selectedProduct.name} - View ${index + 2}`}
-                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-200"
+                        className="max-w-full max-h-full w-auto h-auto object-contain group-hover:scale-110 transition-transform duration-300"
                       />
                     </div>
-                    <p className="text-xs text-center text-muted-foreground mt-1">View {index + 2}</p>
                   </div>
                 ))}
               </div>
-              <div className="mt-6 p-4 bg-muted/50 rounded-lg">
-                <h4 className="font-medium mb-2">Product Information</h4>
-                <div className="space-y-1 text-sm">
-                  <p><span className="font-medium">Category:</span> {selectedProduct.category}</p>
-                  <p><span className="font-medium">Company:</span> {selectedProduct.company}</p>
-                  <p><span className="font-medium">Material:</span> {selectedProduct.material}</p>
-                  <p><span className="font-medium">Available Colors:</span> {selectedProduct.colors}</p>
-                  <p><span className="font-medium">Available Sizes:</span> {selectedProduct.sizes}</p>
-                  <p><span className="font-medium">Price:</span> ${selectedProduct.price}</p>
-                </div>
-              </div>
-            </ScrollArea>
+            </div>
           )}
-          <div className="flex-shrink-0 pt-4 border-t">
-            <Button
-              variant="outline"
-              onClick={() => setShowPhotosDialog(false)}
-              className="w-full"
-            >
-              Close
-            </Button>
+          
+          {/* Product Information Card */}
+          <div className="bg-gradient-to-br from-muted/30 to-muted/50 rounded-xl p-4 sm:p-5 border border-border">
+            <h4 className="font-semibold mb-3 text-sm sm:text-base flex items-center gap-2">
+              <span className="w-1 h-5 bg-primary rounded-full"></span>
+              Product Information
+            </h4>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2.5 text-xs sm:text-sm">
+              <div className="flex items-start gap-2">
+                <span className="font-medium text-muted-foreground min-w-[80px]">Category:</span> 
+                <span className="font-medium">{selectedProduct.category}</span>
+              </div>
+              <div className="flex items-start gap-2">
+                <span className="font-medium text-muted-foreground min-w-[80px]">Company:</span> 
+                <span className="font-medium">{selectedProduct.company.name}</span>
+              </div>
+              <div className="flex items-start gap-2">
+                <span className="font-medium text-muted-foreground min-w-[80px]">Colors:</span> 
+                <span>{selectedProduct.color}</span>
+              </div>
+              <div className="flex items-start gap-2">
+                <span className="font-medium text-muted-foreground min-w-[80px]">Sizes:</span> 
+                <span>{selectedProduct.sizes}</span>
+              </div>
+              <div className="flex items-start gap-2 sm:col-span-2">
+                <span className="font-medium text-muted-foreground min-w-[80px]">Price:</span> 
+                <span className="text-primary font-bold text-sm sm:text-lg">${selectedProduct.price}</span>
+              </div>
+            </div>
           </div>
-        </DialogContent>
-      </Dialog>
+        </div>
+      </ScrollArea>
+    )}
+    <div className="flex-shrink-0 pt-4 border-t mt-4">
+      <Button
+        variant="outline"
+        onClick={() => setShowPhotosDialog(false)}
+        className="w-full text-sm sm:text-base hover:bg-muted"
+      >
+        Close
+      </Button>
+    </div>
+  </DialogContent>
+</Dialog>
 
       {/* Order Completion Dialog */}
       <Dialog open={showOrderCompletion} onOpenChange={setShowOrderCompletion}>

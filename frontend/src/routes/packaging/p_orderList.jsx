@@ -85,7 +85,7 @@ export function OrderList({
     if (item?.sentToBilling || newQuantity < 1) return;
     
     const updatedItems = order.items.map(item => 
-      item.id === itemId ? { ...item, quantity: newQuantity } : item
+      item.id === itemId ? { ...item, quantity: newQuantity,subtotal: item.product_data.price * newQuantity } : item
     );
     console.log("updated items",updatedItems)
     

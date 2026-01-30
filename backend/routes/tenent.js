@@ -84,7 +84,7 @@ async function initializeTenantDb(tenantDbConnection, distributerData, limitsDat
  * Registers a new tenant with automatic first distributor creation
  * Creates tenant-specific database and all required collections
  */
-router.post('/addtenent', async (req, res) => {
+router.post('/addtenant', async (req, res) => {
     manualLog(`🚀 Entered tenant registration route :: ${req.body.D_name}`);
     
     try {

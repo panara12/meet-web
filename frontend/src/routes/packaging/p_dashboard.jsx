@@ -157,9 +157,13 @@ export default function Dashboard() {
 
     const totalItems = updatedItems.reduce((sum, item) => sum + parseInt(item.quantity || 0), 0);
     const totalAmount = updatedItems.reduce(
-      (sum, item) => sum + parseFloat(item.subtotal || 0),
+      (sum, item) => { 
+        console.log("item subtotal",sum,item)
+        return sum + Number(parseFloat(item.subtotal || 0));
+      },
       0
     );
+    console.log("total items",totalItems)
 
     // Update orders array
     const updatedOrders = orders.map(order =>
