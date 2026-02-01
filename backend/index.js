@@ -32,7 +32,7 @@ const subadmin = require("./routes/subadmin");
 const app = express();
 app.set('trust proxy', 1);
 // ====== CORS ======
-const allowedOrigins = ["http://localhost:5173","http://localhost:3000"];
+const allowedOrigins = ["https://oms.voidvortextech.com","https://voidvortextech.com","https://www.voidvortextech.com"];
 
 app.use(
   cors({
