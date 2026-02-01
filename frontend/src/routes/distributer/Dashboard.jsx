@@ -26,6 +26,7 @@ import VoidVortexInbox from './Inbox'
 import { useStaff } from "./StaffContext";
 import { useInventory } from "./InventoryContext"
 import { useCompany } from "./CompanyContext"
+import { useSubAdminLogin } from "../../hooks/subadmin/useSubAdminLogin";
 
 // Simple UI Components
 const Card = ({ children, className = "", onClick }) => (
@@ -207,6 +208,10 @@ export default function Dashboard({ onNavigate }) {
   const activeCompanies = companies.filter(c => c.status === 'active').length
   const lowStockProducts = products.filter(p => p.stockQuantity <= p.lowStockThreshold).length
   const outOfStockProducts = products.filter(p => p.stockQuantity === 0).length
+
+  const {mutate : subAdminLogin} = useSubAdminLogin();
+
+
   
   // Staff distribution by role
   // console.log(limits?.data[0].adminlimit)

@@ -7,9 +7,12 @@ import LoadingGif from "../component/loading";
 
 export default function ProtectedRoute() {
     
-  const { data: loggedUser, isLoading, isError } = useGetLoggedUser();
+  const { data: loggedUser, isLoading, isError, Error } = useGetLoggedUser();
   const dispatch = useDispatch();
-  
+  const userInfo = useSelector((state) => state.app.userInfo);
+  if(userInfo){
+    console.log("user info from store",userInfo);
+  } 
   useEffect(() => {
     if (loggedUser) {
       dispatch(setUserInfo(loggedUser.user));
@@ -17,15 +20,16 @@ export default function ProtectedRoute() {
     }
   }, [loggedUser, dispatch]);
 
+  // ✅ Show loading while checking auth
   if (isLoading) {
     return <LoadingGif size={200} />
   }
 
-  if (!loggedUser) {
-    // not logged in → redirect to login
+  // ✅ Only redirect to login if we're SURE there's no user
+  if (!userInfo && !loggedUser) {
+    console.log("no logged user found so go to login",isError,Error,loggedUser, isLoading);
     return <Navigate to="/login" replace />;
   }
 
-  // logged in → render child routes
   return <Outlet />;
 }

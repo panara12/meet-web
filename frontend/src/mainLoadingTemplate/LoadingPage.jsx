@@ -2,16 +2,18 @@ import { motion } from "motion/react";
 import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { useLocation, useNavigate } from "react-router-dom";
+import { useGetLoggedUser } from "../hooks/auth/getLoggedUser"; // Add this
 
 export function LoadingPage() {
   const [progress, setProgress] = useState(0);
-  const userInfo = useSelector((state) => state.app.userInfo);
   const navigate = useNavigate();
   const location = useLocation();
+  const { userRole, userData } = location.state || {};
   const [loadingText, setLoadingText] = useState("Initializing");
-
-  // ✅ Prefer location state, fallback to Redux
-  const userRole = location.state?.userRole || userInfo?.user_role;
+  
+  // ✅ Wait for authentication to be confirmed
+  const { data: loggedUser, isLoading: authLoading } = useGetLoggedUser();
+  const userRolelogin = loggedUser?.user?.user_role;
 
   const messages = [
     "Initializing",
@@ -23,10 +25,8 @@ export function LoadingPage() {
   ];
 
   useEffect(() => {
-    // ✅ If no user role available, redirect to login
-    if (!userRole) {
-      console.log("No user role found, redirecting to login");
-      navigate("/login", { replace: true });
+    // ✅ Don't redirect until we have confirmed user data
+    if (authLoading || !userRole) {
       return;
     }
 
@@ -41,7 +41,7 @@ export function LoadingPage() {
         if (clampedProgress >= 100) {
           clearInterval(interval);
           setTimeout(() => {
-            // ✅ Use userRole from closure
+            // ✅ Now it's safe to redirect
             if (userRole === "salesman") navigate("/salesman/dashboard", { replace: true });
             else if (userRole === "packaging") navigate("/packaging/dashboard", { replace: true });
             else if (userRole === "billing") navigate("/billing/dashboard", { replace: true });
@@ -54,7 +54,15 @@ export function LoadingPage() {
     }, 400);
 
     return () => clearInterval(interval);
-  }, [userRole, navigate]);
+  }, [userRole, authLoading, navigate]);
+  console.log("user role in loading page",userData);
+  // ✅ If no user after auth check completes, go to login
+  useEffect(() => {
+    if (!userData && !loggedUser) {
+      console.log("no user role found, redirect to login in loading");
+      navigate("/login", { replace: true });
+    }
+  }, [authLoading, loggedUser, navigate]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-100 flex items-center justify-center overflow-hidden">

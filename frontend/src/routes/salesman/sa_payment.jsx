@@ -14,12 +14,24 @@ export default function PaymentUpdate() {
   const [paymentDate, setPaymentDate] = useState(new Date().toISOString().split('T')[0]);
   const [paymentNote, setPaymentNote] = useState("");
   const [clientSearchQuery, setClientSearchQuery] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [showClientDropdown, setShowClientDropdown] = useState(false);
   const [toast, setToast] = useState({ show: false, message: '', type: 'success' });
   const userInfo = useSelector((state) => state.app.userInfo);
   // console.log(userInfo)
   const id = userInfo.tenant_user_id
-  const { data: getSellerList, isPending:sellerPending, isError:issellerError, error:sellerError } = useGetAllSeller();
+  useEffect(() => {
+      const timer = setTimeout(() => {
+        setDebouncedSearch(clientSearchQuery);
+      }, 500);
+  },[clientSearchQuery])
+  const { data: getSellerList, isPending:sellerPending, isError:issellerError, error:sellerError } = useGetAllSeller({
+    page: 1,
+    limit: 10,
+    search: debouncedSearch,
+    sortField: "name",
+    sortDirection: "asc"
+  });
   const {mutate:addPayment,isPending: isPaymentPending, isError : isPaymentError, error: paymentError} = useAddPayment()
   const {
   data: salesmanById,
@@ -30,24 +42,18 @@ export default function PaymentUpdate() {
   const [seller, setSeller] = useState([]);
 
   useEffect(() => {
-    if (getSellerList?.seller?.seller_data) {
-      console.log("seller data",getSellerList)
-      setSeller(getSellerList.seller.seller_data);
+    console.log("seller data",getSellerList)
+    if (getSellerList?.seller?.data) {
+      setSeller(getSellerList.seller.data);
     }
   }, [getSellerList]);
+  console.log("seller list",seller)
   
 
   const showToast = (message, type = 'success') => {
     setToast({ show: true, message, type });
     setTimeout(() => setToast({ show: false, message: '', type: 'success' }), 3000);
   };
-
-  // Filter clients based on search query
-  const filteredClients = seller.filter(client => 
-    client.name?.toLowerCase()?.includes(clientSearchQuery?.toLowerCase()) ||
-    client.phone?.toString()?.includes(clientSearchQuery) ||
-    client.email?.toLowerCase()?.includes(clientSearchQuery)
-  );
 
   const handleClientSearchChange = (value) => {
     setClientSearchQuery(value);
@@ -198,9 +204,9 @@ For any queries regarding this transaction, please contact your distributor’s 
                 </div>
                 
                 {/* Client Dropdown */}
-                {showClientDropdown && clientSearchQuery && filteredClients.length > 0 && (
+                {showClientDropdown && clientSearchQuery && seller.length > 0 && (
                   <div className="absolute top-full left-0 right-0 z-50 mt-1 max-h-48 overflow-auto bg-white border border-gray-200 rounded-lg shadow-lg">
-                    {filteredClients.map((client) => (
+                    {seller.map((client) => (
                       <div
                         key={client._id}
                         className="p-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0"
@@ -219,7 +225,7 @@ For any queries regarding this transaction, please contact your distributor’s 
                 )}
                 
                 {/* No results message */}
-                {showClientDropdown && clientSearchQuery && filteredClients.length === 0 && (
+                {showClientDropdown && clientSearchQuery && seller.length === 0 && (
                   <div className="absolute top-full left-0 right-0 z-50 mt-1 p-3 bg-white border border-gray-200 rounded-lg shadow-lg text-center">
                     <p className="text-sm text-gray-500">No clients found</p>
                   </div>

@@ -26,11 +26,13 @@ const payment = require("./routes/payment");
 const limits = require("./routes/limit");
 const cart = require("./routes/cart");
 const sendScheduleEmails  = require("./routes/vvtmails");
+const files = require("./routes/files");
+const subadmin = require("./routes/subadmin");
 
 const app = express();
 app.set('trust proxy', 1);
 // ====== CORS ======
-const allowedOrigins = ["https://oms.voidvortextech.com","https://voidvortextech.com","https://www.voidvortextech.com"];
+const allowedOrigins = ["http://localhost:5173","http://localhost:3000"];
 
 app.use(
   cors({
@@ -98,6 +100,8 @@ app.use("/payment", tenent_middleware, payment);
 app.use("/saleman-notes", tenent_middleware, salesman_notes);
 app.use('/limit/', tenent_middleware, limits);
 app.use('/api', sendScheduleEmails);
+app.use('/files', tenent_middleware, files);
+app.use("/subadmin", tenent_middleware, subadmin);
 app.use("/email", email);
 
 // ====== Test Route ======

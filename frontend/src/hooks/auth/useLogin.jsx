@@ -13,6 +13,7 @@ export function useLogin() {
     mutationFn: authServices.login,
     onSuccess: (res) => {
       dispatch(setUserInfo(res.data.user));
+      console.log("login success", res);
       navigate('/loading', {
         state: {
           userRole: res.data.user.user_role,

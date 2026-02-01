@@ -40,7 +40,6 @@ const navigationItems = [
   { id: "inventory", label: "Inventory", icon: Warehouse, path: "/distributer/inventory" },
   { id: "company", label: "Company", icon: Building2, path: "/distributer/company" },
   { id: "packaging", label: "Packaging", icon: Package, path: "/distributer/packaging" },
-  { id: "billing", label: "Billing", icon: Receipt, path: "/distributer/billing" },
   { id: "payments", label: "Payment Confirmations", icon: CreditCard, path: "/distributer/payments" },
   { id: "settings", label: "Settings", icon: Settings, path: "/distributer/settings" }
 ]
@@ -102,7 +101,6 @@ export default function Distributer_router() {
                   <Route path="/inventory" element={<Inventory />} />
                   <Route path="/company" element={<Company />} />
                   <Route path="/packaging" element={<Packaging />} />
-                  <Route path="/billing" element={<Billing />} />
                   <Route path="/payments" element={<Payments />} />
                   <Route path="/settings" element={<SettingsPanel />} />
                 </Routes>

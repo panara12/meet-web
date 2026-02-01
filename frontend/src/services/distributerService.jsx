@@ -1,9 +1,8 @@
 import apiHelper from '../utils/Url'
 
-
 const distributerServices = {
     //about the salesman apis
-    AddSalesman : (payload) =>apiHelper.post('/salesman/addsalesman',payload)
+    getDistributer : (payload) =>apiHelper.post('/distributer/distributerdata/'+payload.id)
 }
 
 export default distributerServices;

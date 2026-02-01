@@ -42,7 +42,15 @@ const permissions = {
         "update_payment_status",
         "get_all_orders",
         "update_order",
-        "udpate_seller_orders"
+        "udpate_seller_orders",
+        "add_file",
+        "get_all_file",
+        "get_all_file_staff",
+        "delete_subadmin",
+        "view_subadmin",
+        "edit_subadmin",
+        "add_subadmin",
+        "delete_file"
     ],
     "billing":[
         "get_by_id_product",
@@ -73,7 +81,8 @@ const permissions = {
         "update_limits",
         "get_all_company",
         "get_all_category",
-        "udpate_seller_orders"
+        "udpate_seller_orders",
+        "get_all_file_staff"
     ],
     "seller":[
         "get_by_id_seller",

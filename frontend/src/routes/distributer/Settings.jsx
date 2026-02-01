@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card"
 import { Button } from "./ui/button"
 import { Input } from "./ui/input"
@@ -37,14 +37,22 @@ import {
   Shield,
   RotateCcw
 } from "lucide-react"
+import { useGetDistributerById } from "../../hooks/distributer/useGetDistributerById"
+import { useSelector } from "react-redux"
 
 export function SettingsPanel() {
+  const userInfo = useSelector((state) => state.app.userInfo);
+  console.log("setting",userInfo)
   const { settings, updateSystemSettings, updateNotificationSettings, updateBackupSettings, resetToDefaults, exportSettings, importSettings } = useSettings()
   const { staff } = useStaff()
-  
+  const { mutate:getDistributerById,isPending:isGetDistributerByIdPending} = useGetDistributerById()
   const [showResetDialog, setShowResetDialog] = useState(false)
   const [showImportDialog, setShowImportDialog] = useState(false)
   const [importJson, setImportJson] = useState('')
+  useEffect(()=>{
+    getDistributerById({id : userInfo.tenant_user_id})
+  },[])
+  console.log("Distributer data fetched: ", getDistributerById);
 
   const handleSystemSave = () => {
     toast.success('System settings saved successfully!')
@@ -183,8 +191,8 @@ export function SettingsPanel() {
           <TabsTrigger value="general" className="text-responsive-xs px-2 sm:px-4">General</TabsTrigger>
           <TabsTrigger value="notifications" className="text-responsive-xs px-2 sm:px-4">Notifications</TabsTrigger>
           <TabsTrigger value="users" className="text-responsive-xs px-2 sm:px-4">Users</TabsTrigger>
-          <TabsTrigger value="backup" className="text-responsive-xs px-2 sm:px-4">Backup</TabsTrigger>
-          <TabsTrigger value="subscription" className="text-responsive-xs px-2 sm:px-4">Subscription</TabsTrigger>
+          {/* <TabsTrigger value="backup" className="text-responsive-xs px-2 sm:px-4">Backup</TabsTrigger> */}
+          {/* <TabsTrigger value="subscription" className="text-responsive-xs px-2 sm:px-4">Subscription</TabsTrigger> */}
           <TabsTrigger value="about" className="text-responsive-xs px-2 sm:px-4">About</TabsTrigger>
         </TabsList>
 
@@ -428,10 +436,10 @@ export function SettingsPanel() {
               <h3 className="text-lg font-medium">User Management</h3>
               <p className="text-sm text-muted-foreground">Manage system users connected to staff accounts</p>
             </div>
-            <Button className="w-full sm:w-auto">
+            {/* <Button className="w-full sm:w-auto">
               <Plus className="h-4 w-4 mr-2" />
               Add User
-            </Button>
+            </Button> */}
           </div>
 
           <Card>
@@ -491,7 +499,7 @@ export function SettingsPanel() {
           </Card>
         </TabsContent>
 
-        <TabsContent value="backup" className="space-y-4">
+        {/* <TabsContent value="backup" className="space-y-4">
           <Card>
             <CardHeader className="pb-4">
               <CardTitle className="flex items-center gap-2 text-lg">
@@ -587,11 +595,11 @@ export function SettingsPanel() {
               </div>
             </CardContent>
           </Card>
-        </TabsContent>
+        </TabsContent> */}
 
-        <TabsContent value="subscription" className="space-y-4">
+        {/* <TabsContent value="subscription" className="space-y-4">
           <div className="space-y-6">
-            {/* Current Plan Overview */}
+            
             <Card className="relative overflow-hidden">
               <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-blue-primary/10 to-transparent"></div>
               <CardHeader className="pb-4">
@@ -655,7 +663,6 @@ export function SettingsPanel() {
               </CardContent>
             </Card>
 
-            {/* Feature Access Overview */}
             <div className="grid-responsive-1-2 gap-4 sm:gap-6">
               <Card>
                 <CardHeader className="pb-4">
@@ -781,166 +788,10 @@ export function SettingsPanel() {
                     </div>
                   </div>
                 </CardContent>
-              </Card>
+              </Card> 
             </div>
-
-            {/* Usage Statistics */}
-            <Card>
-              <CardHeader className="pb-4">
-                <CardTitle className="flex items-center gap-2 text-responsive-lg">
-                  <TrendingUp className="icon-responsive-base text-purple-primary" />
-                  Usage Statistics
-                </CardTitle>
-                <CardDescription className="text-responsive-xs">Current usage compared to plan limits</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="grid-responsive-1-2-4 gap-4">
-                  <div className="space-y-2">
-                    <div className="flex justify-between items-center">
-                      <span className="text-responsive-xs">Staff Members</span>
-                      <span className="text-responsive-xs font-medium">3 / 8</span>
-                    </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2">
-                      <div className="bg-blue-primary h-2 rounded-full" style={{ width: '37.5%' }}></div>
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <div className="flex justify-between items-center">
-                      <span className="text-responsive-xs">Active Clients</span>
-                      <span className="text-responsive-xs font-medium">156 / ∞</span>
-                    </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2">
-                      <div className="bg-green-primary h-2 rounded-full" style={{ width: '100%' }}></div>
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <div className="flex justify-between items-center">
-                      <span className="text-responsive-xs">Products</span>
-                      <span className="text-responsive-xs font-medium">89 / ∞</span>
-                    </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2">
-                      <div className="bg-green-primary h-2 rounded-full" style={{ width: '100%' }}></div>
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <div className="flex justify-between items-center">
-                      <span className="text-responsive-xs">Storage Used</span>
-                      <span className="text-responsive-xs font-medium">2.1 GB / 100 GB</span>
-                    </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2">
-                      <div className="bg-blue-primary h-2 rounded-full" style={{ width: '2.1%' }}></div>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Plan Comparison */}
-            <Card>
-              <CardHeader className="pb-4">
-                <CardTitle className="flex items-center gap-2 text-responsive-lg">
-                  <Star className="icon-responsive-base text-yellow-primary" />
-                  Available Plans
-                </CardTitle>
-                <CardDescription className="text-responsive-xs">Compare plans and upgrade options</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="grid-responsive-1-2-3 gap-4">
-                  <div className="border rounded-lg p-4 bg-gray-50 dark:bg-gray-900/50">
-                    <div className="space-y-3">
-                      <div className="space-y-1">
-                        <h3 className="text-responsive-base font-semibold">Starter</h3>
-                        <div className="flex items-baseline gap-1">
-                          <span className="text-xl font-bold">$19</span>
-                          <span className="text-xs text-muted-foreground">/month</span>
-                        </div>
-                      </div>
-                      <ul className="space-y-2 text-xs">
-                        <li className="flex items-center gap-2">
-                          <Check className="h-3 w-3 text-green-primary" />
-                          Up to 3 staff members
-                        </li>
-                        <li className="flex items-center gap-2">
-                          <Check className="h-3 w-3 text-green-primary" />
-                          Basic features
-                        </li>
-                        <li className="flex items-center gap-2">
-                          <X className="h-3 w-3 text-red-primary" />
-                          Advanced analytics
-                        </li>
-                      </ul>
-                      <Button variant="outline" className="w-full text-xs" disabled>
-                        Current Plan Lower
-                      </Button>
-                    </div>
-                  </div>
-
-                  <div className="border-2 border-blue-primary rounded-lg p-4 bg-blue-light relative">
-                    <Badge className="absolute -top-2 left-1/2 transform -translate-x-1/2 bg-blue-primary text-white text-xs">
-                      Current Plan
-                    </Badge>
-                    <div className="space-y-3">
-                      <div className="space-y-1">
-                        <h3 className="text-responsive-base font-semibold">Professional</h3>
-                        <div className="flex items-baseline gap-1">
-                          <span className="text-xl font-bold">$49</span>
-                          <span className="text-xs text-muted-foreground">/month</span>
-                        </div>
-                      </div>
-                      <ul className="space-y-2 text-xs">
-                        <li className="flex items-center gap-2">
-                          <Check className="h-3 w-3 text-green-primary" />
-                          Up to 8 staff members
-                        </li>
-                        <li className="flex items-center gap-2">
-                          <Check className="h-3 w-3 text-green-primary" />
-                          All current features
-                        </li>
-                        <li className="flex items-center gap-2">
-                          <Check className="h-3 w-3 text-green-primary" />
-                          Priority support
-                        </li>
-                      </ul>
-                      <Button className="w-full text-xs bg-blue-primary">
-                        Current Plan
-                      </Button>
-                    </div>
-                  </div>
-
-                  <div className="border rounded-lg p-4">
-                    <div className="space-y-3">
-                      <div className="space-y-1">
-                        <h3 className="text-responsive-base font-semibold">Enterprise</h3>
-                        <div className="flex items-baseline gap-1">
-                          <span className="text-xl font-bold">$99</span>
-                          <span className="text-xs text-muted-foreground">/month</span>
-                        </div>
-                      </div>
-                      <ul className="space-y-2 text-xs">
-                        <li className="flex items-center gap-2">
-                          <Check className="h-3 w-3 text-green-primary" />
-                          Unlimited staff
-                        </li>
-                        <li className="flex items-center gap-2">
-                          <Check className="h-3 w-3 text-green-primary" />
-                          All features + API
-                        </li>
-                        <li className="flex items-center gap-2">
-                          <Check className="h-3 w-3 text-green-primary" />
-                          24/7 dedicated support
-                        </li>
-                      </ul>
-                      <Button className="w-full text-xs">
-                        <Zap className="h-3 w-3 mr-1" />
-                        Upgrade Plan
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
           </div>
-        </TabsContent>
+        </TabsContent> */}
 
         <TabsContent value="about" className="space-y-4">
           <div className="grid-responsive-1-2 gap-3 sm:gap-4">
@@ -977,110 +828,7 @@ export function SettingsPanel() {
                 </div>
               </CardContent>
             </Card>
-
-            <Card>
-              <CardHeader className="pb-4">
-                <CardTitle className="flex items-center gap-2 text-responsive-lg">
-                  <User className="icon-responsive-base" />
-                  Development Team
-                </CardTitle>
-                <CardDescription className="text-responsive-xs">Created and maintained by VoidVortex Technologies</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-3">
-                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-1 sm:gap-2">
-                    <Label className="text-responsive-xs">Developer</Label>
-                    <span className="text-responsive-xs font-medium">VoidVortex Technologies</span>
-                  </div>
-                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-1 sm:gap-2">
-                    <Label className="text-responsive-xs">Framework</Label>
-                    <span className="text-responsive-xs">React 18 + TypeScript</span>
-                  </div>
-                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-1 sm:gap-2">
-                    <Label className="text-responsive-xs">UI Library</Label>
-                    <span className="text-responsive-xs">Tailwind CSS + shadcn/ui</span>
-                  </div>
-                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-1 sm:gap-2">
-                    <Label className="text-responsive-xs">License</Label>
-                    <Badge variant="outline" className="text-xs">Commercial</Badge>
-                  </div>
-                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-1 sm:gap-2">
-                    <Label className="text-responsive-xs">Support</Label>
-                    <Button variant="outline" size="sm" className="text-xs btn-responsive-sm">
-                      Contact Support
-                    </Button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
           </div>
-
-          <Card>
-            <CardHeader className="pb-4">
-              <CardTitle className="flex items-center gap-2 text-responsive-lg">
-                <Database className="icon-responsive-base" />
-                System Health Check
-              </CardTitle>
-              <CardDescription className="text-responsive-xs">Current system status and performance metrics</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="grid-responsive-1-2-3 gap-3 sm:gap-4">
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <Label className="text-responsive-xs">Database</Label>
-                    <div className="flex items-center gap-2">
-                      <div className="status-active"></div>
-                      <span className="text-responsive-xs text-green-success">Connected</span>
-                    </div>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <Label className="text-responsive-xs">API Services</Label>
-                    <div className="flex items-center gap-2">
-                      <div className="status-active"></div>
-                      <span className="text-responsive-xs text-green-success">Operational</span>
-                    </div>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <Label className="text-responsive-xs">File Storage</Label>
-                    <div className="flex items-center gap-2">
-                      <div className="status-active"></div>
-                      <span className="text-responsive-xs text-green-success">Available</span>
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <Label className="text-responsive-xs">Memory Usage</Label>
-                    <span className="text-responsive-xs">68%</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <Label className="text-responsive-xs">CPU Usage</Label>
-                    <span className="text-responsive-xs">23%</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <Label className="text-responsive-xs">Disk Space</Label>
-                    <span className="text-responsive-xs">45%</span>
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <Label className="text-responsive-xs">Active Users</Label>
-                    <span className="text-responsive-xs font-medium">{systemUsers.length}</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <Label className="text-responsive-xs">Session Count</Label>
-                    <span className="text-responsive-xs font-medium">{systemUsers.filter(u => u.status === 'Active').length}</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <Label className="text-responsive-xs">Uptime</Label>
-                    <span className="text-responsive-xs font-medium">99.9%</span>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
         </TabsContent>
       </Tabs>
     </div>
