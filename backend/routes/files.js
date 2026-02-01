@@ -276,6 +276,82 @@ router.get(
   }
 );
 
+router.get(
+  '/getfilesbyweek',
+  user_session_checker('get_file_week_by'),
+  async (req, res) => {
+    manualLog('entered get files by current week route');
+    
+    try {
+      const File = req.db.model('File');
+      
+      // Get user ID from session
+      const userId = req.session.user?.tenant_user_id;
+      
+      if (!userId) {
+        return res.status(401).json({
+          message: 'User not authenticated',
+        });
+      }
+      
+      // Get current date
+      const today = new Date();
+      
+      // Calculate the start of the current week (Sunday)
+      const currentDay = today.getDay(); // 0 = Sunday, 1 = Monday, etc.
+      const startOfWeek = new Date(today);
+      startOfWeek.setDate(today.getDate() - currentDay);
+      startOfWeek.setHours(0, 0, 0, 0);
+      
+      // Calculate the end of the current week (Saturday)
+      const endOfWeek = new Date(startOfWeek);
+      endOfWeek.setDate(startOfWeek.getDate() + 6);
+      endOfWeek.setHours(23, 59, 59, 999);
+      
+      console.log('📅 Week Range:', {
+        startOfWeek: startOfWeek.toISOString(),
+        endOfWeek: endOfWeek.toISOString(),
+        currentDay: currentDay,
+        today: today.toISOString(),
+        userId: userId
+      });
+
+      // Find files uploaded for this user within the current week
+      const files = await File.find({
+        uploaded_for: new mongoose.Types.ObjectId(userId),
+        uploaded_at: {
+          $gte: startOfWeek,
+          $lte: endOfWeek
+        }
+      })
+        .populate('uploaded_by', 'distributer_name distributer_email')
+        .populate('uploaded_for', 'firstName email')
+        .sort({ uploaded_at: -1 });
+
+      manualLog(`Retrieved ${files.length} files for user ${userId} for current week`);
+      
+      res.status(200).json({
+        message: 'Files retrieved successfully',
+        weekRange: {
+          start: startOfWeek,
+          end: endOfWeek,
+          weekNumber: Math.ceil((today - new Date(today.getFullYear(), 0, 1)) / 604800000)
+        },
+        count: files.length,
+        files: files,
+      });
+
+    } catch (error) {
+      console.log('Error in get files by week:', error);
+      manualLog(`Error in get files by week :: ${JSON.stringify(error)}`);
+      res.status(500).json({
+        message: 'Error retrieving files by week',
+        error: error.message,
+      });
+    }
+  }
+);
+
 // ------------------- DELETE FILE -------------------
 router.delete(
   '/deletefile/:id',

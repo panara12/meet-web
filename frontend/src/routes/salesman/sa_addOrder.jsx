@@ -1833,14 +1833,6 @@ const handlePaymentDialogClose = (open) => {
                         <span className="text-sm text-muted-foreground">per unit</span>
                       </div>
                     </div>
-                    <Button 
-                      variant="ghost" 
-                      size="sm"
-                      onClick={() => setShowProductDetail(false)}
-                      className="flex-shrink-0 rounded-full"
-                    >
-                      <X className="h-5 w-5" />
-                    </Button>
                   </div>
                 </div>
               </div>
@@ -2082,7 +2074,7 @@ const handlePaymentDialogClose = (open) => {
           )}
           
           {/* Product Information Card */}
-          <div className="bg-gradient-to-br from-muted/30 to-muted/50 rounded-xl p-4 sm:p-5 border border-border">
+          {/* <div className="bg-gradient-to-br from-muted/30 to-muted/50 rounded-xl p-4 sm:p-5 border border-border">
             <h4 className="font-semibold mb-3 text-sm sm:text-base flex items-center gap-2">
               <span className="w-1 h-5 bg-primary rounded-full"></span>
               Product Information
@@ -2109,7 +2101,7 @@ const handlePaymentDialogClose = (open) => {
                 <span className="text-primary font-bold text-sm sm:text-lg">${selectedProduct.price}</span>
               </div>
             </div>
-          </div>
+          </div> */}
         </div>
       </ScrollArea>
     )}

@@ -55,7 +55,7 @@ function SalesmanRoutes() {
       <Route path='/dashboard' element={<Dashboard />} />
       <Route path='/addorder' element={<AddOrder />} />
       <Route path='/addclient' element={<AddClient />} />
-      <Route path='/addfiles' element={<DailyFiles />} />
+      <Route path='/dailyfiles' element={<DailyFiles />} />
       <Route path='/paymentupdate' element={<PaymentUpdate />} />
     </Routes>
   );

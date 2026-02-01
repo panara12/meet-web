@@ -12,7 +12,7 @@ const RoleProtectedRoute = ({ allowedRoles }) => {
     return <Navigate to="/login" replace />;
   }
 
-  if (!allowedRoles.includes(userloggged.user.user_role || userInfo.user_role)) {
+  if (!allowedRoles.includes(userloggged?.user?.user_role || userInfo?.user_role)) {
     let role = userloggged.user.user_role;
     if (role === "admin") {
       role = "distributer";

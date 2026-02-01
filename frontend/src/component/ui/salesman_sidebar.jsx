@@ -14,7 +14,7 @@ const menuItems = [
   { title: "Dashboard", icon: LayoutDashboard, path: "/salesman/dashboard" },
   { title: "Add Order", icon: ShoppingCart, path: "/salesman/addorder" },
   { title: "Add Client", icon: UserPlus, path: "/salesman/addclient" },
-  { title: "Daily Files", icon: FileText, path: "/salesman/addfiles" },
+  { title: "Daily Files", icon: FileText, path: "/salesman/dailyfiles" },
   { title: "Payment Update", icon: CreditCard, path: "/salesman/paymentupdate" },
   { title: "Settings", icon: Settings, path: "/salesman/settings" },
 ];

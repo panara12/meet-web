@@ -82,7 +82,8 @@ const permissions = {
         "get_all_company",
         "get_all_category",
         "udpate_seller_orders",
-        "get_all_file_staff"
+        "get_all_file_staff",
+        "get_file_week_by"
     ],
     "seller":[
         "get_by_id_seller",
