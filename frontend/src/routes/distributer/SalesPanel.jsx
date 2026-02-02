@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/
 import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
-import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "./ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 import { Avatar, AvatarFallback } from "./ui/avatar";
 import Separator from "./ui/separator";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "./ui/dialog";
@@ -40,7 +40,7 @@ import {
   Upload,
   FilePlus,
   FileText,
-  Download, 
+  Download,
   Trash2,
   ImageIcon
 } from "lucide-react";
@@ -95,7 +95,7 @@ const GoogleMapViewWithTracking = ({ latitude, longitude, staffName, address, on
     console.log("✅ Map loaded successfully!");
     setMap(map);
     setMapLoaded(true);
-    
+
     // Call the callback to decrement request count
     if (onMapLoad && !mapLoaded) {
       onMapLoad();
@@ -111,7 +111,7 @@ const GoogleMapViewWithTracking = ({ latitude, longitude, staffName, address, on
   if (loadError) {
     console.error("Map load error:", loadError);
     toast.error("Failed to load Google Maps");
-    
+
     return (
       <div className="h-96 bg-muted rounded-lg flex items-center justify-center">
         <div className="text-center p-4">
@@ -120,9 +120,9 @@ const GoogleMapViewWithTracking = ({ latitude, longitude, staffName, address, on
           <p className="text-sm text-muted-foreground mb-3">
             {loadError.message || "Please check your API key and internet connection"}
           </p>
-          <a 
-            href={mapsLink} 
-            target="_blank" 
+          <a
+            href={mapsLink}
+            target="_blank"
             rel="noopener noreferrer"
             className="text-blue-600 text-sm underline inline-flex items-center gap-1"
           >
@@ -156,13 +156,13 @@ const GoogleMapViewWithTracking = ({ latitude, longitude, staffName, address, on
         options={defaultMapOptions}
       >
         {/* Red marker at the location */}
-        <Marker 
+        <Marker
           position={center}
           title={staffName || "Staff Location"}
           animation={window.google?.maps?.Animation?.DROP}
         />
       </GoogleMap>
-      
+
       {/* Info overlay at the bottom */}
       <div className="absolute bottom-3 left-3 right-3 bg-white/95 backdrop-blur-sm rounded-lg p-3 shadow-lg">
         <p className="font-medium text-sm">{staffName || "Staff Member"}</p>
@@ -172,9 +172,9 @@ const GoogleMapViewWithTracking = ({ latitude, longitude, staffName, address, on
         {address && (
           <p className="text-xs text-muted-foreground mt-1">{address}</p>
         )}
-        <a 
-          href={mapsLink} 
-          target="_blank" 
+        <a
+          href={mapsLink}
+          target="_blank"
           rel="noopener noreferrer"
           className="text-blue-600 text-xs underline mt-1 inline-flex items-center gap-1"
         >
@@ -194,11 +194,11 @@ const GoogleMapViewWithTracking = ({ latitude, longitude, staffName, address, on
 };
 
 function SalesPanel() {
-  const { 
-    staff, 
-    requestLocationUpdate, 
-    getLocationHistory, 
-    clearLocationHistory, 
+  const {
+    staff,
+    requestLocationUpdate,
+    getLocationHistory,
+    clearLocationHistory,
     toggleLocationTracking,
     getCommonLocationStats,
     fetchStaffLocation,
@@ -209,7 +209,7 @@ function SalesPanel() {
     isError,
     isLocationLoading,
     fetchPathPoints,
-    isPathPointsLoading,  
+    isPathPointsLoading,
 
     currentPage,
     setCurrentPage,
@@ -231,15 +231,15 @@ function SalesPanel() {
     totalRecords,
   } = useStaff();
   console.log("SalesPanel render: isLoading =", isLoading, ", staff count =", staff.length);
-    
-  const { 
-  fetchStaffFiles,     // ✅ NEW: Call this to LOAD files
-  getStaffFiles,       // ✅ Call this to GET loaded files
-  getWeeklyFileCount, 
-  uploadFile, 
-  deleteFile,
-  isLoadings           // ✅ NEW: Shows loading state
-} = useFileManagement();
+
+  const {
+    fetchStaffFiles,     // ✅ NEW: Call this to LOAD files
+    getStaffFiles,       // ✅ Call this to GET loaded files
+    getWeeklyFileCount,
+    uploadFile,
+    deleteFile,
+    isLoadings           // ✅ NEW: Shows loading state
+  } = useFileManagement();
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [selectedStaff, setSelectedStaff] = useState(null);
   const [showInfoDialog, setShowInfoDialog] = useState(false);
@@ -264,18 +264,18 @@ function SalesPanel() {
     return `${day}/${month}/${year}`;
   };
   // console.log("staff files are here",getStaffFiles())
-  
+
   const [selectedDate, setSelectedDate] = useState(getTodayDate());
 
   const getRoleColor = (role) => {
     if (!role) return "bg-gray-100 text-gray-800 border-gray-200";
-    
+
     switch (role.toLowerCase()) {
       case "admin": return "bg-red-100 text-red-800 border-red-200";
       case "sales-man":
       case "salesman": return "bg-blue-100 text-blue-800 border-blue-200";
-      case "biller":
-      case "billing": return "bg-green-100 text-green-800 border-green-200";
+      // case "biller":
+      // case "billing": return "bg-green-100 text-green-800 border-green-200";
       case "packager":
       case "packaging": return "bg-orange-100 text-orange-800 border-orange-200";
       default: return "bg-gray-100 text-gray-800 border-gray-200";
@@ -284,7 +284,7 @@ function SalesPanel() {
 
   const getStatusColor = (status) => {
     if (!status) return "bg-gray-100 text-gray-800";
-    
+
     switch (status.toLowerCase()) {
       case "active": return "bg-green-100 text-green-800";
       case "inactive": return "bg-gray-100 text-gray-800";
@@ -308,7 +308,7 @@ function SalesPanel() {
 
   const handleLocationDialogClose = useCallback((open) => {
     setShowLocationDialog(open);
-    
+
     if (!open) {
       setFetchedLocation(null);
       setIsMapLoaded(false);
@@ -320,15 +320,15 @@ function SalesPanel() {
   const handleMapLoad = useCallback(() => {
     console.log("🎯 handleMapLoad called!");
     console.log("Current isMapLoaded state:", isMapLoaded);
-    
+
     if (!isMapLoaded) {
       console.log("✅ Setting isMapLoaded to true");
       setIsMapLoaded(true);
-      
+
       console.log("📉 Attempting to decrement location request count...");
-      
+
       const success = decrementLocationRequest();
-      
+
       if (success) {
         console.log("✅ Location request count decremented successfully!");
         toast.success("Request count updated");
@@ -352,109 +352,109 @@ function SalesPanel() {
   };
 
   const handleFileSelect = (event) => {
-  const files = event.target.files;
-  if (!files || files.length === 0) return;
+    const files = event.target.files;
+    if (!files || files.length === 0) return;
 
-  const validFiles = [];
-  
-  for (const file of Array.from(files)) {
-    // File type validation
-    const isValidType = file.type.includes('pdf') || file.type.includes('image');
-    if (!isValidType) {
-      toast.error(`${file.name} is not a valid file type. Only PDF and image files are allowed.`);
-      continue;
-    }
+    const validFiles = [];
 
-    // File size validation (10MB limit)
-    if (file.size > 10 * 1024 * 1024) {
-      toast.error(`${file.name} is too large. Maximum file size is 10MB.`);
-      continue;
-    }
-
-    validFiles.push(file);
-  }
-
-  setSelectedFiles(validFiles);
-  toast.success(`${validFiles.length} file(s) selected`);
-};
-
-const handleUploadFiles = async () => {
-  if (!selectedStaff) {
-    toast.error("No staff member selected");
-    return;
-  }
-
-  if (selectedFiles.length === 0) {
-    toast.error("Please select files to upload");
-    return;
-  }
-
-  setIsUploading(true);
-  
-  try {
-    console.log('🚀 Starting upload for', selectedFiles.length, 'files');
-    
-    const success = await uploadFile(
-      selectedStaff._id,
-      selectedDay,
-      selectedFiles,
-      fileDescription
-    );
-    
-    if (success) {
-      toast.success(`${selectedFiles.length} file(s) uploaded successfully`);
-      setFileDescription('');
-      setSelectedFiles([]);
-      // Clear file input
-      const fileInput = document.getElementById('file-upload');
-      if (fileInput) {
-        fileInput.value = "";
+    for (const file of Array.from(files)) {
+      // File type validation
+      const isValidType = file.type.includes('pdf') || file.type.includes('image');
+      if (!isValidType) {
+        toast.error(`${file.name} is not a valid file type. Only PDF and image files are allowed.`);
+        continue;
       }
-    } else {
-      toast.error('Failed to upload files');
+
+      // File size validation (10MB limit)
+      if (file.size > 10 * 1024 * 1024) {
+        toast.error(`${file.name} is too large. Maximum file size is 10MB.`);
+        continue;
+      }
+
+      validFiles.push(file);
     }
-  } catch (error) {
-    console.error('Upload error:', error);
-    toast.error("Upload failed: " + (error?.message || 'Unknown error'));
-  } finally {
-    setIsUploading(false);
-  }
-};
+
+    setSelectedFiles(validFiles);
+    toast.success(`${validFiles.length} file(s) selected`);
+  };
+
+  const handleUploadFiles = async () => {
+    if (!selectedStaff) {
+      toast.error("No staff member selected");
+      return;
+    }
+
+    if (selectedFiles.length === 0) {
+      toast.error("Please select files to upload");
+      return;
+    }
+
+    setIsUploading(true);
+
+    try {
+      console.log('🚀 Starting upload for', selectedFiles.length, 'files');
+
+      const success = await uploadFile(
+        selectedStaff._id,
+        selectedDay,
+        selectedFiles,
+        fileDescription
+      );
+
+      if (success) {
+        toast.success(`${selectedFiles.length} file(s) uploaded successfully`);
+        setFileDescription('');
+        setSelectedFiles([]);
+        // Clear file input
+        const fileInput = document.getElementById('file-upload');
+        if (fileInput) {
+          fileInput.value = "";
+        }
+      } else {
+        toast.error('Failed to upload files');
+      }
+    } catch (error) {
+      console.error('Upload error:', error);
+      toast.error("Upload failed: " + (error?.message || 'Unknown error'));
+    } finally {
+      setIsUploading(false);
+    }
+  };
 
   const handleDailyFiles = (member) => {
-  console.log('🎯 Opening files dialog for:', member._id);
-  setSelectedStaff(member);
-  setShowFilesDialog(true);
-  
-  // ✅ FETCH FILES when dialog opens
-  if (member?._id) {
-    fetchStaffFiles(member._id);
-  }
-};
+    console.log('🎯 Opening files dialog for:', member._id);
+    setSelectedStaff(member);
+    setShowFilesDialog(true);
+
+    // ✅ FETCH FILES when dialog opens
+    if (member?._id) {
+      fetchStaffFiles(member._id);
+    }
+  };
 
   const handleRequestLocation = useCallback(async () => {
     if (!selectedStaff) {
       toast.error("No staff member selected");
       return;
     }
-    
-    const isSalesman = selectedStaff?.role?.toLowerCase() === "salesman" || 
-                       selectedStaff?.role?.toLowerCase() === "sales-man";
-    
+
+    const isSalesman = selectedStaff?.role?.toLowerCase() === "salesman" ||
+      selectedStaff?.role?.toLowerCase() === "sales-man";
+
     if (!isSalesman) {
       toast.error("Location tracking is only available for salesmen");
       return;
     }
-    
+
     console.log("🌍 Fetching location for staff:", selectedStaff._id);
-    
+
     setIsUpdatingLocation(true);
     setFetchedLocation(null);
     setIsMapLoaded(false);
-    
+
     try {
       const locationData = await fetchStaffLocation(selectedStaff._id);
-      
+
       if (locationData) {
         console.log("✅ Location data received:", locationData);
         setFetchedLocation(locationData);
@@ -465,7 +465,7 @@ const handleUploadFiles = async () => {
       }
     } catch (error) {
       console.error("❌ Location fetch error:", error);
-      
+
       if (error.message.includes("limit reached")) {
         toast.error("Monthly location request limit reached");
       } else if (error.message.includes("User ID is required")) {
@@ -483,33 +483,33 @@ const handleUploadFiles = async () => {
       toast.error("No staff member selected");
       return;
     }
-    
-    const isSalesman = selectedStaff?.role?.toLowerCase() === "salesman" || 
-                       selectedStaff?.role?.toLowerCase() === "sales-man";
-    
+
+    const isSalesman = selectedStaff?.role?.toLowerCase() === "salesman" ||
+      selectedStaff?.role?.toLowerCase() === "sales-man";
+
     if (!isSalesman) {
       toast.error("Path tracking is only available for salesmen");
       return;
     }
-    
+
     const stats = getCommonLocationStats();
     if (stats.pathRemaining <= 0) {
       toast.error("Monthly path request limit reached");
       return;
     }
-    
+
     console.log("🗺️ Fetching path for date:", selectedDate);
-    
+
     setIsLoadingPath(true);
     setPathPoints([]);
-    
+
     try {
       const coordinates = await fetchPathPoints(selectedStaff._id, selectedDate);
-      
+
       if (coordinates && coordinates.length > 0) {
         console.log("✅ Loaded", coordinates.length, "points");
         setPathPoints(coordinates);
-        
+
         const success = decrementPathRequest();
         if (success) {
           console.log("✅ Path request count decremented");
@@ -552,68 +552,68 @@ const handleUploadFiles = async () => {
   };
 
   const handleFileUpload = async (event) => {
-  const files = event.target.files;
-  if (!files || files.length === 0 || !selectedStaff) return;
+    const files = event.target.files;
+    if (!files || files.length === 0 || !selectedStaff) return;
 
-  setIsUploading(true);
-  
-  try {
-    const formData = new FormData();
-    
-    // Validate and append all files
-    for (const file of Array.from(files)) {
-      // File type validation
-      const isValidType = file.type.includes('pdf') || file.type.includes('image');
-      if (!isValidType) {
-        toast.error(`${file.name} is not a valid file type. Only PDF and image files are allowed.`);
-        continue;
+    setIsUploading(true);
+
+    try {
+      const formData = new FormData();
+
+      // Validate and append all files
+      for (const file of Array.from(files)) {
+        // File type validation
+        const isValidType = file.type.includes('pdf') || file.type.includes('image');
+        if (!isValidType) {
+          toast.error(`${file.name} is not a valid file type. Only PDF and image files are allowed.`);
+          continue;
+        }
+
+        // File size validation (10MB limit)
+        if (file.size > 10 * 1024 * 1024) {
+          toast.error(`${file.name} is too large. Maximum file size is 10MB.`);
+          continue;
+        }
+
+        // Append file to FormData
+        formData.append('files[]', file);
       }
 
-      // File size validation (10MB limit)
-      if (file.size > 10 * 1024 * 1024) {
-        toast.error(`${file.name} is too large. Maximum file size is 10MB.`);
-        continue;
-      }
+      // Add metadata to FormData
+      formData.append('file_day', selectedDay);
+      formData.append('file_description', fileDescription || '');
+      formData.append('uploaded_by', userInfo?.tenant_user_id || '');
+      formData.append('uploaded_for', selectedStaff._id);
 
-      // Append file to FormData
-      formData.append('files[]', file);
+      // ✅ Call upload with FormData
+      const success = await uploadFile(
+        selectedStaff._id,  // staffId
+        selectedDay,        // day
+        formData,           // FormData with files and metadata
+        fileDescription     // description (optional, already in FormData)
+      );
+
+      if (success) {
+        toast.success('Files queued for upload');
+        setFileDescription('');
+        // Clear file input
+        if (event.target) {
+          event.target.value = "";
+        }
+      } else {
+        toast.error('Failed to queue files for upload');
+      }
+    } catch (error) {
+      console.error('Upload error:', error);
+      toast.error("Upload failed");
+    } finally {
+      setIsUploading(false);
     }
-
-    // Add metadata to FormData
-    formData.append('file_day', selectedDay);
-    formData.append('file_description', fileDescription || '');
-    formData.append('uploaded_by', userInfo?.tenant_user_id || '');
-    formData.append('uploaded_for', selectedStaff._id);
-
-    // ✅ Call upload with FormData
-    const success = await uploadFile(
-      selectedStaff._id,  // staffId
-      selectedDay,        // day
-      formData,           // FormData with files and metadata
-      fileDescription     // description (optional, already in FormData)
-    );
-    
-    if (success) {
-      toast.success('Files queued for upload');
-      setFileDescription('');
-      // Clear file input
-      if (event.target) {
-        event.target.value = "";
-      }
-    } else {
-      toast.error('Failed to queue files for upload');
-    }
-  } catch (error) {
-    console.error('Upload error:', error);
-    toast.error("Upload failed");
-  } finally {
-    setIsUploading(false);
-  }
-};
+  };
 
   const dayNames = {
     monday: 'Monday',
-    tuesday: 'Tuesday', 
+    tuesday: 'Tuesday',
     wednesday: 'Wednesday',
     thursday: 'Thursday',
     friday: 'Friday',
@@ -630,25 +630,25 @@ const handleUploadFiles = async () => {
   };
 
   const handleFileDelete = async (fileId, fileName) => {
-  const confirmDelete = window.confirm(`Are you sure you want to delete ${fileName}?`);
-  if (!confirmDelete) return;
+    const confirmDelete = window.confirm(`Are you sure you want to delete ${fileName}?`);
+    if (!confirmDelete) return;
 
-  setDeletingFileId(fileId);
+    setDeletingFileId(fileId);
 
-  try {
-    const success = await deleteFile(fileId);
-    if (success) {
-      toast.success(`${fileName} deleted successfully`);
-    } else {
-      toast.error(`Failed to delete ${fileName}`);
+    try {
+      const success = await deleteFile(fileId);
+      if (success) {
+        toast.success(`${fileName} deleted successfully`);
+      } else {
+        toast.error(`Failed to delete ${fileName}`);
+      }
+    } catch (error) {
+      console.error('Delete error:', error);
+      toast.error("Delete failed");
+    } finally {
+      setDeletingFileId(null);
     }
-  } catch (error) {
-    console.error('Delete error:', error);
-    toast.error("Delete failed");
-  } finally {
-    setDeletingFileId(null);
-  }
-};
+  };
 
 
   const handleSendMessage = (member) => {
@@ -697,54 +697,41 @@ const handleUploadFiles = async () => {
 
   return (
     <div className="w-full">
-      <div className="ml-8 lg:hidden">
+      <div className="ml-10 lg:hidden">
         <h1 className="text-xl">Staff Panel</h1>
       </div>
-      <div className="space-y-6">
+      <div className="space-y-6 max-[1023px]:mt-5">
         {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <div>
+          {/* <div>
             <h2 className="max-[1024px]:hidden text-xl">Staff Panel</h2>
             <p className="text-muted-foreground">Manage and monitor all staff members with quick access to their information</p>
-          </div>
-          <div className="grid grid-rows-2 space-y-2">
-              <div className="grid grid-cols-2  gap-3">
-                <Badge variant="outline" className="text-sm">
-                  {limits?.data[0]?.adminlimit+limits?.data[0]?.salesmanlimit+limits?.data[0]?.billinglimit+limits?.data[0]?.packagelimit || 0} Total Staff
-                </Badge>
-                <Badge variant="outline" className="text-sm">
-                  {(staff || []).filter(s => s?.status?.toLowerCase() === "active").length} Active
-                </Badge>
-              </div>
-            <div className="grid grid-cols-2 items-center gap-3">
-              <Badge 
-                variant={getRequestsRemaining() <= 5 ? "destructive" : "outline"} 
+          </div> */}
+          <div className="flex space-x-6 max-[509px]:space-x-0 max-[509px]:space-y-5  max-[509px]:flex-col">
+            <div className="flex space-x-5">
+              <Badge variant="outline" className="text-sm">
+                {limits?.data[0]?.adminlimit + limits?.data[0]?.salesmanlimit + limits?.data[0]?.packagelimit || 0} Total Staff
+              </Badge>
+              <Badge variant="outline" className="text-sm">
+                {(staff || []).filter(s => s?.status?.toLowerCase() === "active").length} Active
+              </Badge>
+            </div>
+            <div className="flex space-x-5">
+              <Badge
+                variant={getRequestsRemaining() <= 5 ? "destructive" : "outline"}
                 className="text-sm"
               >
                 <MapPin className="h-3 w-3 mr-1" />
                 {getRequestsRemaining()} Requests Left
               </Badge>
-              <Badge 
-                variant={getRequestsRemaining() <= 5 ? "destructive" : "outline"} 
+              <Badge
+                variant={getRequestsRemaining() <= 5 ? "destructive" : "outline"}
                 className="text-sm"
               >
                 <Cable className="h-3 w-3 mr-1" />
                 {limits?.data[0].routeLocationlimit} Paths Left
               </Badge>
             </div>
-          </div>
-        </div>
-
-        {/* Search */}
-        <div className="flex items-center space-x-2">
-          <div className="relative flex-1 max-w-md">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search staff by name, role, or department..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-9"
-            />
           </div>
         </div>
 
@@ -767,7 +754,7 @@ const handleUploadFiles = async () => {
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-muted-foreground">Sales-man</p>
+                  <p className="text-sm text-muted-foreground">Salesman</p>
                   <p className="text-xl font-semibold">
                     {limits?.data[0]?.salesmanlimit || 0}
                   </p>
@@ -776,7 +763,7 @@ const handleUploadFiles = async () => {
               </div>
             </CardContent>
           </Card>
-          <Card>
+          {/* <Card>
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
@@ -788,7 +775,7 @@ const handleUploadFiles = async () => {
                 <Building className="h-8 w-8 text-green-500" />
               </div>
             </CardContent>
-          </Card>
+          </Card> */}
           <Card>
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
@@ -802,6 +789,19 @@ const handleUploadFiles = async () => {
               </div>
             </CardContent>
           </Card>
+        </div>
+
+        {/* Search */}
+        <div className="flex items-center space-x-2">
+          <div className="relative flex-1 max-w-md">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search staff by name, role, or department..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-9"
+            />
+          </div>
         </div>
 
         {/* Staff Cards Grid */}
@@ -847,7 +847,7 @@ const handleUploadFiles = async () => {
                     </DropdownMenuContent>
                   </DropdownMenu> */}
                 </div>
-                
+
                 <div className="flex items-center gap-2 mt-2">
                   <Badge className={getRoleColor(member?.role)} variant="outline">
                     {member?.role || 'No Role'}
@@ -889,9 +889,9 @@ const handleUploadFiles = async () => {
                 <Separator />
 
                 <div className="grid grid-cols-3 gap-2">
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
+                  <Button
+                    variant="outline"
+                    size="sm"
                     className="flex items-center gap-1"
                     onClick={() => handleViewInfo(member)}
                   >
@@ -900,18 +900,18 @@ const handleUploadFiles = async () => {
                   </Button>
                   {(member?.role?.toLowerCase() === "sales-man" || member?.role?.toLowerCase() === "salesman") && (
                     <>
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
+                      <Button
+                        variant="outline"
+                        size="sm"
                         className="flex items-center gap-1"
                         onClick={() => handleLocationTracker(member)}
                       >
                         <MapPin className="h-3 w-3" />
                         Location
                       </Button>
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
+                      <Button
+                        variant="outline"
+                        size="sm"
                         className="flex items-center gap-1"
                         onClick={() => handleDailyFiles(member)}
                       >
@@ -933,13 +933,13 @@ const handleUploadFiles = async () => {
 
         {/* pagination */}
         <div>
-          {!isLoading && staff.length > 0 && (  
+          {!isLoading && staff.length > 0 && (
             <div className="mt-4 pt-4 border-t">
               <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
                 <div className="text-sm text-muted-foreground">
                   Showing {((currentPage - 1) * pagelimit) + 1} to {Math.min(currentPage * pagelimit, totalRecords)} of {totalRecords} staff members
                 </div>
-                
+
                 <div className="flex items-center gap-2">
                   <Button
                     variant="outline"
@@ -950,7 +950,7 @@ const handleUploadFiles = async () => {
                     <ChevronLeft className="h-4 w-4" />
                     Previous
                   </Button>
-                  
+
                   <div className="flex items-center gap-1">
                     {[...Array(Math.min(5, totalPages))].map((_, idx) => {
                       let pageNum;
@@ -963,7 +963,7 @@ const handleUploadFiles = async () => {
                       } else {
                         pageNum = currentPage - 2 + idx;
                       }
-                      
+
                       return (
                         <Button
                           key={pageNum}
@@ -977,7 +977,7 @@ const handleUploadFiles = async () => {
                       );
                     })}
                   </div>
-                  
+
                   <Button
                     variant="outline"
                     size="sm"
@@ -988,11 +988,11 @@ const handleUploadFiles = async () => {
                     <ChevronRight className="h-4 w-4" />
                   </Button>
                 </div>
-                
+
                 <div className="flex items-center gap-2">
                   <Label className="text-sm">Per page:</Label>
-                  <Select 
-                    value={pagelimit.toString()} 
+                  <Select
+                    value={pagelimit.toString()}
                     onValueChange={(val) => {
                       setLimit(parseInt(val));
                       setCurrentPage(1);
@@ -1036,7 +1036,7 @@ const handleUploadFiles = async () => {
                 Detailed information for {selectedStaff?.firstName} {selectedStaff?.lastName}
               </DialogDescription>
             </DialogHeader>
-            
+
             {selectedStaff && (
               <ScrollArea className="max-h-[400px]">
                 <Tabs defaultValue="personal" className="w-full">
@@ -1045,7 +1045,7 @@ const handleUploadFiles = async () => {
                     <TabsTrigger value="work">Work Details</TabsTrigger>
                     <TabsTrigger value="documents">Documents</TabsTrigger>
                   </TabsList>
-                  
+
                   <TabsContent value="personal" className="space-y-4">
                     <div className="grid grid-cols-2 gap-4">
                       <div>
@@ -1076,7 +1076,7 @@ const handleUploadFiles = async () => {
                       </div>
                     </div>
                   </TabsContent>
-                  
+
                   <TabsContent value="work" className="space-y-4">
                     <div className="grid grid-cols-2 gap-4">
                       <div>
@@ -1105,7 +1105,7 @@ const handleUploadFiles = async () => {
                       </div>
                     </div>
                   </TabsContent>
-                  
+
                   <TabsContent value="documents" className="space-y-4">
                     <div className="grid grid-cols-2 gap-4">
                       <div>
@@ -1152,7 +1152,7 @@ const handleUploadFiles = async () => {
                 Live location tracking and path history for {selectedStaff?.employeeId || 'N/A'}
               </DialogDescription>
             </DialogHeader>
-            
+
             {/* Show warning if limit reached */}
             {getRequestsRemaining() === 0 && (
               <div className="p-4 border border-red-200 rounded-lg bg-red-50">
@@ -1161,12 +1161,12 @@ const handleUploadFiles = async () => {
                   <p className="font-medium">Location Request Limit Reached</p>
                 </div>
                 <p className="text-sm text-red-700 mt-1">
-                  The monthly location request limit has been reached. 
+                  The monthly location request limit has been reached.
                   No more location updates can be requested until next month.
                 </p>
               </div>
             )}
-            
+
             {selectedStaff && (
               <ScrollArea className="max-h-[70vh]">
                 <Tabs defaultValue="current" className="w-full">
@@ -1175,15 +1175,15 @@ const handleUploadFiles = async () => {
                     <TabsTrigger value="path">Path History</TabsTrigger>
                     <TabsTrigger value="usage">Usage Stats</TabsTrigger>
                   </TabsList>
-                  
+
                   <TabsContent value="current" forceMount className="space-y-4 data-[state=inactive]:hidden">
                     <div className="space-y-4">
                       <div className="flex items-center justify-between">
                         <h3 className="text-lg font-medium">Live Location</h3>
-                        <Button 
+                        <Button
                           onClick={handleRequestLocation}
                           disabled={
-                            isUpdatingLocation || 
+                            isUpdatingLocation ||
                             getRequestsRemaining() <= 0 ||
                             isLocationLoading
                           }
@@ -1197,7 +1197,7 @@ const handleUploadFiles = async () => {
                           {isUpdatingLocation || isLocationLoading ? "Fetching..." : "Get Live Location"}
                         </Button>
                       </div>
-                      
+
                       {/* Show loading state */}
                       {isLocationLoading && (
                         <div className="p-8 border rounded-lg text-center">
@@ -1205,12 +1205,12 @@ const handleUploadFiles = async () => {
                           <p className="text-muted-foreground">Fetching location from server...</p>
                         </div>
                       )}
-                      
+
                       {/* Show location if it exists */}
                       {!isLocationLoading && fetchedLocation && (
                         <div className="p-4 border rounded-lg bg-muted/50">
                           {/* Google Maps View with tracking */}
-                          <GoogleMapViewWithTracking 
+                          <GoogleMapViewWithTracking
                             latitude={fetchedLocation.latitude}
                             longitude={fetchedLocation.longitude}
                             staffName={`${selectedStaff?.firstName || ''} ${selectedStaff?.lastName || ''}`}
@@ -1228,7 +1228,7 @@ const handleUploadFiles = async () => {
                               </div>
                             </div>
                           )} */}
-                          
+
                           {/* <div className="grid grid-cols-2 gap-4 mt-4">
                             <div>
                               <label className="text-sm font-medium">Address</label>
@@ -1258,7 +1258,7 @@ const handleUploadFiles = async () => {
                           </div> */}
                         </div>
                       )}
-                      
+
                       {/* No location available */}
                       {!isLocationLoading && !fetchedLocation && (
                         <div className="p-8 border rounded-lg text-center">
@@ -1277,7 +1277,7 @@ const handleUploadFiles = async () => {
                       {/* Header with Controls */}
                       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                         <h3 className="text-lg font-medium">Movement Path</h3>
-                        
+
                         <div className="flex justify-between items-center gap-2">
                           {/* Date Input */}
                           <div className="flex sm:space-x-4 space-x-1">
@@ -1294,11 +1294,11 @@ const handleUploadFiles = async () => {
                             />
                           </div>
                           {/* Load Path Button */}
-                          <Button 
+                          <Button
                             onClick={handleFetchPathPoints}
                             disabled={
-                              isLoadingPath || 
-                              isPathPointsLoading || 
+                              isLoadingPath ||
+                              isPathPointsLoading ||
                               getCommonLocationStats().pathRemaining <= 0
                             }
                             size="sm"
@@ -1317,7 +1317,7 @@ const handleUploadFiles = async () => {
                           </Button>
                         </div>
                       </div>
-                      
+
                       {/* Loading State */}
                       {(isLoadingPath || isPathPointsLoading) && (
                         <div className="p-8 border rounded-lg text-center">
@@ -1325,7 +1325,7 @@ const handleUploadFiles = async () => {
                           <p className="text-muted-foreground">Loading path data...</p>
                         </div>
                       )}
-                      
+
                       {/* Path Map */}
                       {!isLoadingPath && !isPathPointsLoading && pathPoints.length > 0 && (
                         <div className="p-4 border rounded-lg bg-muted/50">
@@ -1335,12 +1335,12 @@ const handleUploadFiles = async () => {
                               {pathPoints.length} location points tracked
                             </p>
                           </div>
-                          
+
                           {/* PASS COORDINATES TO YOUR COMPONENT */}
                           <DirectionsMapComponent coordinates={pathPoints} />
                         </div>
                       )}
-                      
+
                       {/* No Data State */}
                       {!isLoadingPath && !isPathPointsLoading && pathPoints.length === 0 && (
                         <div className="p-8 border rounded-lg text-center">
@@ -1353,7 +1353,7 @@ const handleUploadFiles = async () => {
                       )}
                     </div>
                   </TabsContent>
-                  
+
                   {/* Add Usage Stats Tab with Common Limits */}
                   <TabsContent value="usage" forceMount className="space-y-4 data-[state=inactive]:hidden">
                     <div className="space-y-6">
@@ -1370,7 +1370,7 @@ const handleUploadFiles = async () => {
                               {getCommonLocationStats().used} / {limits?.data[0]?.totalLiveLocationlimit || 0}
                             </span>
                           </div>
-                          <Progress 
+                          <Progress
                             value={(getCommonLocationStats().used / limits?.data[0]?.totalLiveLocationlimit) * 100}
                             className="h-2"
                           />
@@ -1386,7 +1386,7 @@ const handleUploadFiles = async () => {
                               {getCommonLocationStats().pathRemaining} / {limits?.data[0]?.totalLiveLocationlimit || 0}
                             </span>
                           </div>
-                          <Progress 
+                          <Progress
                             value={(getCommonLocationStats().pathRemaining / limits?.data[0]?.totalLiveLocationlimit) * 100}
                             className="h-2"
                           />
@@ -1396,7 +1396,7 @@ const handleUploadFiles = async () => {
                           </div>
                         </div>
                       </div>
-                      
+
                       {/* Warning if limit is close */}
                       {getCommonLocationStats().remaining <= 5 && getCommonLocationStats().remaining > 0 && (
                         <div className="p-4 border border-orange-200 rounded-lg bg-orange-50">
@@ -1421,7 +1421,7 @@ const handleUploadFiles = async () => {
         {/* Daily Files Dialog */}
         <Dialog open={showFilesDialog} onOpenChange={(open) => {
           setShowFilesDialog(open);
-          
+
           // ✅ FETCH FILES when dialog opens
           if (open && selectedStaff?._id) {
             console.log('🎯 Dialog opened, fetching files for:', selectedStaff._id);
@@ -1438,7 +1438,7 @@ const handleUploadFiles = async () => {
                 Upload and manage daily files for {selectedStaff?.employeeId}
               </DialogDescription>
             </DialogHeader>
-            
+
             {selectedStaff && (
               <ScrollArea className="max-h-[70vh]">
                 <Tabs defaultValue="upload" className="w-full">
@@ -1446,265 +1446,267 @@ const handleUploadFiles = async () => {
                     <TabsTrigger value="upload">Upload Files</TabsTrigger>
                     <TabsTrigger value="manage">Manage Files</TabsTrigger>
                   </TabsList>
-                  
+
                   <TabsContent value="upload" className="space-y-4">
-  <div className="space-y-6">
-    {/* Day Selection */}
-    <div className="space-y-3">
-      <Label className="text-base font-medium">Select Day</Label>
-      <div className="grid grid-cols-7 gap-2">
-        {Object.entries(dayNames).map(([day, dayName]) => (
-          <Button
-            key={day}
-            variant={selectedDay === day ? "default" : "outline"}
-            size="sm"
-            onClick={() => setSelectedDay(day)}
-            className="text-xs"
-          >
-            {dayName.slice(0, 3)}
-          </Button>
-        ))}
-      </div>
-      <p className="text-sm text-muted-foreground">
-        Selected: <span className="font-medium">{dayNames[selectedDay]}</span>
-      </p>
-    </div>
-
-    {/* File Description */}
-    <div className="space-y-2">
-      <Label htmlFor="description">File Description (Optional)</Label>
-      <Textarea
-        id="description"
-        placeholder="Enter a description for the files..."
-        value={fileDescription}
-        onChange={(e) => setFileDescription(e.target.value)}
-        rows={3}
-      />
-    </div>
-
-    {/* File Upload */}
-    <div className="space-y-4">
-      <Label className="text-base font-medium">Upload Files</Label>
-      <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-8">
-        <div className="text-center">
-          <Upload className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-          <h4 className="text-lg font-medium mb-2">Select Files to Upload</h4>
-          <p className="text-sm text-muted-foreground mb-4">
-            Support for PDF and image files up to 10MB each
-          </p>
-          
-          <input
-            type="file"
-            id="file-upload"
-            multiple
-            accept=".pdf,.png,.jpg,.jpeg,.gif,.bmp,.webp"
-            onChange={handleFileSelect}
-            className="hidden"
-            disabled={isUploading}
-          />
-          
-          <div className="flex flex-col gap-2 items-center">
-            <Button
-              onClick={() => document.getElementById('file-upload')?.click()}
-              disabled={isUploading}
-              variant="outline"
-            >
-              <FilePlus className="h-4 w-4 mr-2" />
-              Select Files
-            </Button>
-            
-            {selectedFiles.length > 0 && (
-              <div className="mt-4 w-full">
-                <p className="text-sm font-medium mb-2">
-                  Selected Files ({selectedFiles.length}):
-                </p>
-                <div className="space-y-1 max-h-32 overflow-y-auto">
-                  {selectedFiles.map((file, index) => (
-                    <div key={index} className="flex items-center justify-between p-2 bg-muted rounded text-xs">
-                      <span className="truncate flex-1">{file.name}</span>
-                      <span className="text-muted-foreground ml-2">
-                        {formatFileSize(file.size)}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-                
-                <Button
-                  onClick={handleUploadFiles}
-                  disabled={isUploading}
-                  className="w-full mt-4"
-                >
-                  {isUploading ? (
-                    <>
-                      <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-                      Uploading...
-                    </>
-                  ) : (
-                    <>
-                      <Upload className="h-4 w-4 mr-2" />
-                      Upload {selectedFiles.length} File(s)
-                    </>
-                  )}
-                </Button>
-              </div>
-            )}
-          </div>
-          
-          <p className="text-xs text-muted-foreground mt-2">
-            You can select multiple files at once
-          </p>
-        </div>
-      </div>
-
-      {/* File Type Info */}
-      <div className="grid grid-cols-2 gap-4">
-        <div className="flex items-center gap-2 p-3 border rounded-lg">
-          <FileText className="h-5 w-5 text-red-500" />
-          <div>
-            <p className="font-medium text-sm">PDF Documents</p>
-            <p className="text-xs text-muted-foreground">Reports, presentations, contracts</p>
-          </div>
-        </div>
-        <div className="flex items-center gap-2 p-3 border rounded-lg">
-          <ImageIcon className="h-5 w-5 text-blue-500" />
-          <div>
-            <p className="font-medium text-sm">Images</p>
-            <p className="text-xs text-muted-foreground">Photos, screenshots, diagrams</p>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</TabsContent>
-
-                  
-                  <TabsContent value="manage" className="space-y-4">
-  <div className="space-y-4">
-    {selectedStaff && (() => {
-      const staffFiles = getStaffFiles(); // Use _id instead of id
-      console.log('Staff Files:', staffFiles);
-      
-      if (!staffFiles) {
-        return (
-          <div className="text-center py-8">
-            <FolderOpen className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-            <h4 className="font-medium mb-2">No Files Uploaded</h4>
-            <p className="text-sm text-muted-foreground">
-              Upload files in the Upload tab to get started
-            </p>
-          </div>
-        );
-      }
-
-      const currentWeek = staffFiles.currentWeek || {};
-
-      return (
-        <div className="space-y-4">
-          {/* Weekly Overview */}
-          <div className="grid grid-cols-7 gap-2">
-            {Object.entries(dayNames).map(([day, dayName]) => {
-              const fileCount = currentWeek[day]?.length || 0;
-              return (
-                <div key={day} className="text-center">
-                  <Button
-                    variant={selectedDay === day ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => setSelectedDay(day)}
-                    className="text-xs w-full"
-                  >
-                    {dayName.slice(0, 3)}
-                    <Badge variant="secondary" className="ml-1 h-4 px-1">
-                      {fileCount}
-                    </Badge>
-                  </Button>
-                </div>
-              );
-            })}
-          </div>
-
-          {/* Files for Selected Day */}
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <h4 className="font-medium">{dayNames[selectedDay]} Files</h4>
-              <Badge variant="secondary">
-                {currentWeek[selectedDay]?.length || 0} files
-              </Badge>
-            </div>
-            
-            {!currentWeek[selectedDay] || currentWeek[selectedDay].length === 0 ? (
-              <div className="text-center py-6 text-muted-foreground">
-                <Calendar className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                <p>No files for {dayNames[selectedDay]}</p>
-              </div>
-            ) : (
-              <div className="space-y-2">
-                {currentWeek[selectedDay].map((file) => (
-                  <div key={file.id} className="flex items-center justify-between p-3 border rounded-lg">
-                    <div className="flex items-center gap-3 flex-1 min-w-0">
-                      {file.type === 'pdf' ? (
-                        <FileText className="h-5 w-5 text-red-500 flex-shrink-0" />
-                      ) : (
-                        <ImageIcon className="h-5 w-5 text-blue-500 flex-shrink-0" />
-                      )}
-                      <div className="flex-1 min-w-0">
-                        <p className="font-medium text-sm truncate">{file.name}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {formatFileSize(file.size)} • {new Date(file.uploadDate).toLocaleDateString()}
-                        </p>
-                        {file.description && (
-                          <p className="text-xs text-muted-foreground mt-1 truncate">
-                            "{file.description}"
-                          </p>
-                        )}
-                        <p className="text-xs text-muted-foreground">
-                          Uploaded by: {file.uploadedBy?.distributer_name}
+                    <div className="space-y-6">
+                      {/* Day Selection */}
+                      <div className="space-y-3">
+                        <Label className="text-base font-medium">Select Day</Label>
+                        <div className="grid grid-cols-7 gap-2">
+                          {Object.entries(dayNames).map(([day, dayName]) => (
+                            <Button
+                              key={day}
+                              variant={selectedDay === day ? "default" : "outline"}
+                              size="sm"
+                              onClick={() => setSelectedDay(day)}
+                              className="text-xs"
+                            >
+                              {dayName.slice(0, 3)}
+                            </Button>
+                          ))}
+                        </div>
+                        <p className="text-sm text-muted-foreground">
+                          Selected: <span className="font-medium">{dayNames[selectedDay]}</span>
                         </p>
                       </div>
+
+                      {/* File Description */}
+                      <div className="space-y-2">
+                        <Label htmlFor="description">File Description (Optional)</Label>
+                        <Textarea
+                          id="description"
+                          placeholder="Enter a description for the files..."
+                          value={fileDescription}
+                          onChange={(e) => setFileDescription(e.target.value)}
+                          rows={3}
+                        />
+                      </div>
+
+                      {/* File Upload */}
+                      <div className="space-y-4">
+                        <Label className="text-base font-medium">Upload Files</Label>
+                        <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-8">
+                          <div className="text-center">
+                            <Upload className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                            <h4 className="text-lg font-medium mb-2">Select Files to Upload</h4>
+                            <p className="text-sm text-muted-foreground mb-4">
+                              Support for PDF and image files up to 10MB each
+                            </p>
+
+                            <input
+                              type="file"
+                              id="file-upload"
+                              multiple
+                              accept=".pdf,.png,.jpg,.jpeg,.gif,.bmp,.webp"
+                              onChange={handleFileSelect}
+                              className="hidden"
+                              disabled={isUploading}
+                            />
+
+                            <div className="flex flex-col gap-2 items-center">
+                              <Button
+                                onClick={() => document.getElementById('file-upload')?.click()}
+                                disabled={isUploading}
+                                variant="outline"
+                              >
+                                <FilePlus className="h-4 w-4 mr-2" />
+                                Select Files
+                              </Button>
+
+                              {selectedFiles.length > 0 && (
+                                <div className="mt-4 w-full">
+                                  <p className="text-sm font-medium mb-2">
+                                    Selected Files ({selectedFiles.length}):
+                                  </p>
+                                  <div className="space-y-1 max-h-32 overflow-y-auto">
+                                    {selectedFiles.map((file, index) => (
+                                      <div key={index} className="flex items-center justify-between p-2 bg-muted rounded text-xs">
+                                        <span className="truncate flex-1">{file.name}</span>
+                                        <span className="text-muted-foreground ml-2">
+                                          {formatFileSize(file.size)}
+                                        </span>
+                                      </div>
+                                    ))}
+                                  </div>
+
+                                  <Button
+                                    onClick={handleUploadFiles}
+                                    disabled={isUploading}
+                                    className="w-full mt-4"
+                                  >
+                                    {isUploading ? (
+                                      <>
+                                        <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                                        Uploading...
+                                      </>
+                                    ) : (
+                                      <>
+                                        <Upload className="h-4 w-4 mr-2" />
+                                        Upload {selectedFiles.length} File(s)
+                                      </>
+                                    )}
+                                  </Button>
+                                </div>
+                              )}
+                            </div>
+
+                            <p className="text-xs text-muted-foreground mt-2">
+                              You can select multiple files at once
+                            </p>
+                          </div>
+                        </div>
+
+                        {/* File Type Info */}
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="flex items-center gap-2 p-3 border rounded-lg">
+                            <FileText className="h-5 w-5 text-red-500" />
+                            <div>
+                              <p className="font-medium text-sm">PDF Documents</p>
+                              <p className="text-xs text-muted-foreground">Reports, presentations, contracts</p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2 p-3 border rounded-lg">
+                            <ImageIcon className="h-5 w-5 text-blue-500" />
+                            <div>
+                              <p className="font-medium text-sm">Images</p>
+                              <p className="text-xs text-muted-foreground">Photos, screenshots, diagrams</p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
                     </div>
-                    <div className="flex gap-2 flex-shrink-0">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => window.open(file.url, '_blank')}
-                      >
-                        <Eye className="h-3 w-3" />
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => {
-                          const link = document.createElement('a');
-                          link.href = file.url;
-                          link.download = file.name;
-                          link.click();
-                          toast.success(`Downloaded ${file.name}`);
-                        }}
-                      >
-                        <Download className="h-3 w-3" />
-                      </Button>
-                      <Button
-  size="sm"
-  variant="destructive"
-  onClick={() => handleFileDelete(file.id, file.name)}
-  disabled={deletingFileId === file.id}
->
-  {deletingFileId === file.id ? (
-    <RefreshCw className="h-3 w-3 animate-spin" />
-  ) : (
-    <Trash2 className="h-3 w-3" />
-  )}
-</Button>
+                  </TabsContent>
+
+
+                  <TabsContent value="manage" className="space-y-4">
+                    <div className="space-y-4">
+                      {selectedStaff && (() => {
+                        const staffFiles = getStaffFiles(); // Use _id instead of id
+                        console.log('Staff Files:', staffFiles);
+
+                        if (!staffFiles) {
+                          return (
+                            <div className="text-center py-8">
+                              <FolderOpen className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                              <h4 className="font-medium mb-2">No Files Uploaded</h4>
+                              <p className="text-sm text-muted-foreground">
+                                Upload files in the Upload tab to get started
+                              </p>
+                            </div>
+                          );
+                        }
+
+                        const currentWeek = staffFiles.currentWeek || {};
+
+                        return (
+                          <div className="space-y-4">
+                            {/* Weekly Overview */}
+                            <div className="grid grid-cols-7 gap-2 h-12">
+                              {Object.entries(dayNames).map(([day, dayName]) => {
+                                const fileCount = currentWeek[day]?.length || 0;
+                                return (
+                                  <div key={day} className="text-center">
+                                    <Button
+                                      variant={selectedDay === day ? "default" : "outline"}
+                                      size="sm"
+                                      onClick={() => setSelectedDay(day)}
+                                      className="text-xs w-full max-[443px]:h-full"
+                                    >
+                                      <div className="flex max-[443px]:flex-col max-[443px]:space-y-2">
+                                        <div>{dayName.slice(0, 3)}</div>
+                                        <Badge variant="secondary" className="ml-1 h-4 px-1">
+                                          {fileCount}
+                                        </Badge>
+                                      </div>
+                                    </Button>
+                                  </div>
+                                );
+                              })}
+                            </div>
+
+                            {/* Files for Selected Day */}
+                            <div className="space-y-3">
+                              <div className="flex items-center justify-between">
+                                <h4 className="font-medium">{dayNames[selectedDay]} Files</h4>
+                                <Badge variant="secondary">
+                                  {currentWeek[selectedDay]?.length || 0} files
+                                </Badge>
+                              </div>
+
+                              {!currentWeek[selectedDay] || currentWeek[selectedDay].length === 0 ? (
+                                <div className="text-center py-6 text-muted-foreground">
+                                  <Calendar className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                                  <p>No files for {dayNames[selectedDay]}</p>
+                                </div>
+                              ) : (
+                                <div className="space-y-2">
+                                  {currentWeek[selectedDay].map((file) => (
+                                    <div key={file.id} className="flex items-center justify-between p-3 border rounded-lg">
+                                      <div className="flex items-center gap-3 flex-1 min-w-0">
+                                        {file.type === 'pdf' ? (
+                                          <FileText className="h-5 w-5 text-red-500 flex-shrink-0" />
+                                        ) : (
+                                          <ImageIcon className="h-5 w-5 text-blue-500 flex-shrink-0" />
+                                        )}
+                                        <div className="flex-1 min-w-0">
+                                          <p className="font-medium text-sm truncate">{file.name}</p>
+                                          <p className="text-xs text-muted-foreground">
+                                            {formatFileSize(file.size)} • {new Date(file.uploadDate).toLocaleDateString()}
+                                          </p>
+                                          {file.description && (
+                                            <p className="text-xs text-muted-foreground mt-1 truncate">
+                                              "{file.description}"
+                                            </p>
+                                          )}
+                                          <p className="text-xs text-muted-foreground">
+                                            Uploaded by: {file.uploadedBy?.distributer_name}
+                                          </p>
+                                        </div>
+                                      </div>
+                                      <div className="flex gap-2 flex-shrink-0">
+                                        <Button
+                                          size="sm"
+                                          variant="outline"
+                                          onClick={() => window.open(file.url, '_blank')}
+                                        >
+                                          <Eye className="h-3 w-3" />
+                                        </Button>
+                                        <Button
+                                          size="sm"
+                                          variant="outline"
+                                          onClick={() => {
+                                            const link = document.createElement('a');
+                                            link.href = file.url;
+                                            link.download = file.name;
+                                            link.click();
+                                            toast.success(`Downloaded ${file.name}`);
+                                          }}
+                                        >
+                                          <Download className="h-3 w-3" />
+                                        </Button>
+                                        <Button
+                                          size="sm"
+                                          variant="destructive"
+                                          onClick={() => handleFileDelete(file.id, file.name)}
+                                          disabled={deletingFileId === file.id}
+                                        >
+                                          {deletingFileId === file.id ? (
+                                            <RefreshCw className="h-3 w-3 animate-spin" />
+                                          ) : (
+                                            <Trash2 className="h-3 w-3" />
+                                          )}
+                                        </Button>
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })()}
                     </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
-      );
-    })()}
-  </div>
-</TabsContent>
+                  </TabsContent>
                 </Tabs>
               </ScrollArea>
             )}

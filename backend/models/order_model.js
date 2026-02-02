@@ -65,12 +65,12 @@ const orderSchema = mongoose.Schema({
         default:Date.now
     },
     totalItems:{
-        type:String,
-        default:null
+        type:Number,
+        default:0
     },
     totalAmount:{
-        type:String,
-        default:null
+        type:Number,
+        default:0
     },
     items:[item]
 },{  timestamps: true  })

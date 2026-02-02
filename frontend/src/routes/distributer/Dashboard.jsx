@@ -335,17 +335,17 @@ export default function Dashboard({ onNavigate }) {
 
   return (
     <div className="w-full">
-      <div className="ml-8 lg:hidden">
+      <div className="ml-10 lg:hidden">
         <h1 className="text-xl">Dashboard</h1>
       </div>
       <div className="space-y-4 p-4">
         {/* Welcome Section */}
-        <div className="flex flex-col space-y-2">
+        {/* <div className="flex flex-col space-y-2">
           <h1 className="text-2xl lg:text-3xl font-bold">Welcome to OrderFlow</h1>
           <p className="text-gray-600">
             Here's an overview of your business operations and quick actions to get things done.
           </p>
-        </div>
+        </div> */}
 
         {/* Quick Actions */}
         <div className="space-y-4">
@@ -428,7 +428,7 @@ export default function Dashboard({ onNavigate }) {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">{totalProducts}</div>
-                <p className="text-xs text-gray-600">
+                {/* <p className="text-xs text-gray-600">
                   {lowStockProducts > 0 ? (
                     <span className="text-amber-600">
                       <AlertTriangle className="inline h-3 w-3 mr-1" />
@@ -440,7 +440,7 @@ export default function Dashboard({ onNavigate }) {
                       Stock levels healthy
                     </span>
                   )}
-                </p>
+                </p> */}
               </CardContent>
             </Card>
 
@@ -457,7 +457,7 @@ export default function Dashboard({ onNavigate }) {
               </CardContent>
             </Card>
 
-            <Card>
+            {/* <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">Inventory Value</CardTitle>
                 <IndianRupeeIcon className="h-4 w-4 text-gray-600" />
@@ -474,7 +474,7 @@ export default function Dashboard({ onNavigate }) {
                   )}
                 </p>
               </CardContent>
-            </Card>
+            </Card> */}
           </div>
         </div>
 
@@ -508,7 +508,7 @@ export default function Dashboard({ onNavigate }) {
               </CardContent>
             </Card>
 
-            <Card>
+            {/* <Card>
               <CardHeader className="pb-3">
                 <CardTitle className="text-sm font-medium text-center">Billers</CardTitle>
               </CardHeader>
@@ -519,7 +519,7 @@ export default function Dashboard({ onNavigate }) {
                   {billerCount === 1 ? "Optimal" : billerCount > 1 ? "Over Limit" : "Understaffed"}
                 </Badge>
               </CardContent>
-            </Card>
+            </Card> */}
 
             <Card>
               <CardHeader className="pb-3">
@@ -595,7 +595,7 @@ export default function Dashboard({ onNavigate }) {
         {/* Footer */}
         <div className="pt-6 border-t">
           <p className="text-sm text-gray-600 text-center">
-            OrderFlow Admin Panel - Streamlining your business operations
+            The OMS Admin Panel - Streamlining your business operations
           </p>
         </div>
 

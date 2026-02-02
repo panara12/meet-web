@@ -326,7 +326,7 @@ function ClientList() {
 
   return (
     <div className="w-full">
-      <div className="ml-8 lg:hidden">
+      <div className="ml-10 lg:hidden">
         <h1 className="text-xl">Client Management</h1>
       </div>
       <div className="space-y-6">
@@ -334,7 +334,7 @@ function ClientList() {
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
             <h2 className="max-[1024px]:hidden text-xl">Client Management</h2>
-            <p className="text-muted-foreground">Manage your client relationships, contacts, and business partnerships</p>
+            {/* <p className="text-muted-foreground">Manage your client relationships, contacts, and business partnerships</p> */}
           </div>
           <Button onClick={openAddDialog}>
             <Plus className="h-4 w-4 mr-2" />
@@ -381,10 +381,10 @@ function ClientList() {
         </div>
 
         <Tabs defaultValue="list" className="space-y-4">
-          <TabsList className="flex justify-center items-start my-5 flex-col sm:flex-row">
+          <TabsList className="flex justify-center items-start sm:flex-row">
             <TabsTrigger value="list">Client Directory</TabsTrigger>
             <TabsTrigger value="analytics">Business Analytics</TabsTrigger>
-            <TabsTrigger value="reports">Client Reports</TabsTrigger>
+            {/* <TabsTrigger value="reports">Client Reports</TabsTrigger> */}
           </TabsList>
 
           <TabsContent value="list" className="space-y-4">
@@ -869,7 +869,7 @@ function ClientList() {
             </div>
           </TabsContent>
 
-          <TabsContent value="reports" className="space-y-4">
+          {/* <TabsContent value="reports" className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <Card>
                 <CardHeader>
@@ -888,7 +888,7 @@ function ClientList() {
                 </CardContent>
               </Card>
 
-              {/* <Card>
+               <Card>
                 <CardHeader>
                   <CardTitle>Revenue Growth</CardTitle>
                   <CardDescription>Total client lifetime value</CardDescription>
@@ -905,7 +905,7 @@ function ClientList() {
                     </div>
                   </div>
                 </CardContent>
-              </Card> */}
+              </Card> 
 
               <Card>
                 <CardHeader>
@@ -924,17 +924,17 @@ function ClientList() {
                       <p className="text-sm text-muted-foreground">VIP Clients</p>
                       <p className="text-lg font-bold">{vipClients}</p>
                     </div>
-                    {/* <div>
+                    <div>
                       <p className="text-sm text-muted-foreground">Avg Revenue/Client</p>
                       <p className="text-lg font-bold">
                         ${Math.round(totalRevenue / totalClients).toLocaleString()}
                       </p>
-                    </div> */}
+                    </div>
                   </div>
                 </CardContent>
               </Card>
             </div>
-          </TabsContent>
+          </TabsContent> */}
         </Tabs>
 
         {/* Add Client Dialog */}

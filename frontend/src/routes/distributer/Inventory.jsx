@@ -619,7 +619,7 @@ function Inventory() {
 
   return (
     <div className="w-full">
-      <div className="ml-8 lg:hidden">
+      <div className="ml-10 lg:hidden">
         <h1 className="text-xl">Inventory Management</h1>
       </div>
       <div className="space-y-6">
@@ -627,9 +627,9 @@ function Inventory() {
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
             <h1 className="text-xl max-[1024px]:hidden">Inventory Management</h1>
-            <p className="text-muted-foreground">
+            {/* <p className="text-muted-foreground">
               Manage your product catalog with Amazon-style inventory tracking
-            </p>
+            </p> */}
           </div>
 
           <Dialog open={showAddCategoryDialog} onOpenChange={setShowAddCategoryDialog}>
@@ -812,7 +812,7 @@ function Inventory() {
                       />
                     </div>
 
-                    <div className="space-y-2">
+                    {/* <div className="space-y-2">
                       <Label htmlFor="lowStockThreshold">Low Stock Alert Threshold</Label>
                       <Input
                         id="lowStockThreshold"
@@ -821,7 +821,7 @@ function Inventory() {
                         onChange={(e) => setFormData({...formData, lowStockThreshold: e.target.value})}
                         placeholder="10"
                       />
-                    </div>
+                    </div> */}
 
                     <div className="md:col-span-2 space-y-2">
                       <Label htmlFor="description">Description</Label>
@@ -841,21 +841,8 @@ function Inventory() {
                   {/* SKU Management */}
                   <div className="space-y-4">
                     <div className="flex items-center justify-between">
-                      <Label className="text-lg font-medium">Enter Common Colors</Label>
-                      <div className="space-y-2">
-                        <Label>Color</Label>
-                        <Input
-                          value={commonColors}
-                          onChange={(e) => {
-                            setCommonColors(e.target.value)
-                          }}
-                          placeholder="Red, Blue, etc."
-                        />
-                      </div>
-                    </div>
-                    <div className="flex items-center justify-between">
                       <Label className="text-lg font-medium">Product SKUs & Pricing</Label>
-                      <Button
+                      {/* <Button
                         type="button"
                         variant="outline"
                         size="sm"
@@ -918,7 +905,7 @@ function Inventory() {
                         }}
                       >
                         Generate SKUs
-                      </Button>
+                      </Button> */}
                     </div>
 
                     {/* Manual SKU Addition */}
@@ -1038,7 +1025,7 @@ function Inventory() {
                                 />
                               </div>
                               
-                              <div className="space-y-2">
+                              {/* <div className="space-y-2">
                                 <Label>Stock Quantity</Label>
                                 <Input
                                   type="number"
@@ -1050,9 +1037,9 @@ function Inventory() {
                                   }}
                                   placeholder="0"
                                 />
-                              </div>
+                              </div> */}
                               
-                              <div className="space-y-2 md:col-span-2 lg:col-span-3">
+                              {/* <div className="space-y-2 md:col-span-2 lg:col-span-3">
                                 <Label>Barcode</Label>
                                 <Input
                                   value={sku.barcode}
@@ -1063,7 +1050,7 @@ function Inventory() {
                                   }}
                                   placeholder="Barcode for this specific SKU"
                                 />
-                              </div>
+                              </div> */}
                             </div>
                           </div>
                         ))}
@@ -1074,7 +1061,7 @@ function Inventory() {
 
                 <TabsContent value="details" className="space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
+                    {/* <div className="space-y-2">
                       <Label htmlFor="tags">Tags (comma-separated)</Label>
                       <Input
                         id="tags"
@@ -1082,9 +1069,9 @@ function Inventory() {
                         onChange={(e) => setFormData({...formData, tags: e.target.value})}
                         placeholder="premium, bestseller, new"
                       />
-                    </div>
+                    </div> */}
 
-                    <div className="space-y-2">
+                    {/* <div className="space-y-2">
                       <Label htmlFor="barcode">General Barcode</Label>
                       <Input
                         id="barcode"
@@ -1093,7 +1080,7 @@ function Inventory() {
                         placeholder="General product barcode"
                       />
                       <p className="text-xs text-muted-foreground">Individual SKUs can have their own barcodes</p>
-                    </div>
+                    </div> */}
                   </div>
 
                   <div>
@@ -1362,7 +1349,7 @@ function Inventory() {
             </CardContent>
           </Card>
 
-          <Card>
+          {/* <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium flex items-center gap-2">
                 <IndianRupeeIcon className="h-4 w-4" />
@@ -1375,9 +1362,9 @@ function Inventory() {
                 Inventory value
               </p>
             </CardContent>
-          </Card>
+          </Card> */}
 
-          <Card>
+          {/* <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium flex items-center gap-2">
                 <AlertTriangle className="h-4 w-4 text-amber-500" />
@@ -1390,9 +1377,9 @@ function Inventory() {
                 Need restocking
               </p>
             </CardContent>
-          </Card>
+          </Card> */}
 
-          <Card>
+          {/* <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium flex items-center gap-2">
                 <TrendingDown className="h-4 w-4 text-red-500" />
@@ -1405,7 +1392,7 @@ function Inventory() {
                 Urgent restock
               </p>
             </CardContent>
-          </Card>
+          </Card> */}
 
           <Card>
             <CardHeader className="pb-2">
@@ -1521,118 +1508,120 @@ function Inventory() {
           <>
             {viewMode === "table" ? (
               <Card>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead 
-                        className="cursor-pointer"
-                        onClick={() => {
-                          if (sortField === "name") {
-                            setSortDirection(sortDirection === "asc" ? "desc" : "asc")
-                          } else {
-                            setSortField("name")
-                            setSortDirection("asc")
-                          }
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead 
+                          className="cursor-pointer"
+                          onClick={() => {
+                            if (sortField === "name") {
+                              setSortDirection(sortDirection === "asc" ? "desc" : "asc")
+                            } else {
+                              setSortField("name")
+                              setSortDirection("asc")
+                            }
+                            }}
+                        >
+                          Product {sortField === "name" && (sortDirection  === "asc" ? "↑" : "↓")}
+                        </TableHead>
+                        <TableHead>Company</TableHead>
+                        <TableHead>Category</TableHead>
+                        <TableHead 
+                          className="cursor-pointer"
+                          onClick={() => {
+                            if (sortField === "price") {
+                              setSortOrder(sortOrder === "asc" ? "desc" : "asc")
+                            } else {
+                              setSortField("price")
+                              setSortOrder("desc")
+                            }
                           }}
-                      >
-                        Product {sortField === "name" && (sortDirection  === "asc" ? "↑" : "↓")}
-                      </TableHead>
-                      <TableHead>Company</TableHead>
-                      <TableHead>Category</TableHead>
-                      <TableHead 
-                        className="cursor-pointer"
-                        onClick={() => {
-                          if (sortField === "price") {
-                            setSortOrder(sortOrder === "asc" ? "desc" : "asc")
-                          } else {
-                            setSortField("price")
-                            setSortOrder("desc")
-                          }
-                        }}
-                      >
-                        Price {sortField === "price" && (sortOrder === "asc" ? "↑" : "↓")}
-                      </TableHead>
-                      <TableHead 
-                        className="cursor-pointer"
-                        onClick={() => {
-                          if (sortField === "stock") {
-                            setSortOrder(sortOrder === "asc" ? "desc" : "asc")
-                          } else {
-                            setSortField("stock")
-                            setSortOrder("desc")
-                          }
-                        }}
-                      >
-                        Stock {sortField === "stock" && (sortOrder === "asc" ? "↑" : "↓")}
-                      </TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {products.map((product) => {
-                      const stockStatus = getStockStatus(product)
-                      return (
-                        <TableRow key={product._id}>
-                          <TableCell>
-                            <div>
-                              <div className="font-medium">{product.name}</div>
-                              <div className="text-sm text-muted-foreground">{product.sku}</div>
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex items-center gap-2">
-                              <Building2 className="h-4 w-4 text-muted-foreground" />
-                              {product?.company?.name}
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <Badge variant="outline">{product.category}</Badge>
-                          </TableCell>
-                          <TableCell>{formatCurrency(product.price)}</TableCell>
-                          <TableCell>
-                            <Badge variant={stockStatus.variant}>
-                              {product.stockQuantity} units
-                            </Badge>
-                          </TableCell>
-                          <TableCell>
-                            <Badge 
-                              variant={product.status === "active" ? "default" : 
-                                      product.status === "inactive" ? "secondary" : "destructive"}
-                            >
-                              {product.status}
-                            </Badge>
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex gap-1">
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => openProductDialog(product)}
+                        >
+                          Price {sortField === "price" && (sortOrder === "asc" ? "↑" : "↓")}
+                        </TableHead>
+                        <TableHead 
+                          className="cursor-pointer"
+                          onClick={() => {
+                            if (sortField === "stock") {
+                              setSortOrder(sortOrder === "asc" ? "desc" : "asc")
+                            } else {
+                              setSortField("stock")
+                              setSortOrder("desc")
+                            }
+                          }}
+                        >
+                          Stock {sortField === "stock" && (sortOrder === "asc" ? "↑" : "↓")}
+                        </TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead>Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {products.map((product) => {
+                        const stockStatus = getStockStatus(product)
+                        return (
+                          <TableRow key={product._id}>
+                            <TableCell>
+                              <div>
+                                <div className="font-medium">{product.name}</div>
+                                <div className="text-sm text-muted-foreground">{product.sku}</div>
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              <div className="flex items-center gap-2">
+                                <Building2 className="h-4 w-4 text-muted-foreground" />
+                                {product?.company?.name}
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              <Badge variant="outline">{product.category}</Badge>
+                            </TableCell>
+                            <TableCell>{formatCurrency(product.price)}</TableCell>
+                            <TableCell>
+                              <Badge variant={stockStatus.variant}>
+                                {product.stockQuantity} units
+                              </Badge>
+                            </TableCell>
+                            <TableCell>
+                              <Badge 
+                                variant={product.status === "active" ? "default" : 
+                                        product.status === "inactive" ? "secondary" : "destructive"}
                               >
-                                <Eye className="h-4 w-4" />
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => openEditDialog(product)}
-                              >
-                                <Edit className="h-4 w-4" />
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => openDeleteDialog(product)}
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      )
-                    })}
-                  </TableBody>
-                </Table>
+                                {product.status}
+                              </Badge>
+                            </TableCell>
+                            <TableCell>
+                              <div className="flex gap-1">
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => openProductDialog(product)}
+                                >
+                                  <Eye className="h-4 w-4" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => openEditDialog(product)}
+                                >
+                                  <Edit className="h-4 w-4" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => openDeleteDialog(product)}
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        )
+                      })}
+                    </TableBody>
+                  </Table>
+                </div>
               </Card>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
@@ -1746,41 +1735,52 @@ function Inventory() {
             
             {selectedProduct && (
               <div className="space-y-6">
+                <Label>SKU</Label>
+                <div className="grid grid-cols-2">
+                    {
+                      selectedProduct?.skus?.map((sku)=>
+                        <div key={sku._id}>
+                          <p className="text-sm"><b>SKU:</b>{sku.sku}</p>
+                          <p className="text-sm"><b>color:</b>{sku.color}</p>
+                          <p className="text-sm"><b>size:</b>{sku.size}</p>
+                          <p className="text-sm"><b>price:</b> {sku.price}</p>
+                          <p className="text-sm"><b>cost price:</b> {sku.costPrice}</p>
+                        </div>
+                      )
+                    }
+                    {/* <p className="text-sm">{selectedProduct.skus}</p> */}
+                  </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label>SKU</Label>
-                    <p className="text-sm">{selectedProduct.sku}</p>
-                  </div>
-                  <div>
                     <Label>Company</Label>
-                    <p className="text-sm">{selectedProduct.companyName}</p>
+                    <p className="text-sm">{selectedProduct?.company.name}</p>
                   </div>
                   <div>
                     <Label>Category</Label>
-                    <p className="text-sm">{selectedProduct.category}</p>
+                    <p className="text-sm">{selectedProduct?.category}</p>
                   </div>
                   <div>
                     <Label>Brand</Label>
-                    <p className="text-sm">{selectedProduct.brand}</p>
+                    <p className="text-sm">{selectedProduct?.brand}</p>
                   </div>
                   <div>
                     <Label>Price</Label>
-                    <p className="text-sm">{formatCurrency(selectedProduct.price)}</p>
+                    <p className="text-sm">{formatCurrency(selectedProduct?.price)}</p>
                   </div>
                   <div>
                     <Label>Stock</Label>
-                    <p className="text-sm">{selectedProduct.stockQuantity} units</p>
+                    <p className="text-sm">{selectedProduct?.stockQuantity} units</p>
                   </div>
                 </div>
 
                 {selectedProduct.description && (
                   <div>
                     <Label>Description</Label>
-                    <p className="text-sm mt-1">{selectedProduct.description}</p>
+                    <p className="text-sm mt-1">{selectedProduct?.description}</p>
                   </div>
                 )}
 
-                {selectedProduct.tags.length > 0 && (
+                {selectedProduct?.tags?.length > 0 && (
                   <div>
                     <Label>Tags</Label>
                     <div className="flex gap-1 mt-1">
@@ -1938,7 +1938,7 @@ function Inventory() {
 
                   {/* SKU Management */}
                   <div className="space-y-4">
-                    <div className="flex items-center justify-between">
+                    {/* <div className="flex items-center justify-between">
                       <Label className="text-lg font-medium">Enter Common Colors</Label>
                       <div className="space-y-2">
                         <Label>Color</Label>
@@ -1950,10 +1950,10 @@ function Inventory() {
                           placeholder="Red, Blue, etc."
                         />
                       </div>
-                    </div>
+                    </div> */}
                     <div className="flex items-center justify-between">
                       <Label className="text-lg font-medium">Product SKUs & Pricing</Label>
-                      <Button
+                      {/* <Button
                         type="button"
                         variant="outline"
                         size="sm"
@@ -2016,7 +2016,7 @@ function Inventory() {
                         }}
                       >
                         Generate SKUs
-                      </Button>
+                      </Button> */}
                     </div>
 
                     {/* Manual SKU Addition */}
@@ -2136,7 +2136,7 @@ function Inventory() {
                                 />
                               </div>
                               
-                              <div className="space-y-2">
+                              {/* <div className="space-y-2">
                                 <Label>Stock Quantity</Label>
                                 <Input
                                   type="number"
@@ -2148,9 +2148,9 @@ function Inventory() {
                                   }}
                                   placeholder="0"
                                 />
-                              </div>
+                              </div> */}
                               
-                              <div className="space-y-2 md:col-span-2 lg:col-span-3">
+                              {/* <div className="space-y-2 md:col-span-2 lg:col-span-3">
                                 <Label>Barcode</Label>
                                 <Input
                                   value={sku.barcode}
@@ -2161,7 +2161,7 @@ function Inventory() {
                                   }}
                                   placeholder="Barcode for this specific SKU"
                                 />
-                              </div>
+                              </div> */}
                             </div>
                           </div>
                         ))}

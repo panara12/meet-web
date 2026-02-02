@@ -2207,11 +2207,8 @@ const handlePaymentDialogClose = (open) => {
                   </SelectTrigger>
                   <SelectContent className="bg-white">
                     <SelectItem value="cash">Cash</SelectItem>
-                    <SelectItem value="credit-card">Credit Card</SelectItem>
-                    <SelectItem value="debit-card">Debit Card</SelectItem>
-                    <SelectItem value="bank-transfer">Bank Transfer</SelectItem>
-                    <SelectItem value="check">Check</SelectItem>
-                    <SelectItem value="digital-wallet">Digital Wallet</SelectItem>
+                    <SelectItem value="online">Online</SelectItem>
+                    <SelectItem value="cheque">Cheque</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

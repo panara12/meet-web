@@ -1069,7 +1069,8 @@ function Payments() {
                   ))}
                 </TableBody>
               </Table>
-              <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-4 pt-4 border-t">
+            </div>
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-4 pt-4 border-t">
                 <div className="text-responsive-xs text-muted-foreground">
                   Showing {paymentRequests.length === 0 ? 0 : ((currentPage - 1) * limit) + 1} to {Math.min(currentPage * limit, totalPayments)} of {totalPayments} payments
                 </div>
@@ -1111,7 +1112,6 @@ function Payments() {
                   </Button>
                 </div>
               </div>
-            </div>
           </CardContent>
         </Card>
 

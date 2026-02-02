@@ -53,7 +53,7 @@ const defaultFormData = {
   password: ""
 }
 
-const roles = ["admin", "packaging", "billing", "salesman"]
+const roles = ["admin", "packaging", "salesman"]
 
 const statuses = ["Active", "Inactive", "On Leave", "Terminated"]
 const workHourTypes = ["Full-time", "Part-time", "Contract", "Freelance"]
@@ -96,7 +96,6 @@ function StaffAccount() {
   const roleLimits = useMemo(() => ({
     "admin": limits?.data?.[0]?.adminlimit || 0,
     "packaging": limits?.data?.[0]?.packagelimit || 0,
-    "billing": limits?.data?.[0]?.billinglimit || 0,
     "salesman": limits?.data?.[0]?.salesmanlimit || 0
   }), [limits]);
 
@@ -108,7 +107,7 @@ function StaffAccount() {
     }
 
     // Check each role to see if any has availability
-    const rolesArray = ['admin', 'packaging', 'billing', 'salesman'];
+    const rolesArray = ['admin', 'packaging', 'salesman'];
     
     for (const role of rolesArray) {
       const currentCount = getRoleCount(role);
@@ -392,7 +391,6 @@ function StaffAccount() {
     switch (role) {
       case "admin": return "destructive"
       case "salesman": return "default"
-      case "billing": return "outline"
       case "packaging": return "secondary"
       default: return "outline"
     }
@@ -414,7 +412,7 @@ function StaffAccount() {
 
   return (
     <div className="w-full">
-      <div className="ml-8 lg:hidden">
+      <div className="ml-10 lg:hidden">
         <h1 className="text-xl">Staff Account Management</h1>
       </div>
       <div className="space-y-6">
@@ -422,7 +420,7 @@ function StaffAccount() {
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
             <h2 className="max-[1024px]:hidden text-xl">Staff Account Management</h2>
-            <p className="text-muted-foreground">Manage employee records, roles, and employment details</p>
+            {/* <p className="text-muted-foreground">Manage employee records, roles, and employment details</p> */}
           </div>
           <div className="flex flex-col items-end gap-1">
             <Button disabled={!isAnyRoleAvailable} onClick={openAddDialog}>
@@ -474,7 +472,7 @@ function StaffAccount() {
             </CardContent>
           </Card>
 
-          <Card>
+          {/* <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Role Limits</CardTitle>
               <Shield className="h-4 w-4 text-orange-500" />
@@ -495,7 +493,7 @@ function StaffAccount() {
                 <p className="text-xs text-muted-foreground mt-1">View more in Reports</p>
               </div>
             </CardContent>
-          </Card>
+          </Card> */}
         </div>
 
         {/* Role Limits Overview */}
@@ -536,8 +534,8 @@ function StaffAccount() {
         <Tabs defaultValue="directory" className="space-y-4">
           <TabsList>
             <TabsTrigger value="directory">Staff Directory</TabsTrigger>
-             <TabsTrigger value="departments">Roles</TabsTrigger>
-            <TabsTrigger value="reports">Reports</TabsTrigger>
+             {/* <TabsTrigger value="departments">Roles</TabsTrigger> */}
+            {/* <TabsTrigger value="reports">Reports</TabsTrigger> */}
           </TabsList>
 
           <TabsContent value="directory" className="space-y-4">
@@ -598,11 +596,11 @@ function StaffAccount() {
             <Card>
               <CardHeader>
                 <CardTitle>Employee Directory ({totalRecords})</CardTitle>
-                <CardDescription>Complete staff roster with roles and employment details</CardDescription>
+                {/* <CardDescription>Complete staff roster with roles and employment details</CardDescription> */}
               </CardHeader>
               <CardContent>
-                <div className="overflow -mx-4 sm:mx-0">
-                  <div className="min-w-[800px] px-4 sm:px-0">
+                <div className="mx-4 overflow-auto sm:mx-0">
+                  <div className="min-w-[800px] overflow-hidden px-4 sm:px-0">
                     <Table>
                     <TableHeader>
                       <TableRow>
@@ -647,7 +645,7 @@ function StaffAccount() {
                         <TableHead className="text-center">Actions</TableHead>
                       </TableRow>
                     </TableHeader>
-                    <TableBody>
+                    <TableBody className="overflow-hidden">
                       {isLoading ? (
                         <TableRow>
                           <TableCell colSpan={7} className="text-center py-8">
@@ -712,8 +710,8 @@ function StaffAccount() {
                             </TableCell>
                             <TableCell className="text-center">{member.salary ? `${member.salary?.toLocaleString()}` : 'N/A'}</TableCell>
                             {/* <TableCell>{member.hireDate}</TableCell> */}
-                            <TableCell>
-                              <div className="flex items-center gap-2">
+                            <TableCell >
+                              <div className="flex items-center">
                                 <Dialog>
                                   <DialogTrigger asChild>
                                     <Button
@@ -817,7 +815,7 @@ function StaffAccount() {
                                               <div className="space-y-3 mt-2">
                                                 <div>
                                                   <p className="text-sm text-muted-foreground">Annual Salary</p>
-                                                  <p className="text-2xl font-bold">${selectedStaff?.salary?.toLocaleString()}</p>
+                                                  <p className="text-2xl flex items-center gap-2 font-bold"><IndianRupeeIcon />{selectedStaff?.salary?.toLocaleString()}</p>
                                                 </div>
                                                 {/* <div>
                                                   <p className="text-sm text-muted-foreground">Hire Date</p>
@@ -1048,7 +1046,7 @@ function StaffAccount() {
             </Card>
           </TabsContent>
 
-          <TabsContent value="departments" className="space-y-4">
+          {/* <TabsContent value="departments" className="space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {departmentBreakdown.map(dept => (
                 <Card key={dept.department}>
@@ -1073,11 +1071,11 @@ function StaffAccount() {
                 </Card>
               ))}
             </div>
-          </TabsContent>
+          </TabsContent> */}
 
-          <TabsContent value="reports" className="space-y-4">
+          {/* <TabsContent value="reports" className="space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {/* <Card>
+              <Card>
                 <CardHeader>
                   <CardTitle>Recent Hires</CardTitle>
                   <CardDescription>Newest team members</CardDescription>
@@ -1092,7 +1090,7 @@ function StaffAccount() {
                     ))}
                   </div>
                 </CardContent>
-              </Card> */}
+              </Card>
 
               <Card>
                 <CardHeader>
@@ -1135,7 +1133,7 @@ function StaffAccount() {
               </Card>
             </div>
 
-            {/* Role Limits Detailed Report */}
+            
             <Card>
               <CardHeader>
                 <CardTitle>Role Limits & Availability Report</CardTitle>
@@ -1187,7 +1185,7 @@ function StaffAccount() {
                 </div>
               </CardContent>
             </Card>
-          </TabsContent>
+          </TabsContent> */}
         </Tabs>
 
         {/* Add Staff Dialog */}
@@ -1315,7 +1313,7 @@ function StaffAccount() {
                   </Select>
                 </div>
                 <div>
-                  <Label htmlFor="add-salary">Annual Salary ($)</Label>
+                  <Label htmlFor="add-salary">Annual Salary</Label>
                   <Input 
                     id="add-salary" 
                     type="number"
