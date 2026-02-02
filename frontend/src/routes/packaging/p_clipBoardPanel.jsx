@@ -248,7 +248,7 @@ export function ClipboardPanel({ allOrders }) {
                           >
                             <div className="flex justify-between items-start gap-2">
                               <span className="text-xs sm:text-sm font-medium text-foreground flex-1 min-w-0">
-                                {item.product_data.name}
+                                {item.product_data.name} {item.size && `(${item.size})`}
                               </span>
                               <Badge variant="secondary" className="text-[10px] sm:text-xs flex-shrink-0">
                                 Qty: {item.quantity}

@@ -276,7 +276,7 @@ export function PrintOrderView({
                     {client.name}
                   </h2>
                   <div className="company-details flex justify-between items-center flex-wrap gap-2 text-xs text-muted-foreground">
-                    {client.city && (
+                    {client.address && (
                       <div className="company-address flex items-center gap-1">
                         <MapPin className="w-3 h-3" />
                         <span>{client.address}</span>
@@ -297,7 +297,7 @@ export function PrintOrderView({
                     >
                       <div className="item-row flex justify-between items-baseline gap-2">
                         <span className="item-name text-xs sm:text-sm font-bold text-foreground leading-tight">
-                          {item.product_data.name}
+                          {item.product_data.name} {item.size && `(${item.size})`}
                         </span>
                         <span className="item-quantity text-xs font-bold text-foreground bg-muted px-1.5 sm:px-2 py-0.5 rounded whitespace-nowrap">
                           {item.quantity}

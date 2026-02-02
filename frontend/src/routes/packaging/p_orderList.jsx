@@ -257,7 +257,7 @@ export function OrderList({
                                       <h4 className={`text-sm sm:text-base font-semibold mb-1 ${
                                         item.sentToBilling ? 'text-muted-foreground line-through' : 'text-foreground'
                                       }`}>
-                                        {item.product_data.name}
+                                        {item.product_data.name} {item.size && `(${item.size})`}
                                       </h4>
                                       {item.product_data.description && (
                                         <p className={`text-xs sm:text-sm mb-2 ${

@@ -260,7 +260,7 @@ export function OrderDetails({ order, onUpdateOrder, onUpdateQuantity, language 
                       <div className={`text-sm sm:text-base font-semibold mb-2 ${
                         item.sentToBilling ? 'text-muted-foreground' : 'text-foreground'
                       }`}>
-                        ${item.product_data.price?.toFixed(2) || '0.00'}
+                        ${item.product_data.price?.toFixed(2) || item.subtotal/item.quantity ||'0.00'}
                       </div>
                       
                       {!item.sentToBilling ? (
