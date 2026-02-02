@@ -17,6 +17,10 @@ const item = {
         type:String,
         required:[true,"please enter product sizes"]
     },
+    price:{
+        type:Number,
+        required:[true,"please enter product price"]
+    },
     subtotal:{
         type:Number,
         default:null

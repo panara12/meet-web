@@ -16,7 +16,8 @@ import {
   CheckCircle2, 
   Clock,
   Settings,
-  ShoppingBag 
+  ShoppingBag, 
+  IndianRupeeIcon
 } from 'lucide-react';
 
 export function OrderDetails({ order, onUpdateOrder, onUpdateQuantity, language }) {
@@ -91,7 +92,7 @@ export function OrderDetails({ order, onUpdateOrder, onUpdateQuantity, language 
     onUpdateOrder(order._id, updatedItems, cartoonCount);
 
     toast.success(
-      `${newlySelectedCount} ${t('Items')} sent to billing department with ${cartoonCount} cartoons on ${billingDate}`
+      `${newlySelectedCount} ${t('Items')} sent to Dispatch department with ${cartoonCount} cartoons on ${billingDate}`
     );
   };
 
@@ -152,7 +153,7 @@ export function OrderDetails({ order, onUpdateOrder, onUpdateQuantity, language 
               </div>
               <div className="flex items-center gap-1">
                 <Package className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
-                <span>${order.totalAmount?.toFixed(2) || '0.00'}</span>
+                <span><IndianRupeeIcon />{order.totalAmount?.toFixed(2) || '0.00'}</span>
               </div>
             </div>
           </div>
@@ -191,7 +192,7 @@ export function OrderDetails({ order, onUpdateOrder, onUpdateQuantity, language 
         {newlySelectedCount > 0 && (
           <div className="mt-3 p-2 sm:p-3 bg-primary/5 border border-primary/20 rounded-lg">
             <p className="text-xs sm:text-sm text-primary font-medium">
-              {newlySelectedCount} {t('Items')} selected for billing
+              {newlySelectedCount} {t('Items')} selected for Dispatch
             </p>
           </div>
         )}
@@ -260,7 +261,7 @@ export function OrderDetails({ order, onUpdateOrder, onUpdateQuantity, language 
                       <div className={`text-sm sm:text-base font-semibold mb-2 ${
                         item.sentToBilling ? 'text-muted-foreground' : 'text-foreground'
                       }`}>
-                        ${item.product_data.price?.toFixed(2) || item.subtotal/item.quantity ||'0.00'}
+                        ${ item.price ||'0.00'}
                       </div>
                       
                       {!item.sentToBilling ? (
@@ -313,16 +314,16 @@ export function OrderDetails({ order, onUpdateOrder, onUpdateQuantity, language 
                   {/* Item Footer */}
                   <div className="flex items-center gap-2 mt-3 flex-wrap">
                     <Badge variant="outline" className="text-[10px] sm:text-xs">
-                      ${((item.product_data.price || 0) * (item.quantity || 0)).toFixed(2)} {t('total')}
+                      ${((item.price || 0) * (item.quantity || 0)).toFixed(2)} {t('total')}
                     </Badge>
                     {item.sentToBilling && (
                       <Badge variant="default" className="text-[10px] sm:text-xs">
                         {t('Sent to Billing')}
                       </Badge>
                     )}
-                    {item.cartoonCount && (
+                    {item.billingDate && (
                       <Badge variant="secondary" className="text-[10px] sm:text-xs">
-                        {item.cartoonCount} cartoons
+                        {item.billingDate} date
                       </Badge>
                     )}
                   </div>
@@ -341,7 +342,7 @@ export function OrderDetails({ order, onUpdateOrder, onUpdateQuantity, language 
           disabled={newlySelectedCount === 0} 
           className="w-full h-10 sm:h-11 md:h-12 text-sm sm:text-base font-semibold touch-manipulation"
         >
-          {t('Send to Billing')} ({newlySelectedCount})
+          {t('Dispatch')} ({newlySelectedCount})
         </Button>
       </div>
 

@@ -1554,7 +1554,7 @@ function Inventory() {
                           Stock {sortField === "stock" && (sortOrder === "asc" ? "↑" : "↓")}
                         </TableHead>
                         <TableHead>Status</TableHead>
-                        <TableHead>Actions</TableHead>
+                        <TableHead className="text-center">Actions</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -1592,7 +1592,7 @@ function Inventory() {
                               </Badge>
                             </TableCell>
                             <TableCell>
-                              <div className="flex gap-1">
+                              <div className="flex justify-center gap-1">
                                 <Button
                                   variant="ghost"
                                   size="sm"
@@ -2172,7 +2172,7 @@ function Inventory() {
 
               <TabsContent value="details" className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
+                    {/* <div className="space-y-2">
                       <Label htmlFor="tags">Tags (comma-separated)</Label>
                       <Input
                         id="tags"
@@ -2180,9 +2180,9 @@ function Inventory() {
                         onChange={(e) => setFormData({...formData, tags: e.target.value})}
                         placeholder="premium, bestseller, new"
                       />
-                    </div>
+                    </div> */}
 
-                    <div className="space-y-2">
+                    {/* <div className="space-y-2">
                       <Label htmlFor="barcode">General Barcode</Label>
                       <Input
                         id="barcode"
@@ -2191,7 +2191,7 @@ function Inventory() {
                         placeholder="General product barcode"
                       />
                       <p className="text-xs text-muted-foreground">Individual SKUs can have their own barcodes</p>
-                    </div>
+                    </div> */}
                   </div>
 
                   <div>

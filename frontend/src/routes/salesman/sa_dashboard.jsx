@@ -181,7 +181,7 @@ export default function Dashboard() {
             </div>
           </div>
           <div className="space-y-2">
-            <div className="text-3xl font-bold text-gray-900">$0</div>
+            <div className="text-3xl font-bold text-gray-900">{getAllNotes?.totals?.orderCount}</div>
             <div className="flex items-center gap-1">
               <span className="text-green-600 font-medium">+0%</span>
               <span className="text-sm text-gray-600">from last month</span>
@@ -199,7 +199,7 @@ export default function Dashboard() {
             </div>
           </div>
           <div className="space-y-2">
-            <div className="text-3xl font-bold text-gray-900">0</div>
+            <div className="text-3xl font-bold text-gray-900">{getAllNotes?.totals?.totalAmount}</div>
             <div className="flex items-center gap-1">
               <span className="text-blue-600 font-medium">+0%</span>
               <span className="text-sm text-gray-600">from last month</span>

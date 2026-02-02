@@ -22,7 +22,7 @@ router.post('/addorder', user_session_checker("add_order"), async (req, res) => 
             order_id,
             order_seller,
             date,
-            order_salesman: req.session.user.user_id,
+            order_salesman: req.session.user.tenant_user_id,
             items,
             totalAmount,
             status,

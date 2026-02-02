@@ -152,6 +152,8 @@ export default function AddOrder() {
   const [sortDirection, setSortDirection] = useState("asc");
   const [currentPage, setCurrentPage] = useState(1);
   const [limit, setLimit] = useState(10);
+  const [comapletedOrder,setCompletedOrder] = useState();
+  const [orderProdcuts,setOrderProducts] = useState();
   
   // Payment states
   const [paymentData, setPaymentData] = useState({
@@ -201,6 +203,7 @@ export default function AddOrder() {
         product: item.product_data,
         color: item.color,
         size: item.size,
+        price: item.price,
         quantity: parseInt(item.quantity) || 1,
         instructions: item.instructions || "",
         subtotal: parseFloat(item.subtotal) || 0
@@ -465,6 +468,7 @@ const handleAddToCart = async () => {
           ? {
               ...item,
               quantity: item.quantity + quantity,
+              price: selectedSku?.price || selectedProduct.price,
               subtotal: (selectedSku?.price || selectedProduct.price) * (item.quantity + quantity),
               instructions: instructions || item.instructions
             }
@@ -481,6 +485,7 @@ const handleAddToCart = async () => {
       size: selectedSize,
       quantity,
       instructions,
+      price:selectedSku?.price || selectedProduct.price,
       subtotal: (selectedSku?.price || selectedProduct.price) * quantity
     };
 
@@ -512,6 +517,7 @@ const handleAddToCart = async () => {
             product_data: item.product._id,
             quantity: item.quantity.toString(),
             size: item.size,
+            price: item.price,
             subtotal: item.subtotal.toString(),
             instructions: item.instructions,
             color: item.color
@@ -536,6 +542,7 @@ const handleAddToCart = async () => {
           product_data: item.product._id,
           quantity: item.quantity.toString(),
           size: item.size,
+          price: item.price,
           subtotal: item.subtotal.toString(),
           instructions: item.instructions,
           color: item.color
@@ -582,6 +589,7 @@ const handleAddToCart = async () => {
             product_data: item.product._id,
             quantity: item.quantity.toString(),
             size: item.size,
+            price: item.price,
             subtotal: item.subtotal.toString(),
             instructions: item.instructions,
             color: item.color
@@ -642,6 +650,7 @@ const handleQuantityChange = (clientId, itemId, newQuantity) => {
           product_data: item.product._id,
           quantity: item.quantity.toString(),
           size: item.size,
+          price: item.price,
           subtotal: item.subtotal.toString(),
           instructions: item.instructions,
           color: item.color
@@ -730,6 +739,7 @@ const handleQuickAddToCart = (product) => {
         product: product,
         color: productColor,
         size: size,
+        price: price,
         quantity: qty,
         instructions: productInstr,
         subtotal: price * qty
@@ -764,6 +774,7 @@ const handleQuickAddToCart = (product) => {
             product_data: item.product._id,
             quantity: item.quantity.toString(),
             size: item.size,
+            price: item.price,
             subtotal: item.subtotal.toString(),
             instructions: item.instructions,
             color: item.color
@@ -788,6 +799,7 @@ const handleQuickAddToCart = (product) => {
           product_data: item.product._id,
           quantity: item.quantity.toString(),
           size: item.size,
+          price: item.price,
           subtotal: item.subtotal.toString(),
           instructions: item.instructions,
           color: item.color
@@ -867,18 +879,20 @@ const handleQuickAddToCart = (product) => {
     status: 'pending',
     order_firm: userInfo.tenant || null,
     date: new Date(),
-    totalItems: totalItems.toString(),
-    totalAmount: totalAmount.toFixed(2).toString(),
+    totalItems: totalItems,
+    totalAmount: totalAmount.toFixed(2),
     items: cart.map(item => ({
       id: item.id,
       product_data: item.product._id,
       quantity: item.quantity.toString(),
       size: item.size,
+      price: item.price,
       subtotal: item.subtotal.toString(),
       instructions: item.instructions || "",
       color: item.color || "default"
     }))
   };
+
 
   console.log("Creating order:", orderData);
   const Order_seller = {
@@ -892,13 +906,14 @@ const handleQuickAddToCart = (product) => {
   addOrders(orderData, {
     onSuccess: () => {
       // Order created successfully
-      toast.success("Order created and sent to packing!");
+      toast.success("Order created and sent to packing!",orderData);
       
       // Remove this client from local cart state
       const updatedLocalCarts = { ...clientCarts };
       delete updatedLocalCarts[activeClientCart];
       setClientCarts(updatedLocalCarts);
-
+      setCompletedOrder(orderData);
+      setOrderProducts(cart);
       // Update backend cart - remove this client
       const existingClients = activeClientCarts?.clients || [];
       const updatedBackendClients = existingClients.filter(
@@ -977,7 +992,7 @@ const handleQuickAddToCart = (product) => {
 
   // Get client from selectedClient (still available after order creation)
   const client = clientsdata.find(c => c._id === selectedClient);
-  
+  console.log("selected client for payment",comapletedOrder);
   if (!client) {
     toast.error("Client information not found");
     return;
@@ -1000,6 +1015,7 @@ const handleQuickAddToCart = (product) => {
   };
 
   console.log("Recording payment:", payload);
+  console.log("completed order data",orderProdcuts);
 
   // Call payment API
   addPayment(payload, {
@@ -1019,6 +1035,9 @@ const handleQuickAddToCart = (product) => {
 • Email: ${client?.email}
 
 💰 *ORDER SUMMARY*
+${
+  comapletedOrder.items.map((item,index) => `• ${orderProdcuts[index].product?.name} (${item.size}, ${item.color}) x${item.quantity} - $${item.subtotal}`).join('\n')
+}
 • Order Total: ${paymentData.amount}
 
 💳 *Payment Details:*

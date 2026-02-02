@@ -15,7 +15,8 @@ import {
   Plus,
   ShoppingBag,
   DollarSign,
-  FileText
+  FileText,
+  IndianRupeeIcon
 } from 'lucide-react';
 import { useTranslation } from './translations';
 import { useState } from 'react';
@@ -130,7 +131,7 @@ export function OrderList({
       order.items.forEach(item => {
         if (orderSelections.has(item.id) && !item.sentToBilling) {
           totalSelectedItems++;
-          totalSelectedAmount += item.product_data.price * item.quantity;
+          totalSelectedAmount += (item.price) * item.quantity;
         }
       });
     }
@@ -193,8 +194,8 @@ export function OrderList({
                             </div>
                             <span>•</span>
                             <div className="flex items-center gap-1">
-                              <DollarSign className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
-                              <span>${order?.totalAmount}</span>
+                              <IndianRupeeIcon className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+                              <span>{order?.totalAmount}</span>
                             </div>
                             {selectedItemsInOrder > 0 && (
                               <>
@@ -270,10 +271,11 @@ export function OrderList({
 
                                     {/* Price & Quantity */}
                                     <div className="flex-shrink-0 text-right">
-                                      <div className={`text-sm sm:text-base font-semibold mb-2 ${
+                                      <div className={`text-sm flex justify-end items-center sm:text-base font-semibold mb-2 ${
                                         item.sentToBilling ? 'text-muted-foreground' : 'text-foreground'
                                       }`}>
-                                        ${item.product_data.price?.toFixed(2) || '0.00'}
+                                        <IndianRupeeIcon className="w-3 h-3 inline mr-1" />
+                                        {item.price?.toFixed(2) || '0.00'}
                                       </div>
                                       
                                       {!item.sentToBilling ? (
@@ -354,16 +356,17 @@ export function OrderList({
                                         item.sentToBilling ? 'opacity-60' : ''
                                       }`}
                                     >
-                                      ${((item.product_data.price || 0) * (item.quantity || 0)).toFixed(2)} {t('total')}
+                                      <IndianRupeeIcon className="w-3 h-3 " />
+                                      {((item.price || 0) * (item.quantity || 0)).toFixed(2)} {t('total')}
                                     </Badge>
                                     {item.sentToBilling && (
                                       <Badge variant="default" className="text-[10px] sm:text-xs">
-                                        {t('Sent to Billing')}
+                                        {t('Sent to Dispatch')}
                                       </Badge>
                                     )}
-                                    {item.cartoonCount && (
+                                    {item.billingDate && (
                                       <Badge variant="secondary" className="text-[10px] sm:text-xs">
-                                        {item.cartoonCount} cartoons
+                                        {item.billingDate.split("T")[0]}
                                       </Badge>
                                     )}
                                   </div>
@@ -398,15 +401,15 @@ export function OrderList({
               </div>
               <Badge variant="secondary" className="text-xs sm:text-sm px-3 py-1.5 w-fit">
                 <FileText className="w-3 h-3 sm:w-3.5 sm:h-3.5 mr-1.5" />
-                Ready for Billing
+                Ready for Dispatch
               </Badge>
             </div>
             <Button 
               onClick={handleSendToBillingClick} 
-              className="w-full h-10 sm:h-11 md:h-12 text-sm sm:text-base font-semibold gap-2 touch-manipulation"
+              className="w-full mb-5 h-10 sm:h-11 md:h-12 text-sm sm:text-base font-semibold gap-2 touch-manipulation"
             >
               <Package className="w-4 h-4 sm:w-5 sm:h-5" />
-              {t('Send to Billing')} ({totalSelectedItems})
+              {t('Send to Dispatch')} ({totalSelectedItems})
             </Button>
           </div>
         )}

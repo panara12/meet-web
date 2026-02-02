@@ -17,6 +17,10 @@ const item = {
         type:String,
         required:[true,"please enter product sizes"]
     },
+    price:{
+        type:Number,
+        required:[true,"please enter product price"]
+    },
     subtotal:{
         type:Number,    
         default:null
@@ -32,6 +36,10 @@ const item = {
     sentToBilling:{
         type:Boolean,
         default:false
+    },
+    billingDate:{
+        type:Date,
+        default:null
     },
     cartoonCount:{
         type:Number,
@@ -50,7 +58,7 @@ const orderSchema = mongoose.Schema({
     },
     order_salesman:{
         type:mongoose.Schema.Types.ObjectId,
-        ref:"Salesman"
+        ref:"User"
     },
     status:{
         type:String,

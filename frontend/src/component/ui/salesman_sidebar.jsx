@@ -16,7 +16,7 @@ const menuItems = [
   { title: "Add Client", icon: UserPlus, path: "/salesman/addclient" },
   { title: "Daily Files", icon: FileText, path: "/salesman/dailyfiles" },
   { title: "Payment Update", icon: CreditCard, path: "/salesman/paymentupdate" },
-  { title: "Settings", icon: Settings, path: "/salesman/settings" },
+  // { title: "Settings", icon: Settings, path: "/salesman/settings" },
 ];
 
 export default function Sidebar({sidebarOpen,setSidebarOpen}) {

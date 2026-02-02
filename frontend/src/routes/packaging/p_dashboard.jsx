@@ -14,6 +14,7 @@ import { useGetAllOrders } from '../../hooks/order/useGetAllOrder';
 import { useUpdateOrder } from '../../hooks/order/useUpdateOrder';
 import { useUpdateOrderSeller } from '../../hooks/seller/useUpdateOrderSeller';
 import { useLogout } from '../../hooks/auth/useLogOut';
+import { useSelector } from 'react-redux';
 
 export default function Dashboard() {
   const {
@@ -22,6 +23,9 @@ export default function Dashboard() {
     isError: isGetAllOrdersError,
     error: getAllOrdersError
   } = useGetAllOrders();
+  const userInfo = useSelector((state) => state.app.userInfo);
+
+  // console.log("User Info in Header:", userInfo);
 
   const {mutate:updateOrder,isPending:isUpdateOrderPending,isError:isUpdateOrderError,Error:updateOrderError} = useUpdateOrder()
   const {mutate:updateSellerOrder,isPending:isUpdateSellerOrderPending,isError:isUpdateSellerOrderError,Error:updateSellerOrderError} = useUpdateOrderSeller()
@@ -238,7 +242,7 @@ export default function Dashboard() {
             ...item,
             sentToBilling: true,
             cartoonCount,
-            billingDate
+            billingDate: billingDate
           };
         }
         return item;
@@ -371,6 +375,7 @@ export default function Dashboard() {
         title={getHeaderTitle()}
         onBack={getBackHandler()}
         onLogout={handleLogout}
+        userInfo={userInfo}
       />
 
       {/* Main Content Area */}

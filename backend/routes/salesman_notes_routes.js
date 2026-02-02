@@ -1,6 +1,7 @@
 const express = require('express');
 const manualLog = require('../utils/manuallogger');
 const user_session_checker = require('../middleware/user_session');
+const { default: mongoose } = require('mongoose');
 const router = express.Router();
 
 // Add new note
@@ -115,18 +116,61 @@ router.get('/getallnotes', user_session_checker("get_all_notes"), async (req, re
     manualLog("entered in get all notes method");
     try {
         const Note = req.db.model("Salesman_notes");
-        const notes = await Note.find({salesman_id:req.session.user.user_id}).sort({ createdAt: -1 });
+        const notes = await Note.find({salesman_id:req.session.user.tenant_user_id}).sort({ createdAt: -1 });
         manualLog("all notes retrieved successfully");
+        
+        // ✅ SIMPLE WAY: Calculate current month dates
+        const now = new Date();
+        const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+        startOfMonth.setHours(0, 0, 0, 0);
+        
+        const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+        endOfMonth.setHours(0, 0, 0, 0);
+        
+        console.log("📅 Current Month Range:");
+        console.log("  Start:", startOfMonth);
+        console.log("  End:", endOfMonth);
+        console.log("👤 Salesman ID:", req.session.user.tenant_user_id);
+        
+        const Order = req.db.model("Order");
+        
+        // ✅ SIMPLE WAY: Just find all orders for this month
+        const ordersThisMonth = await Order.find({
+            order_salesman: req.session.user.tenant_user_id,
+            createdAt: {
+                $gte: startOfMonth,
+                $lt: endOfMonth
+            }
+        });
+        
+        console.log("📦 Found orders:", ordersThisMonth);
+        
+        // ✅ Calculate totals manually
+        let totalAmount = 0;
+        ordersThisMonth.forEach(order => {
+            if (order.totalAmount && !isNaN(order.totalAmount)) {
+                totalAmount += Number(order.totalAmount);
+            }
+        });
+        
+        const totals = {
+            orderCount: ordersThisMonth.length,
+            totalAmount: totalAmount
+        };
+        
+        console.log("📊 Totals:", totals);
+
         res.status(200).send({
             message: "all notes retrieved successfully",
             success: true,
             notes: notes,
-            count: notes.length
+            count: notes.length,
+            totals: totals
         });
     } catch (error) {
         manualLog("something broke in get all notes", error);
         console.log(error, "something broke in the get all notes");
-        res.status(500).send({ message: "something went wrong", error });
+        res.status(500).send({ message: "something went wrong", error: error.message });
     }
 });
 

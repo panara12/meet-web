@@ -227,14 +227,14 @@ export function PrintOrderView({
                 Review {ordersWithClients.length} order{ordersWithClients.length !== 1 ? 's' : ''} before printing
               </DialogDescription>
             </div>
-            <Button 
+            {/* <Button 
               variant="ghost" 
               size="sm" 
               onClick={onClose}
               className="flex-shrink-0 h-8 w-8 sm:h-9 sm:w-9 p-0 rounded-full hover:bg-destructive/10 hover:text-destructive"
             >
               <X className="w-4 h-4 sm:w-5 sm:h-5" />
-            </Button>
+            </Button> */}
           </div>
         </DialogHeader>
 
@@ -252,13 +252,13 @@ export function PrintOrderView({
                 )} Items
               </Badge>
             </div>
-            <Button 
+            {/* <Button 
               onClick={handlePrint} 
               className="gap-2 h-9 sm:h-10 text-xs sm:text-sm touch-manipulation"
             >
               <Printer className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               Print All Orders
-            </Button>
+            </Button> */}
           </div>
         </div>
 
