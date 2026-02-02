@@ -33,7 +33,8 @@ import {
   Users,
   Trash2,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  IndianRupeeIcon
 } from 'lucide-react';
 import { useGetAllSeller } from '../../hooks/seller/useGetAllSeller';
 import { useGetAllProduct } from "../../hooks/product/useGetAllProduct";
@@ -1036,9 +1037,8 @@ const handleQuickAddToCart = (product) => {
 
 💰 *ORDER SUMMARY*
 ${
-  comapletedOrder.items.map((item,index) => `• ${orderProdcuts[index].product?.name} (${item.size}, ${item.color}) x${item.quantity} - $${item.subtotal}`).join('\n')
+  comapletedOrder.items.map((item,index) => `• ${orderProdcuts[index].product?.name} (${item.size}, ${item.color}) -> ${item.quantity}`).join('\n')
 }
-• Order Total: ${paymentData.amount}
 
 💳 *Payment Details:*
 • Amount: ${paymentData.amount}
@@ -1073,6 +1073,11 @@ const handleSkipPayment = () => {
 
 📋 *Order Number:* ${orderId}
 📅 *Order Date:* ${new Date().toLocaleDateString()}
+
+💰 *ORDER SUMMARY*
+${
+  comapletedOrder.items.map((item,index) => `• ${orderProdcuts[index].product?.name} (${item.size}, ${item.color}) -> ${item.quantity}`).join('\n')
+}
 
 👤 *CUSTOMER INFORMATION*
 • Name: ${client?.name}
@@ -1136,7 +1141,6 @@ const handlePaymentDialogClose = (open) => {
         <ShoppingCart className="h-5 w-5 sm:h-6 sm:w-6 flex-shrink-0" />
         <div className="min-w-0 flex-1">
           <h1 className="text-xl sm:text-2xl lg:text-3xl truncate">Add New Order</h1>
-          <p className="text-sm sm:text-base text-muted-foreground">Create orders for multiple clients</p>
         </div>
         {activeClientCarts?.length > 0 && (
           <Badge variant="secondary" className="text-xs sm:text-sm">
@@ -1469,7 +1473,7 @@ const handlePaymentDialogClose = (open) => {
                       <div className="p-3 sm:p-4 border-b bg-muted/30">
                         <h4 className="font-medium text-sm sm:text-base line-clamp-2 min-h-[2.5em] mb-2">{product.name}</h4>
                         <div className="flex items-center justify-between">
-                          <span className="font-semibold text-primary">${product.price}</span>
+                          <span className="font-semibold text-primary"><IndianRupeeIcon className='w-3 h-3 inline-block' />{product.price}</span>
                           <div className="flex items-center gap-1">
                             <Badge variant="outline" className="text-xs">{product.category}</Badge>
                           </div>
@@ -1721,19 +1725,49 @@ const handlePaymentDialogClose = (open) => {
                             <Button
                               variant="ghost"
                               size="sm"
-                              onClick={() => {
-                                setClientCarts(prev => {
-                                  const newCarts = { ...prev };
-                                  delete newCarts[clientCart.clientId];
-                                  return newCarts;
-                                });
-                                if (activeClientCart === clientCart.clientId) {
-                                  setActiveClientCart("");
-                                  setSelectedClient("");
-                                  setClientSearchQuery("");
-                                }
-                                toast.success("Cart cleared");
-                              }}
+                              onClick={(e) => {
+                              e.stopPropagation();
+                              const sellerId = clientCart.seller_data._id || clientCart.seller_data;
+                              
+                              console.log("🗑️ Removing client cart from active cards:", sellerId);
+                              
+                              // Update local state
+                              const updatedCarts = { ...clientCarts };
+                              delete updatedCarts[sellerId];
+                              setClientCarts(updatedCarts);
+                              
+                              // Update backend
+                              const existingClients = activeClientCarts?.clients || [];
+                              const updatedBackendClients = existingClients
+                                .filter(client => {
+                                  const clientSellerId = client.seller_data._id || client.seller_data;
+                                  return clientSellerId !== sellerId;
+                                })
+                                .map(client => ({
+                                  seller_data: client.seller_data._id || client.seller_data,
+                                  items: client.items
+                                }));
+                              
+                              if (updatedBackendClients.length === 0) {
+                                deleteCart({ cartId: activeClientCarts._id });
+                              } else {
+                                const backendPayload = {
+                                  cartId: activeClientCarts._id,
+                                  salesman_data: userInfo.tenant_user_id,
+                                  clients: updatedBackendClients
+                                };
+                                updateCart(backendPayload);
+                              }
+                              
+                              // Clear active cart if this was the active one
+                              if (activeClientCart === sellerId) {
+                                setActiveClientCart("");
+                                setSelectedClient("");
+                                setClientSearchQuery("");
+                              }
+                              
+                              toast.success("Client cart removed");
+                            }}
                               className="h-6 w-6 sm:h-7 sm:w-7 p-0 text-destructive hover:text-destructive hover:bg-destructive/10"
                             >
                               <Trash2 className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
@@ -1766,7 +1800,7 @@ const handlePaymentDialogClose = (open) => {
                                   </p>
                                 )}
                                 <div className="flex items-center justify-between pt-1">
-                                  <p className="text-xs sm:text-sm font-semibold text-primary">${item.subtotal}</p>
+                                  <p className="text-xs sm:text-sm font-semibold text-primary"><IndianRupeeIcon className='w-3 h-3 inline-block' />{item.subtotal}</p>
                                   <div className="flex items-center gap-1">
                                     <Button
                                       size="sm"
@@ -1788,7 +1822,7 @@ const handlePaymentDialogClose = (open) => {
                                     <Button
                                       size="sm"
                                       variant="ghost"
-                                      onClick={() => handleRemoveFromCart(clientCart.seller_data._id, item._id)}
+                                      onClick={() => handleRemoveFromCart(clientCart.seller_data._id, item.id)}
                                       className="text-destructive hover:text-destructive hover:bg-destructive/10 h-6 w-6 sm:h-7 sm:w-7 p-0 ml-0.5 sm:ml-1"
                                     >
                                       <X className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
@@ -1847,7 +1881,7 @@ const handlePaymentDialogClose = (open) => {
                       </p>
                       <div className="flex items-baseline gap-2">
                         <span className="text-4xl font-bold text-primary">
-                          ${selectedSku?.price || selectedProduct.price}
+                          <IndianRupeeIcon className='w-3 h-3 inline-block mr-1' />{selectedSku?.price || selectedProduct.price}
                         </span>
                         <span className="text-sm text-muted-foreground">per unit</span>
                       </div>
@@ -1986,7 +2020,7 @@ const handlePaymentDialogClose = (open) => {
                       <div className="space-y-2">
                         <div className="flex justify-between text-sm">
                           <span className="text-muted-foreground">Unit Price</span>
-                          <span className="font-medium">${selectedSku?.price || selectedProduct.price}</span>
+                          <span className="font-medium"><IndianRupeeIcon className='w-3 h-3 inline-block mr-1' />{selectedSku?.price || selectedProduct.price}</span>
                         </div>
                         <div className="flex justify-between text-sm">
                           <span className="text-muted-foreground">Quantity</span>
@@ -2008,7 +2042,7 @@ const handlePaymentDialogClose = (open) => {
                         <div className="flex justify-between items-baseline">
                           <span className="font-bold">Subtotal</span>
                           <span className="text-3xl font-bold text-primary">
-                            ${((selectedSku?.price || selectedProduct.price) * quantity).toFixed(2)}
+                            <IndianRupeeIcon className='w-4 h-4 inline-block mr-1' />{((selectedSku?.price || selectedProduct.price) * quantity).toFixed(2)}
                           </span>
                         </div>
                       </div>
@@ -2032,7 +2066,7 @@ const handlePaymentDialogClose = (open) => {
                     disabled={!selectedSize || !activeClientCart}
                   >
                     <ShoppingCart className="h-4 w-4 mr-2" />
-                    Add to Cart - ${((selectedSku?.price || selectedProduct.price) * quantity).toFixed(2)}
+                    Add to Cart - <IndianRupeeIcon className='w-4 h-4 inline-block mr-1' />{((selectedSku?.price || selectedProduct.price) * quantity).toFixed(2)}
                   </Button>
                 </div>
               </div>
@@ -2160,7 +2194,7 @@ const handlePaymentDialogClose = (open) => {
                 </div>
                 <div className="flex justify-between font-medium">
                   <span>Total:</span>
-                  <span>${getTotalAmount().toFixed(2)}</span>
+                  <span><IndianRupeeIcon className='w-4 h-4 inline-block mr-1' />{getTotalAmount().toFixed(2)}</span>
                 </div>
               </div>
             </div>

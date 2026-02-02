@@ -27,7 +27,7 @@ router.post('/addseller',user_session_checker("add_seller"),async(req,res)=>{
             username,
             password: hashedPassword,
             status,
-            priority,
+            priority:priority || "Medium",
             paymentTerms,
             gstNumber,
             creditLimit,

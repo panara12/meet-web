@@ -53,7 +53,7 @@ const sellerSchema = mongoose.Schema({
     priority: {
         type: String,
         enum: ['High', 'Medium', 'Low'],
-        default: null
+        default: "Medium"
     },
     paymentTerms: {
         type: String,
