@@ -134,6 +134,7 @@ export default function OTPVerification() {
           {/* Back Button */}
           <Button
             className="flex items-center gap-2 text-blue-600 bg-transparent hover:underline"
+            onClick={() => navigate("/login")}
           >
             <ArrowLeft className="w-4 h-4" />
             Back

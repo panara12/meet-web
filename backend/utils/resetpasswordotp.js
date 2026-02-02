@@ -38,13 +38,13 @@ const resetPassword = async (email,userData) => {
         
         <p>This OTP is valid for <b>5 minutes</b>. If you did not request a password reset, please ignore this email.</p>
         <br/>
-        <p>Thanks,<br/>Your App Team</p>
+        <p>Thanks,<br/>OMS Support</p>
       </div>
     `;
 
     // 4. Send Email
     const result = await sendEmail(email, subject, htmlContent);
-
+    console.log("Email send result:", result);
     return {
       success: true,
       message: "OTP sent to email",

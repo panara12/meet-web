@@ -279,14 +279,14 @@ function Login() {
             }
 
             {/* Support Link */}
-            <div className="text-center">
+            {/* <div className="text-center">
               <p className="text-xs text-gray-600">
                 Need technical support?{' '}
                 <button className="text-blue-600 hover:text-blue-800 transition-colors">
                   Contact IT Department
                 </button>
               </p>
-            </div>
+            </div> */}
           </div>
         </div>
       </div>

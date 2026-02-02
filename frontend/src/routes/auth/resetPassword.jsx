@@ -138,7 +138,7 @@ function ResetPasswordPage() {
 
           {/* Footer */}
           <div className="text-center text-xs text-gray-400 pt-4">
-            © 2025 Order Management System. All rights reserved.
+            © 2026 Order Management System. All rights reserved.
           </div>
         </div>
       </div>

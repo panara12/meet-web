@@ -271,13 +271,13 @@ export default function ForgotPasswordPage() {
           <div className="text-center text-sm text-gray-500">
             <p>Need help with password reset?</p>
             <p className="text-blue-600 font-medium">
-              Contact IT Support: +1 (555) 123-4567
+              Contact IT Support: +91 90167 98393
             </p>
           </div>
 
           {/* Footer */}
           <div className="text-center text-xs text-gray-400 pt-4">
-            © 2025 Order Management System. All rights reserved.
+            © 2026 Order Management System. All rights reserved.
           </div>
         </div>
       </div>

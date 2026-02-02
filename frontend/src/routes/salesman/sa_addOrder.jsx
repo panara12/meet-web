@@ -1037,7 +1037,7 @@ const handleQuickAddToCart = (product) => {
 
 💰 *ORDER SUMMARY*
 ${
-  comapletedOrder.items.map((item,index) => `• ${orderProdcuts[index].product?.name} (${item.size}, ${item.color}) -> ${item.quantity}`).join('\n')
+  comapletedOrder.items.map((item,index) => `• ${orderProdcuts[index].product?.name} (${item.size}) -> ${item.quantity}`).join('\n')
 }
 
 💳 *Payment Details:*
@@ -1076,7 +1076,7 @@ const handleSkipPayment = () => {
 
 💰 *ORDER SUMMARY*
 ${
-  comapletedOrder.items.map((item,index) => `• ${orderProdcuts[index].product?.name} (${item.size}, ${item.color}) -> ${item.quantity}`).join('\n')
+  comapletedOrder.items.map((item,index) => `• ${orderProdcuts[index].product?.name} (${item.size}) -> ${item.quantity}`).join('\n')
 }
 
 👤 *CUSTOMER INFORMATION*
