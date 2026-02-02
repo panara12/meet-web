@@ -30,9 +30,9 @@ export function Header({ title, onBack, onLogout,userInfo }) {
       <h1 className="flex-1 text-sm sm:text-base md:text-lg lg:text-xl font-semibold text-foreground truncate min-w-0">
         {title}
       </h1>
-
+      {console.log("user info in header:", userInfo)}
       {/* Logout Button */}
-      {onLogout && userInfo?.role=="packaging"  &&  (
+      {userInfo?.user_role=="packaging"  &&  (
         <Button
           variant="outline"
           size="sm"
