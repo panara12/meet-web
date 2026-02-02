@@ -181,10 +181,10 @@ export default function Dashboard() {
             </div>
           </div>
           <div className="space-y-2">
-            <div className="text-3xl font-bold text-gray-900">{getAllNotes?.totals?.orderCount}</div>
+            <div className="text-3xl font-bold text-gray-900"><IndianRupeeIcon className='w-5 h-5 inline-block mr-1' />{getAllNotes?.totals?.totalAmount}</div>
             <div className="flex items-center gap-1">
-              <span className="text-green-600 font-medium">+0%</span>
-              <span className="text-sm text-gray-600">from last month</span>
+              {/* <span className="text-green-600 font-medium">+0%</span>
+              <span className="text-sm text-gray-600">from last month</span> */}
             </div>
             <div className="text-xs text-gray-500">Resets on 1st of each month</div>
           </div>
@@ -199,10 +199,10 @@ export default function Dashboard() {
             </div>
           </div>
           <div className="space-y-2">
-            <div className="text-3xl font-bold text-gray-900">{getAllNotes?.totals?.totalAmount}</div>
+            <div className="text-3xl font-bold text-gray-900">{getAllNotes?.totals?.orderCount}</div>
             <div className="flex items-center gap-1">
-              <span className="text-blue-600 font-medium">+0%</span>
-              <span className="text-sm text-gray-600">from last month</span>
+              {/* <span className="text-blue-600 font-medium">+0%</span>
+              <span className="text-sm text-gray-600">from last month</span> */}
             </div>
             <div className="text-xs text-gray-500">Resets on 1st of each month</div>
           </div>

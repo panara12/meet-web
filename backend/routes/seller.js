@@ -26,7 +26,7 @@ router.post('/addseller',user_session_checker("add_seller"),async(req,res)=>{
             contactPerson,
             username,
             password: hashedPassword,
-            status,
+            status:status || 'Active',
             priority:priority || "Medium",
             paymentTerms,
             gstNumber,
@@ -59,7 +59,7 @@ router.post('/addseller',user_session_checker("add_seller"),async(req,res)=>{
         }else{
         console.log('failed to add new seller')
         manualLog(`there is error in seller registration :: ${JSON.stringify(error)}`)
-        res.status(500).json({message:"new seller not added"})  
+        res.status(500).json({message:"new seller not added",error})  
         }  
     }
 })

@@ -48,7 +48,7 @@ const sellerSchema = mongoose.Schema({
     status: {
         type: String,
         enum: ['Active', 'VIP', 'Inactive', 'Pending'],
-        default: 'active'
+        default: 'Active'
     },
     priority: {
         type: String,

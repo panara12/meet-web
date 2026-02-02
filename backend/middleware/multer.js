@@ -9,7 +9,7 @@ if (!fs.existsSync(uploadPath)) {
 }
 
 //allowed img types
-const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp','application/pdf'];
 
 const fileFilter = (req,file,cb)=>{
     console.log("file type",file.mimetype);
