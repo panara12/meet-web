@@ -89,22 +89,21 @@ router.post('/adddistributer',async (req,res)=>{
 })
 
 
-router.get('/distributerdata/:id',user_session_checker("edit_distributer"),async(req,res)=>{
+router.get('/distributerdata',user_session_checker("get_distributer_data"),async(req,res)=>{
     manualLog('entered in get distributer by id')
     try {
-        const {id} = req.params
         const Distributer = req.db.model("Distributer");
-        const user_data = await Distributer.findOne({_id:id});
-        console.log(user_data);
+        const user_data = await Distributer.findOne({_id:req.session.user.tenant_user_id});
+        console.log(req.session.user.tenant_user_id,user_data);
         manualLog(`distributer get by id ::${user_data._id}`)
         res.status(200).json({
             message:"got the user data",
-            Distributer:{user_data}
+            user_data:user_data
         })
     } catch (error) {
         console.log("user data not getting error");
         manualLog(`there is error in getting distributer by id :: ${JSON.stringify(error)}`)
-        res.status(500).json({message:'somehow user does not get'})  
+        res.status(500).json({message:'somehow user does not get',error})  
     }
 })
 

@@ -45,13 +45,11 @@ export function SettingsPanel() {
   console.log("setting",userInfo)
   const { settings, updateSystemSettings, updateNotificationSettings, updateBackupSettings, resetToDefaults, exportSettings, importSettings } = useSettings()
   const { staff } = useStaff()
-  const { mutate:getDistributerById,isPending:isGetDistributerByIdPending} = useGetDistributerById()
+  const { data:getDistributerById,isPending:isGetDistributerByIdPending} = useGetDistributerById()
   const [showResetDialog, setShowResetDialog] = useState(false)
   const [showImportDialog, setShowImportDialog] = useState(false)
   const [importJson, setImportJson] = useState('')
-  useEffect(()=>{
-    getDistributerById({id : userInfo.tenant_user_id})
-  },[])
+
   console.log("Distributer data fetched: ", getDistributerById);
 
   const handleSystemSave = () => {
@@ -211,7 +209,7 @@ export function SettingsPanel() {
                   <Label htmlFor="company-name" className="text-sm">Company Name</Label>
                   <Input 
                     id="company-name" 
-                    value={settings.system.companyName}
+                    value={getDistributerById.data.user_data.distributer_name}
                     onChange={(e) => updateSystemSettings({ companyName: e.target.value })}
                     className="text-sm"
                   />
@@ -221,44 +219,29 @@ export function SettingsPanel() {
                   <Input 
                     id="company-email" 
                     type="email" 
-                    value={settings.system.companyEmail}
+                    value={getDistributerById.data.user_data.distributer_email}
                     onChange={(e) => updateSystemSettings({ companyEmail: e.target.value })}
                     className="text-sm"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="timezone" className="text-sm">Timezone</Label>
-                  <Select 
-                    value={settings.system.timezone} 
-                    onValueChange={(value) => updateSystemSettings({ timezone: value })}
-                  >
-                    <SelectTrigger className="text-sm">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="utc-8">Pacific Time (UTC-8)</SelectItem>
-                      <SelectItem value="utc-7">Mountain Time (UTC-7)</SelectItem>
-                      <SelectItem value="utc-6">Central Time (UTC-6)</SelectItem>
-                      <SelectItem value="utc-5">Eastern Time (UTC-5)</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <Label htmlFor="mobile-number" className="text-sm">Mobile Number</Label>
+                  <Input 
+                    id="mobile-number" 
+                    type="tel" 
+                    value={getDistributerById.data.user_data.distributer_mobile}
+                    onChange={(e) => updateSystemSettings({ mobileNumber: e.target.value })}
+                    className="text-sm"
+                  />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="currency" className="text-sm">Default Currency</Label>
-                  <Select 
-                    value={settings.system.currency} 
-                    onValueChange={(value) => updateSystemSettings({ currency: value })}
-                  >
-                    <SelectTrigger className="text-sm">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="usd">USD ($)</SelectItem>
-                      <SelectItem value="eur">EUR (€)</SelectItem>
-                      <SelectItem value="gbp">GBP (£)</SelectItem>
-                      <SelectItem value="cad">CAD (C$)</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <Label htmlFor="username" className="text-sm">Default Username</Label>
+                  <Input 
+                    id="username" 
+                    value={getDistributerById.data.user_data.distributer_username}
+                    onChange={(e) => updateSystemSettings({ username: e.target.value })}
+                    className="text-sm"
+                  />
                 </div>
                 <Button onClick={handleSystemSave} className="w-full text-sm">
                   <Save className="h-4 w-4 mr-2" />

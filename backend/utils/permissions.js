@@ -50,7 +50,8 @@ const permissions = {
         "view_subadmin",
         "edit_subadmin",
         "add_subadmin",
-        "delete_file"
+        "delete_file",
+        "get_distributer_data"
     ],
     "billing":[
         "get_by_id_product",
