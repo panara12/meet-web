@@ -8,7 +8,7 @@ const tenent_checker = async(req,res,next)=>{
         //get the domain name and start the connection to the tenent db
         console.log("all tenents data",tenentCache);
         let user_tenant_data = "";
-        // console.log(req.session.user);
+        console.log(req.session.user);
         if(!req.session.user){
             const {user_tenant} = req.body;
             user_tenant_data = user_tenant;
@@ -21,7 +21,7 @@ const tenent_checker = async(req,res,next)=>{
         
         let active_tenent = tenent_list.find(single_tenent_data=>single_tenent_data.D_domain === domain)
         
-        // console.log('the filtered record',active_tenent);
+        console.log('the filtered record',active_tenent);
 
         if (active_tenent) {
             console.log("tenent found",active_tenent);
@@ -39,7 +39,7 @@ const tenent_checker = async(req,res,next)=>{
         req.db = tenentDb;
         req.tenent = active_tenent;
         
-        // console.log(next)
+        console.log(next)
         next();
     } catch (error) {
         console.log('something wornge in tenent middleware',error)
