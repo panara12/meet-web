@@ -34,7 +34,8 @@ import {
   Trash2,
   ChevronLeft,
   ChevronRight,
-  IndianRupeeIcon
+  IndianRupeeIcon,
+  Box
 } from 'lucide-react';
 import { useGetAllSeller } from '../../hooks/seller/useGetAllSeller';
 import { useGetAllProduct } from "../../hooks/product/useGetAllProduct";
@@ -1860,220 +1861,375 @@ const handlePaymentDialogClose = (open) => {
       </Sheet>
 
       {/* Product Detail Dialog - Simplified */}
-      <Dialog open={showProductDetail} onOpenChange={setShowProductDetail} >
-        <DialogContent className="max-w-2xl bg-white max-h-[95vh] overflow-hidden flex flex-col p-0">
-          {/* {console.log(selectedProduct,selectedSku)} */}
-          {selectedProduct && (
-            <>
-              <div className="relative overflow-hidden">
-                <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-primary/10 to-transparent" />
-                <div className="relative px-4 py-6 sm:px-6 sm:py-8">
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex-1 min-w-0">
-                      <Badge variant="outline" className="mb-3">
+      <Dialog open={showProductDetail} onOpenChange={setShowProductDetail}>
+  <DialogContent className="max-w-2xl bg-white max-h-[95vh] overflow-hidden flex flex-col p-0">
+    {selectedProduct && (
+      <>
+        {/* Hidden accessibility headers */}
+        <DialogHeader className="sr-only">
+          <DialogTitle>{selectedProduct.name}</DialogTitle>
+          <DialogDescription>
+            Complete product information for {selectedProduct.name}.
+          </DialogDescription>
+        </DialogHeader>
+
+        {/* Header with Close Button */}
+        <div className="flex items-start justify-between gap-3 p-3 sm:p-4 lg:p-6 border-b bg-muted/30">
+          <div className="flex-1 min-w-0">
+            <h2 className="text-lg sm:text-xl lg:text-2xl font-bold truncate">
+              Product Information
+            </h2>
+            <p className="text-xs sm:text-sm text-muted-foreground mt-1">
+              Complete details and specifications
+            </p>
+          </div>
+          {/* <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setShowProductDetail(false)}
+            className="flex-shrink-0 h-8 w-8 sm:h-9 sm:w-9 p-0 rounded-full"
+          >
+            <X className="h-4 w-4 sm:h-5 sm:w-5" />
+          </Button> */}
+        </div>
+
+        {/* Scrollable Content */}
+        <div className="flex-1 overflow-y-auto overscroll-contain">
+          <div className="p-3 sm:p-4 lg:p-6">
+            <div className="space-y-4 sm:space-y-6">
+              {/* Product Name & Category */}
+              <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <Package className="h-4 w-4 sm:h-5 sm:w-5 text-primary flex-shrink-0" />
+                  <h3 className="text-sm sm:text-base font-semibold">
+                    Product Details
+                  </h3>
+                </div>
+                <div className="bg-gray-100 rounded-lg p-3 sm:p-4 space-y-2 sm:space-y-3">
+                  <div>
+                    <p className="text-xs text-muted-foreground mb-1">
+                      Product Name
+                    </p>
+                    <p className="text-sm sm:text-base font-semibold">
+                      {selectedProduct.name}
+                    </p>
+                  </div>
+                  <Separator />
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
+                    <div>
+                      <p className="text-xs text-muted-foreground mb-1">
+                        Category
+                      </p>
+                      <Badge variant="outline" className="text-xs sm:text-sm">
                         {selectedProduct.category}
                       </Badge>
-                      <h2 className="text-2xl sm:text-3xl font-bold mb-2 line-clamp-2">
-                        {selectedProduct.name}
-                      </h2>
-                      <p className="text-sm text-muted-foreground mb-4">
-                        {selectedProduct?.companyId && selectedProduct.company.name} · {selectedProduct.material}
+                    </div>
+                    <div>
+                      <p className="text-xs text-muted-foreground mb-1">
+                        Brand
                       </p>
-                      <div className="flex items-baseline gap-2">
-                        <span className="text-4xl font-bold text-primary">
-                          <IndianRupeeIcon className='w-3 h-3 inline-block mr-1' />{selectedSku?.price || selectedProduct.price}
-                        </span>
-                        <span className="text-sm text-muted-foreground">per unit</span>
-                      </div>
+                      <p className="text-sm sm:text-base font-medium">
+                        {selectedProduct?.company?.name || selectedProduct?.brand || 'N/A'}
+                      </p>
                     </div>
                   </div>
                 </div>
               </div>
 
-              <Separator />
+              {/* Description - Only show if available */}
+              {selectedProduct.description && (
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <FileText className="h-4 w-4 sm:h-5 sm:w-5 text-primary flex-shrink-0" />
+                    <h3 className="text-sm sm:text-base font-semibold">
+                      Description
+                    </h3>
+                  </div>
+                  <div className="bg-gray-100 rounded-lg p-3 sm:p-4">
+                    <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
+                      {selectedProduct.description}
+                    </p>
+                  </div>
+                </div>
+              )}
 
-              <ScrollArea className="flex-1 overflow-auto">
-                <div className="p-4 sm:p-6 space-y-6">
-                  {availableColors.length > 0 && (
-                    <div className="space-y-3">
-                      <div className="flex items-center gap-2">
-                        <Palette className="h-4 w-4 text-primary" />
-                        <h3 className="font-semibold">
-                          Select Color
-                          <span className="text-xs text-muted-foreground font-normal ml-2">(Optional)</span>
-                        </h3>
-                      </div>
-                      <RadioGroup value={selectedColor} onValueChange={handleColorChange}>
-                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                          {availableColors.map((color) => (
-                            <label
-                              key={color}
-                              className={`relative flex items-center justify-center p-4 border-2 rounded-lg cursor-pointer transition-all hover:border-primary/50 ${
-                                selectedColor === color 
-                                  ? 'border-primary bg-primary/5 shadow-md' 
-                                  : 'border-border hover:bg-muted/50'
-                              }`}
-                            >
-                              <RadioGroupItem value={color} id={`color-${color}`} className="sr-only" />
-                              <span className="text-sm font-medium text-center">{color}</span>
-                              {selectedColor === color && (
-                                <Check className="absolute top-2 right-2 h-4 w-4 text-primary" />
-                              )}
-                            </label>
-                          ))}
+              {/* Material & Specifications - Only show if available */}
+              {(selectedProduct.material || selectedProduct.dimensions || selectedProduct.weight) && (
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <Info className="h-4 w-4 sm:h-5 sm:w-5 text-primary flex-shrink-0" />
+                    <h3 className="text-sm sm:text-base font-semibold">
+                      Specifications
+                    </h3>
+                  </div>
+                  <div className="bg-gray-100 rounded-lg p-3 sm:p-4 space-y-2 sm:space-y-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
+                      {selectedProduct.material && (
+                        <div>
+                          <p className="text-xs text-muted-foreground mb-1">
+                            Material
+                          </p>
+                          <p className="text-sm sm:text-base font-medium">
+                            {selectedProduct.material}
+                          </p>
                         </div>
-                      </RadioGroup>
+                      )}
+                      {selectedProduct.dimensions?.weight && (
+                        <div>
+                          <p className="text-xs text-muted-foreground mb-1">
+                            Weight
+                          </p>
+                          <p className="text-sm sm:text-base font-medium">
+                            {selectedProduct.dimensions.weight} {selectedProduct.dimensions.weightUnit || 'kg'}
+                          </p>
+                        </div>
+                      )}
                     </div>
-                  )}
-
-                  {availableColors.length > 0 && <Separator />}
-
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-2">
-                      <Ruler className="h-4 w-4 text-primary" />
-                      <h3 className="font-semibold">
-                        Select Size
-                        <span className="text-xs text-destructive font-normal ml-2">*Required</span>
-                      </h3>
-                    </div>
-                    <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
-                      {availableSizes.map((size) => (
-                        <Button
-                          key={size}
-                          variant={selectedSize === size ? "default" : "outline"}
-                          onClick={() => handleSizeChange(size)}
-                          className="h-14 font-bold text-base relative overflow-hidden group"
-                        >
-                          {selectedSize === size && (
-                            <div className="absolute inset-0 bg-gradient-to-br from-primary to-primary/80" />
-                          )}
-                          <span className="relative z-10">{size}</span>
-                        </Button>
-                      ))}
-                    </div>
-                    {!selectedSize && (
-                      <p className="text-xs text-destructive flex items-center gap-1">
-                        <Info className="h-3 w-3" />
-                        Please select a size to continue
-                      </p>
+                    {selectedProduct.dimensions?.length && (
+                      <>
+                        <Separator />
+                        <div>
+                          <p className="text-xs text-muted-foreground mb-1">
+                            Dimensions
+                          </p>
+                          <p className="text-sm sm:text-base font-medium">
+                            {selectedProduct.dimensions.length} × {selectedProduct.dimensions.width} × {selectedProduct.dimensions.height} {selectedProduct.dimensions.unit || 'cm'}
+                          </p>
+                        </div>
+                      </>
                     )}
                   </div>
+                </div>
+              )}
 
-                  <Separator />
+              {/* Available Colors */}
+              {(() => {
+                // Get colors from SKUs or product itself
+                let colors = [];
+                
+                if (selectedProduct.skus && selectedProduct.skus.length > 0) {
+                  // Get unique colors from SKUs
+                  const skuColors = selectedProduct.skus
+                    .map(sku => sku.color)
+                    .filter(Boolean)
+                    .flatMap(color => color.split(',').map(c => c.trim()))
+                    .filter(Boolean);
+                  colors = [...new Set(skuColors)];
+                } else if (selectedProduct.color) {
+                  // Get colors from product
+                  if (typeof selectedProduct.color === 'string') {
+                    colors = selectedProduct.color.split(',').map(c => c.trim()).filter(Boolean);
+                  } else if (Array.isArray(selectedProduct.color)) {
+                    colors = selectedProduct.color.filter(Boolean);
+                  }
+                }
 
+                return colors.length > 0 ? (
                   <div className="space-y-3">
-                    <h3 className="font-semibold flex items-center gap-2">
-                      <Hash className="h-4 w-4 text-primary" />
-                      Quantity
-                    </h3>
-                    <div className="flex items-center justify-center gap-4">
-                      <Button
-                        size="lg"
-                        variant="outline"
-                        onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                        className="h-16 w-16 p-0 rounded-full"
-                      >
-                        <Minus className="h-6 w-6" />
-                      </Button>
-                      <div className="text-center">
-                        <Input
-                          type="number"
-                          value={quantity}
-                          onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value) || 1))}
-                          className="w-24 text-center text-2xl font-bold h-16 border-2"
-                          min="1"
-                        />
+                    <div className="flex items-center gap-2">
+                      <Palette className="h-4 w-4 sm:h-5 sm:w-5 text-primary flex-shrink-0" />
+                      <h3 className="text-sm sm:text-base font-semibold">
+                        Available Colors
+                      </h3>
+                    </div>
+                    <div className="bg-gray-100 rounded-lg p-3 sm:p-4">
+                      <div className="flex flex-wrap gap-1.5 sm:gap-2">
+                        {colors.map((color, index) => (
+                          <Badge
+                            key={index}
+                            variant="secondary"
+                            className="text-xs sm:text-sm"
+                          >
+                            {color}
+                          </Badge>
+                        ))}
                       </div>
-                      <Button
-                        size="lg"
-                        variant="outline"
-                        onClick={() => setQuantity(quantity + 1)}
-                        className="h-16 w-16 p-0 rounded-full"
-                      >
-                        <Plus className="h-6 w-6" />
-                      </Button>
                     </div>
                   </div>
+                ) : null;
+              })()}
 
-                  <Separator />
+              {/* Available Sizes */}
+              {(() => {
+                // Get sizes from SKUs or product itself
+                let sizes = [];
+                
+                if (selectedProduct.skus && selectedProduct.skus.length > 0) {
+                  // Get unique sizes from SKUs
+                  sizes = [...new Set(
+                    selectedProduct.skus
+                      .map(sku => sku.size)
+                      .filter(Boolean)
+                  )];
+                } else if (selectedProduct.size) {
+                  // Get sizes from product
+                  if (typeof selectedProduct.size === 'string') {
+                    sizes = selectedProduct.size.split(',').map(s => s.trim()).filter(Boolean);
+                  } else if (Array.isArray(selectedProduct.size)) {
+                    sizes = selectedProduct.size.filter(Boolean);
+                  }
+                } else if (selectedProduct.sizes) {
+                  // Alternative field name
+                  if (typeof selectedProduct.sizes === 'string') {
+                    sizes = selectedProduct.sizes.split(',').map(s => s.trim()).filter(Boolean);
+                  } else if (Array.isArray(selectedProduct.sizes)) {
+                    sizes = selectedProduct.sizes.filter(Boolean);
+                  }
+                }
 
+                return sizes.length > 0 ? (
                   <div className="space-y-3">
-                    <h3 className="font-semibold flex items-center gap-2">
-                      <FileText className="h-4 w-4 text-primary" />
-                      Special Instructions
-                    </h3>
-                    <Textarea
-                      placeholder="Add any special requirements, customizations, or notes..."
-                      value={instructions}
-                      onChange={(e) => setInstructions(e.target.value)}
-                      className="resize-none min-h-[120px] text-sm"
-                      rows={5}
-                    />
-                  </div>
-
-                  <Card className="bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20">
-                    <CardContent className="p-4">
-                      <h4 className="font-semibold mb-3 flex items-center gap-2">
-                        <DollarSign className="h-4 w-4" />
-                        Order Summary
-                      </h4>
-                      <div className="space-y-2">
-                        <div className="flex justify-between text-sm">
-                          <span className="text-muted-foreground">Unit Price</span>
-                          <span className="font-medium"><IndianRupeeIcon className='w-3 h-3 inline-block mr-1' />{selectedSku?.price || selectedProduct.price}</span>
-                        </div>
-                        <div className="flex justify-between text-sm">
-                          <span className="text-muted-foreground">Quantity</span>
-                          <span className="font-medium">×{quantity}</span>
-                        </div>
-                        {selectedColor && (
-                          <div className="flex justify-between text-sm">
-                            <span className="text-muted-foreground">Color</span>
-                            <span className="font-medium">{selectedColor}</span>
-                          </div>
-                        )}
-                        {selectedSize && (
-                          <div className="flex justify-between text-sm">
-                            <span className="text-muted-foreground">Size</span>
-                            <span className="font-medium">{selectedSize}</span>
-                          </div>
-                        )}
-                        <Separator className="my-2" />
-                        <div className="flex justify-between items-baseline">
-                          <span className="font-bold">Subtotal</span>
-                          <span className="text-3xl font-bold text-primary">
-                            <IndianRupeeIcon className='w-4 h-4 inline-block mr-1' />{((selectedSku?.price || selectedProduct.price) * quantity).toFixed(2)}
-                          </span>
-                        </div>
+                    <div className="flex items-center gap-2">
+                      <Ruler className="h-4 w-4 sm:h-5 sm:w-5 text-primary flex-shrink-0" />
+                      <h3 className="text-sm sm:text-base font-semibold">
+                        Available Sizes
+                      </h3>
+                    </div>
+                    <div className="bg-gray-100 rounded-lg p-3 sm:p-4">
+                      <div className="flex flex-wrap gap-1.5 sm:gap-2">
+                        {sizes.map((size, index) => (
+                          <Badge
+                            key={index}
+                            variant="secondary"
+                            className="text-xs sm:text-sm"
+                          >
+                            {size}
+                          </Badge>
+                        ))}
                       </div>
-                    </CardContent>
-                  </Card>
-                </div>
-              </ScrollArea>
+                    </div>
+                  </div>
+                ) : null;
+              })()}
 
-              <div className="sticky bottom-0 z-10 bg-background border-t p-4 sm:p-6">
-                <div className="flex flex-col sm:flex-row gap-3">
-                  <Button 
-                    variant="outline" 
-                    onClick={() => setShowProductDetail(false)} 
-                    className="flex-1 h-12 text-sm sm:text-base"
-                  >
-                    Cancel
-                  </Button>
-                  <Button 
-                    onClick={handleAddToCart} 
-                    className="flex-1 h-12 text-sm sm:text-base font-semibol" 
-                    disabled={!selectedSize || !activeClientCart}
-                  >
-                    <ShoppingCart className="h-4 w-4 mr-2" />
-                    Add to Cart - <IndianRupeeIcon className='w-4 h-4 inline-block mr-1' />{((selectedSku?.price || selectedProduct.price) * quantity).toFixed(2)}
-                  </Button>
+              {/* Pricing */}
+              <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <DollarSign className="h-4 w-4 sm:h-5 sm:w-5 text-primary flex-shrink-0" />
+                  <h3 className="text-sm sm:text-base font-semibold">
+                    Pricing
+                  </h3>
+                </div>
+                <div className="bg-gray-100 rounded-lg p-3 sm:p-4 space-y-2 sm:space-y-3">
+                  {selectedProduct.skus && selectedProduct.skus.length > 0 ? (
+                    // Show SKU-based pricing
+                    <div className="space-y-2">
+                      <p className="text-xs text-muted-foreground mb-2">
+                        Price varies by size/color
+                      </p>
+                      {selectedProduct.skus.map((sku, index) => (
+                        <div key={index} className="flex items-center justify-between py-2 border-b last:border-b-0">
+                          <div className="flex items-center gap-2">
+                            {sku.size && (
+                              <Badge variant="outline" className="text-xs">
+                                {sku.size}
+                              </Badge>
+                            )}
+                            {sku.color && (
+                              <span className="text-xs text-muted-foreground">
+                                {sku.color}
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-base sm:text-lg font-bold text-primary">
+                            ₹{sku.price?.toFixed(2) || '0.00'}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    // Show product-level pricing
+                    <div className="grid grid-cols-2 gap-3 sm:gap-4">
+                      <div>
+                        <p className="text-xs text-muted-foreground mb-1">
+                          MRP
+                        </p>
+                        <p className="text-base sm:text-lg font-semibold text-muted-foreground line-through">
+                          ₹{selectedProduct.price?.toFixed(2) || '0.00'}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-muted-foreground mb-1">
+                          Selling Rate
+                        </p>
+                        <p className="text-lg sm:text-2xl font-bold text-primary">
+                          ₹{selectedProduct.price?.toFixed(2) || '0.00'}
+                        </p>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
-            </>
-          )}
-        </DialogContent>
-      </Dialog>
+
+              {/* Packaging Information - Only show if available */}
+              {(selectedProduct.innerPack || selectedProduct.masterPack) && (
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <Box className="h-4 w-4 sm:h-5 sm:w-5 text-primary flex-shrink-0" />
+                    <h3 className="text-sm sm:text-base font-semibold">
+                      Packaging
+                    </h3>
+                  </div>
+                  <div className="bg-gray-100 rounded-lg p-3 sm:p-4 space-y-2 sm:space-y-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
+                      {selectedProduct.innerPack && (
+                        <div>
+                          <p className="text-xs text-muted-foreground mb-1">
+                            Inner Pack
+                          </p>
+                          <p className="text-sm sm:text-base font-medium">
+                            {selectedProduct.innerPack}
+                          </p>
+                        </div>
+                      )}
+                      {selectedProduct.masterPack && (
+                        <div>
+                          <p className="text-xs text-muted-foreground mb-1">
+                            Master Pack
+                          </p>
+                          <p className="text-sm sm:text-base font-medium">
+                            {selectedProduct.masterPack}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Supplier - Only show if available */}
+              {selectedProduct.supplier && (
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <Users className="h-4 w-4 sm:h-5 sm:w-5 text-primary flex-shrink-0" />
+                    <h3 className="text-sm sm:text-base font-semibold">
+                      Supplier
+                    </h3>
+                  </div>
+                  <div className="bg-muted/50 rounded-lg p-3 sm:p-4">
+                    <p className="text-sm sm:text-base font-medium">
+                      {selectedProduct.supplier}
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div className="sticky bottom-0 z-10 bg-background border-t p-3 sm:p-4 lg:p-6">
+          <Button
+            onClick={() => setShowProductDetail(false)}
+            className="w-full h-9 sm:h-10 lg:h-11 text-xs sm:text-sm"
+          >
+            Close
+          </Button>
+        </div>
+      </>
+    )}
+  </DialogContent>
+</Dialog>
 
       {/* Photos Dialog */}
       <Dialog open={showPhotosDialog} onOpenChange={setShowPhotosDialog}>

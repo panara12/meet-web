@@ -24,18 +24,7 @@ export default function AddClient() {
   const {mutate:addSeller,isPending, isError, error} = useAddSeller({
     onSuccess: (res) => {
     setSuccessMessage(res.data.message);
-  },
-  })
-
-  const handleChange = (field, value) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
-  };
-
-  const handleSubmit = () => {
-    addSeller(formData);
-
-    {isPending && 
-      setFormData({
+    setFormData({
           name: "",
           contactPerson: "",
           email: "",
@@ -51,7 +40,16 @@ export default function AddClient() {
           gstNumber: "",
           notes: "",
         });
-    }
+        console.log("Seller added successfully:", formData);
+  },
+  })
+
+  const handleChange = (field, value) => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleSubmit = () => {
+    addSeller(formData);
   };
 
       
@@ -120,7 +118,7 @@ export default function AddClient() {
 
             <div>
               <label className="block text-sm font-medium text-gray-700">
-                UserName
+                UserName *
               </label>
               <input
                 type="text"
@@ -134,7 +132,7 @@ export default function AddClient() {
 
             <div>
               <label className="block text-sm font-medium text-gray-700">
-                Primary Email
+                Primary Email *
               </label>
               <input
                 type="email"
@@ -184,7 +182,7 @@ export default function AddClient() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700">
-                Business Address
+                Business Address *
               </label>
               <textarea
                 rows={2}
@@ -245,7 +243,7 @@ export default function AddClient() {
               />
             </div>
 
-            <div>
+            <div className="hidden">
               <label className="block text-sm font-medium text-gray-700">
                 Company Size
               </label>
