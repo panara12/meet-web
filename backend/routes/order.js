@@ -12,6 +12,7 @@ router.post('/addorder', user_session_checker("add_order"), async (req, res) => 
             order_seller, 
             date, 
             items, 
+            totalItems,
             totalAmount, 
             status, 
             order_firm 
@@ -24,6 +25,7 @@ router.post('/addorder', user_session_checker("add_order"), async (req, res) => 
             date,
             order_salesman: req.session.user.tenant_user_id,
             items,
+            totalItems,
             totalAmount,
             status,
             order_firm : order_firm || ""
@@ -50,6 +52,7 @@ router.put('/updateorder/:id', user_session_checker("update_order"), async (req,
             order_seller, 
             date, 
             items,  
+            totalItems,
             totalAmount, 
             status, 
             order_firm 
@@ -63,6 +66,7 @@ router.put('/updateorder/:id', user_session_checker("update_order"), async (req,
                 order_seller,
                 date,
                 items,
+                totalItems,
                 totalAmount,
                 status,
                 order_firm
