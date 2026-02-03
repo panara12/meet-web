@@ -51,7 +51,7 @@ async function initializeTenantDb(tenantDbConnection, distributerData, limitsDat
         // Create Limits document with provided or default values
         const newLimits = await Limits.create({
             adminlimit: limitsData.adminlimit || 1,
-            salemanlimit: limitsData.salemanlimit || 2,
+            salesmanlimit: limitsData.salesmanlimit || 2,
             packagelimit: limitsData.packagelimit || 1,
             billinglimit: limitsData.billinglimit || 1,
             liveLocationlimit: limitsData.liveLocationlimit || 35,
@@ -108,7 +108,7 @@ router.post('/addtenant', async (req, res) => {
             
             // Limits fields (optional with defaults)
             adminlimit,
-            salemanlimit,
+            salesmanlimit,
             packagelimit,
             billinglimit,
             liveLocationlimit,
@@ -146,6 +146,16 @@ router.post('/addtenant', async (req, res) => {
         if (!tenantDbConnection) {
             throw new Error(`Failed to create connection for tenant DB: ${D_dbname}`);
         }
+         if (tenantDbConnection.readyState !== 1) {
+            await new Promise((resolve, reject) => {
+                tenantDbConnection.once('connected', resolve);
+                tenantDbConnection.once('error', reject);
+                
+                // Timeout after 10 seconds
+                setTimeout(() => reject(new Error('Connection timeout')), 10000);
+            });
+        }
+
         manualLog(`✅ Tenant DB connection established: ${D_dbname}`);
 
         // ========== STEP 5: Initialize tenant DB with all collections ==========
@@ -161,7 +171,7 @@ router.post('/addtenant', async (req, res) => {
 
         const limitsData = {
             adminlimit,
-            salemanlimit,
+            salesmanlimit,
             packagelimit,
             billinglimit,
             liveLocationlimit,
