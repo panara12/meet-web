@@ -716,22 +716,27 @@ function SalesPanel() {
                 {(staff || []).filter(s => s?.status?.toLowerCase() === "active").length} Active
               </Badge>
             </div>
-            <div className="flex space-x-5">
-              <Badge
-                variant={getRequestsRemaining() <= 5 ? "destructive" : "outline"}
-                className="text-sm"
-              >
-                <MapPin className="h-3 w-3 mr-1" />
-                {getRequestsRemaining()} Requests Left
-              </Badge>
-              <Badge
-                variant={getRequestsRemaining() <= 5 ? "destructive" : "outline"}
-                className="text-sm"
-              >
-                <Cable className="h-3 w-3 mr-1" />
-                {limits?.data[0].routeLocationlimit} Paths Left
-              </Badge>
-            </div>
+            {console.log("limits info",limits)}
+            {
+              limits?.data[0]?.wantToUseLocation && 
+              <div className="flex space-x-5">
+                <Badge
+                  variant={getRequestsRemaining() <= 5 ? "destructive" : "outline"}
+                  className="text-sm"
+                >
+                  <MapPin className="h-3 w-3 mr-1" />
+                  {getRequestsRemaining()} Requests Left
+                </Badge>
+                <Badge
+                  variant={getRequestsRemaining() <= 5 ? "destructive" : "outline"}
+                  className="text-sm"
+                >
+                  <Cable className="h-3 w-3 mr-1" />
+                  {limits?.data[0].routeLocationlimit} Paths Left
+                </Badge>
+              </div>
+            }
+            
           </div>
         </div>
 
@@ -898,7 +903,7 @@ function SalesPanel() {
                     <Info className="h-3 w-3" />
                     Info
                   </Button>
-                  {(member?.role?.toLowerCase() === "sales-man" || member?.role?.toLowerCase() === "salesman") && (
+                  {(member?.role?.toLowerCase() === "sales-man" || member?.role?.toLowerCase() === "salesman")&&(limits?.data[0]?.wantToUseLocation) && (
                     <>
                       <Button
                         variant="outline"
@@ -1141,7 +1146,9 @@ function SalesPanel() {
         </Dialog>
 
         {/* Location Tracker Dialog */}
-        <Dialog open={showLocationDialog} onOpenChange={handleLocationDialogClose}>
+        {
+          limits?.data[0]?.wantToUseLocation && 
+          <Dialog open={showLocationDialog} onOpenChange={handleLocationDialogClose}>
           <DialogContent className="max-w-4xl max-h-[90vh]">
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
@@ -1417,6 +1424,8 @@ function SalesPanel() {
             )}
           </DialogContent>
         </Dialog>
+        }
+        
 
         {/* Daily Files Dialog */}
         <Dialog open={showFilesDialog} onOpenChange={(open) => {

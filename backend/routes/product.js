@@ -27,6 +27,7 @@ router.post(
       const brand = req.body.brand;
       const companyId = req.body.companyId;
       const color = req.body.color;
+      const size = req.body.size;
       const price = req.body.price;
       const lowStockThreshold = req.body.lowStockThreshold;
       const status = req.body.status;
@@ -61,11 +62,11 @@ router.post(
       }
 
       // ✅ Validate images
-      if (imageDocs.length === 0) {
-        return res.status(400).json({
-          message: 'At least one product image is required',
-        });
-      }
+      // if (imageDocs.length === 0) {
+      //   return res.status(400).json({
+      //     message: 'At least one product image is required',
+      //   });
+      // }
 
       // ✅ Handle dimensions - convert [Object: null prototype] to plain object
       let dimensionsObj = {
@@ -148,6 +149,7 @@ router.post(
         brand: brand,
         companyId: companyObjectId,
         color: color || null,
+        size: size || null,
         price: price || null,
         lowStockThreshold: lowStockThreshold ? parseInt(lowStockThreshold, 10) : null,
         status: status || 'active',

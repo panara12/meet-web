@@ -267,7 +267,7 @@ export default function Dashboard({ onNavigate }) {
     }
   }
 
-  const quickActions = [
+  let quickActions = [
     {
       title: "Add Staff Member",
       description: "Create new staff account",
@@ -323,6 +323,10 @@ export default function Dashboard({ onNavigate }) {
       hasNotification: unreadCount > 0
     }
   ]
+
+  if (!limits?.data[0].wantToUsePayment) {
+    quickActions = quickActions.filter(action => action.title !== "Payment Confirmations")
+  }
 
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat('en-US', {

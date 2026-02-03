@@ -31,23 +31,39 @@ import { StaffProvider } from "./StaffContext"
 import { FileManagementProvider } from "./FileManagementContext.jsx"
 import { SettingsProvider } from "./SettingsContext.jsx"
 import { useLogout } from "../../hooks/auth/useLogOut.jsx"
+import { useSelector } from "react-redux"
 
-const navigationItems = [
-  { id: "dashboard", label: "Dashboard", icon: LayoutDashboard, path: "/distributer/dashboard" },
-  { id: "clients", label: "Client List", icon: Users, path: "/distributer/clients" },
-  { id: "sales", label: "Staff Panel", icon: UserCheck, path: "/distributer/sales" },
-  { id: "staff", label: "Staff Account", icon: UsersRound, path: "/distributer/staff" },
-  { id: "inventory", label: "Inventory", icon: Warehouse, path: "/distributer/inventory" },
-  { id: "company", label: "Company", icon: Building2, path: "/distributer/company" },
-  { id: "packaging", label: "Packaging", icon: Package, path: "/distributer/packaging" },
-  { id: "payments", label: "Payment Confirmations", icon: CreditCard, path: "/distributer/payments" },
-  { id: "settings", label: "Settings", icon: Settings, path: "/distributer/settings" }
-]
+let navigationItems =[]
 
-function LayoutWrapper({ children }) {
+function LayoutWrapper({ children,limitsInfo }) {
   const location = useLocation()
   const navigate = useNavigate()
   const {mutate:logout} = useLogout();
+
+  if(limitsInfo?.wantToUsePayment){
+      navigationItems =  [
+      { id: "dashboard", label: "Dashboard", icon: LayoutDashboard, path: "/distributer/dashboard" },
+      { id: "clients", label: "Client List", icon: Users, path: "/distributer/clients" },
+      { id: "sales", label: "Staff Panel", icon: UserCheck, path: "/distributer/sales" },
+      { id: "staff", label: "Staff Account", icon: UsersRound, path: "/distributer/staff" },
+      { id: "inventory", label: "Inventory", icon: Warehouse, path: "/distributer/inventory" },
+      { id: "company", label: "Company", icon: Building2, path: "/distributer/company" },
+      { id: "packaging", label: "Packaging", icon: Package, path: "/distributer/packaging" },
+      { id: "payments", label: "Payment Confirmations", icon: CreditCard, path: "/distributer/payments" },
+      { id: "settings", label: "Settings", icon: Settings, path: "/distributer/settings" }
+    ]
+  }else{
+      navigationItems =  [
+      { id: "dashboard", label: "Dashboard", icon: LayoutDashboard, path: "/distributer/dashboard" },
+      { id: "clients", label: "Client List", icon: Users, path: "/distributer/clients" },
+      { id: "sales", label: "Staff Panel", icon: UserCheck, path: "/distributer/sales" },
+      { id: "staff", label: "Staff Account", icon: UsersRound, path: "/distributer/staff" },
+      { id: "inventory", label: "Inventory", icon: Warehouse, path: "/distributer/inventory" },
+      { id: "company", label: "Company", icon: Building2, path: "/distributer/company" },
+      { id: "packaging", label: "Packaging", icon: Package, path: "/distributer/packaging" },
+      { id: "settings", label: "Settings", icon: Settings, path: "/distributer/settings" }
+    ]
+  }
 
   // Find active item based on current route
   const activeItem = navigationItems.find(item => 
@@ -85,13 +101,14 @@ function LayoutWrapper({ children }) {
 }
 
 export default function Distributer_router() {
+  const limitsInfo = useSelector((state) => state.app.limits);
   return (
     <SettingsProvider>
       <StaffProvider>
         <FileManagementProvider>
           <CompanyProvider>
             <InventoryProvider>
-              <LayoutWrapper>
+              <LayoutWrapper limitsInfo={limitsInfo}>
                 <Routes>
                   <Route path="/" element={<Navigate to="/dashboard" replace />} />
                   <Route path="/dashboard" element={<Dashboard />} />
@@ -101,8 +118,12 @@ export default function Distributer_router() {
                   <Route path="/inventory" element={<Inventory />} />
                   <Route path="/company" element={<Company />} />
                   <Route path="/packaging" element={<Packaging />} />
-                  <Route path="/payments" element={<Payments />} />
+                  {
+                    limitsInfo?.wantToUsePayment &&
+                    <Route path="/payments" element={<Payments />} />
+                  }
                   <Route path="/settings" element={<SettingsPanel />} />
+                  <Route path="*" element={<Navigate to="/distributer/dashboard" replace />} />
                 </Routes>
               </LayoutWrapper>
             </InventoryProvider>

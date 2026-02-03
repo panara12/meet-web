@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react'
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import Dashboard from './sa_dashboard';
 import AddOrder from './sa_addOrder';
 import AddClient from './sa_addclient';
@@ -7,9 +7,10 @@ import DailyFiles from './sa_dailyFiles';
 import PaymentUpdate from './sa_payment';
 import { useGeolocation, LocationPermissionGuard } from './../../hooks/location/useGeolocation';
 import { useAddLocation } from '../../hooks/location/useAddLocation';
+import { useSelector } from 'react-redux';
 
 // Main Routes Component
-function SalesmanRoutes() {
+function SalesmanRoutes({ limitsInfo }) {
   const { mutate: addUserLocation } = useAddLocation();
   const { location } = useGeolocation();
 
@@ -17,6 +18,7 @@ function SalesmanRoutes() {
   const lastSentRef = useRef(0);
 
   useEffect(() => {
+    if (!limitsInfo?.wantToUseLocation) return
     if (!location.latitude || !location.longitude) return;
 
     if (intervalRef.current) return;
@@ -56,16 +58,28 @@ function SalesmanRoutes() {
       <Route path='/addorder' element={<AddOrder />} />
       <Route path='/addclient' element={<AddClient />} />
       <Route path='/dailyfiles' element={<DailyFiles />} />
-      <Route path='/paymentupdate' element={<PaymentUpdate />} />
+      { limitsInfo?.wantToUsePayment && 
+        <Route path='/paymentupdate' element={<PaymentUpdate />} /> 
+      }
+      <Route path='/*' element={<Navigate to="/dashboard" replace />} />
     </Routes>
   );
 }
 
 // Wrapped with Permission Guard
 function Salesman_router() {
+  const limitsInfo = useSelector((state) => state.app.limits);
+  console.log("limitsInfo in salesman router",limitsInfo);
+
+  if(!limitsInfo?.wantToUseLocation){
+    console.log("location permission required for salesman")
+    return <SalesmanRoutes limitsInfo={limitsInfo} />
+  }
+
+
   return (
     <LocationPermissionGuard>
-      <SalesmanRoutes />
+      <SalesmanRoutes limitsInfo={limitsInfo} />
     </LocationPermissionGuard>
   );
 }

@@ -18,6 +18,7 @@ export default function PaymentUpdate() {
   const [showClientDropdown, setShowClientDropdown] = useState(false);
   const [toast, setToast] = useState({ show: false, message: '', type: 'success' });
   const userInfo = useSelector((state) => state.app.userInfo);
+  const limitsInfo = useSelector((state) => state.app.limits);
   // console.log(userInfo)
   const id = userInfo.tenant_user_id
   useEffect(() => {

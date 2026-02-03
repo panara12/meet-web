@@ -6,6 +6,7 @@ const manualLog = require('../utils/manuallogger');
 const getTenentList = require('../utils/tenentgeter');
 const gettenentDb = require('../tenent'); // DB switcher
 const router = express.Router();
+const tenentCache = require('../cache/tenent_list'); 
 
 /**
  * Helper function to initialize tenant database with all required collections
@@ -200,8 +201,9 @@ router.post('/addtenant', async (req, res) => {
         manualLog(`✅ User entry created in tenant_user_master for: ${distributer_email}`);
 
         // ========== STEP 7: Refresh tenant cache ==========
-        await getTenentList();
-        manualLog(`✅ Tenant cache refreshed`);
+        const tenent_list = await getTenentList();
+        tenentCache.tenent = tenent_list;
+        manualLog(`✅ Tenant cache refreshed`,tenentCache);
 
         // ========== STEP 8: Return success response ==========
         res.status(200).json({

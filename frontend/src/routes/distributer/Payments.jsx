@@ -232,10 +232,11 @@ function Payments() {
     sortField: sortBy,
     sortDirection: sortOrder
   });
+  // console.log("page info ",getAllPayment.payments.pagination)
   useEffect(() => {
-    if (getAllPayment?.data?.payments) {
-      setTotalPages(getAllPayment.data.payments.pagination?.totalPages || 1);
-      setTotalPayments(getAllPayment.data.payments.pagination?.totalRecords || 0);
+    if (getAllPayment?.payments) {
+      setTotalPages(getAllPayment.payments.pagination?.totalPages || 1);
+      setTotalPayments(getAllPayment.payments.pagination?.totalRecords || 0);
     }
   }, [getAllPayment]);
   const {mutate: updatePaymentStatus,isLoading:isUpdatePaymentLoading,isError:isUpdatePaymentError,error:updatePaymentError} = useUpdatePaymentStatus()
@@ -316,7 +317,7 @@ function Payments() {
   // console.log("uniqueSalesmen",uniqueSalesmen)
 
   const getStatusColor = (status) => {
-    console.log("status icon",status)
+    // console.log("status icon",status)
     switch (status) {
       case "pending": return "bg-[#FE9A00] text-white"
       case "approved": return "bg-[#00A63E] text-white"
@@ -414,7 +415,7 @@ function Payments() {
 
   return (
     <div className="w-full">
-      <div className="ml-8 lg:hidden">
+      <div className="ml-10 lg:hidden">
         <h1 className="text-xl">Payments Confirmations</h1>
       </div>
       <div className="space-y-4 sm:space-y-6">
@@ -427,7 +428,7 @@ function Payments() {
             </p>
           </div>
 
-          <div className="flex flex-col sm:flex-row gap-2 w-full lg:w-auto">
+          {/* <div className="flex flex-col sm:flex-row gap-2 w-full lg:w-auto">
             <AlertDialog>
               <AlertDialogTrigger asChild>
                 <Button
@@ -486,7 +487,7 @@ function Payments() {
                 </AlertDialogFooter>
               </AlertDialogContent>
             </AlertDialog>
-          </div>
+          </div> */}
         </div>
 
         {/* Stats Cards */}
@@ -553,7 +554,7 @@ function Payments() {
           <CardContent className="responsive-padding">
             <div className="space-y-4">
               {/* Search Bar */}
-              <div className="relative max-w-md">
+              <div className="relative mt-5 max-w-md">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 icon-responsive-sm text-muted-foreground" />
                 <Input
                   placeholder="Search payments..."
@@ -683,21 +684,8 @@ function Payments() {
             </div>
           </CardHeader>
           <CardContent className="p-0">
-            <div className="flex items-center gap-2 min-w-0">
-                <Label className="text-responsive-xs whitespace-nowrap">Per Page:</Label>
-                <Select value={limit.toString()} onValueChange={handleLimitChange}>
-                  <SelectTrigger className="w-24 text-responsive-xs">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="5">5</SelectItem>
-                    <SelectItem value="10">10</SelectItem>
-                    <SelectItem value="25">25</SelectItem>
-                    <SelectItem value="50">50</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            <div className="overflow-x-auto">
+            
+            <div className="overflow-x-auto mx-5">
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -1070,7 +1058,7 @@ function Payments() {
                 </TableBody>
               </Table>
             </div>
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-4 pt-4 border-t">
+            <div className="flex flex-col sm:flex-row items-center justify-around gap-4 mt-4 pt-4 border-t">
                 <div className="text-responsive-xs text-muted-foreground">
                   Showing {paymentRequests.length === 0 ? 0 : ((currentPage - 1) * limit) + 1} to {Math.min(currentPage * limit, totalPayments)} of {totalPayments} payments
                 </div>
@@ -1110,6 +1098,21 @@ function Payments() {
                     Next
                     <ChevronRight className="h-4 w-4 ml-1" />
                   </Button>
+                </div>
+
+                <div className="flex items-center gap-2 min-w-0">
+                  <Label className="text-responsive-xs whitespace-nowrap">Per Page:</Label>
+                  <Select value={limit.toString()} onValueChange={handleLimitChange}>
+                    <SelectTrigger className="w-24 text-responsive-xs">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="5">5</SelectItem>
+                      <SelectItem value="10">10</SelectItem>
+                      <SelectItem value="25">25</SelectItem>
+                      <SelectItem value="50">50</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
           </CardContent>

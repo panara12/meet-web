@@ -39,6 +39,8 @@ import {
 import { useInventory } from "./InventoryContext"
 import { useCompany } from "./CompanyContext"
 import { toast } from "./ui/sonner"
+import { useSelector } from "react-redux"
+import { form } from "framer-motion/client"
 
 //ENV CONFIG
 const digital_ocean_url = import.meta.env.VITE_DIGITAL_OCEAN_URL;
@@ -79,6 +81,8 @@ function Inventory() {
   // console.log("products", products)
 
   const { companies, incrementProductsCount, decrementProductsCount } = useCompany()
+  const limitsInfo = useSelector((state) => state.app.limits);
+  console.log("companies in inventory:", useSelector((state) => state.app))
 
   const [viewMode, setViewMode] = useState("table")
   const [commonColors, setCommonColors] = useState("")
@@ -110,8 +114,8 @@ function Inventory() {
   category: "",
   brand: "",
   companyId: "",
-  sizes: [],        // still useful for generating SKUs
-  colors: [],       // still useful for generating SKUs
+  size: "",        // still useful for generating SKUs
+  color: "",       // still useful for generating SKUs
   lowStockThreshold: "",
   status: "active",
   tags: '',
@@ -270,6 +274,7 @@ function Inventory() {
       formDataToSend.append("companyId", formData.companyId);
       formDataToSend.append("companyName", company.name);
       formDataToSend.append("color", formData.color || "");
+      formDataToSend.append("size", formData.size || "");
       formDataToSend.append("price", formData.price?.toString() || "0");
       formDataToSend.append("costPrice", formData.costPrice?.toString() || "0");
       formDataToSend.append("stockQuantity", formData.stockQuantity?.toString() || "0");
@@ -392,6 +397,7 @@ function Inventory() {
       formDataToSend.append("companyId", formData.companyId);
       formDataToSend.append("companyName", company.name);
       formDataToSend.append("color", formData.color || "");
+      formDataToSend.append("size", formData.size || "");
       formDataToSend.append("price", formData.price?.toString() || "0");
       formDataToSend.append("costPrice", formData.costPrice?.toString() || "0");
       formDataToSend.append("stockQuantity", formData.stockQuantity?.toString() || "0");
@@ -734,7 +740,10 @@ function Inventory() {
                   <TabsTrigger value="basic">Basic Info</TabsTrigger>
                   <TabsTrigger value="variants">Variants/SKUs</TabsTrigger>
                   <TabsTrigger value="details">Details</TabsTrigger>
-                  <TabsTrigger value="images">Images</TabsTrigger>
+                  {
+                    limitsInfo?.wantToUsePhotos && 
+                    <TabsTrigger value="images">Images</TabsTrigger>
+                  }
                 </TabsList>
 
                 <TabsContent value="basic" className="space-y-4">
@@ -1084,7 +1093,7 @@ function Inventory() {
                   </div>
 
                   <div>
-                    <Label htmlFor="dimensionsSection">Product Price and Color</Label>
+                    <Label htmlFor="dimensionsSection">Product Price, Size and Color</Label>
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-2">
                         <Label htmlFor="price">Price</Label>
@@ -1095,6 +1104,16 @@ function Inventory() {
                           value={formData.price}
                           onChange={(e) => setFormData({...formData, price: e.target.value})}
                           placeholder="0"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="size">Size</Label>
+                        <Input
+                          id="size"
+                          type="text"
+                          value={formData.size}
+                          onChange={(e) => setFormData({...formData, size: e.target.value})}
+                          placeholder="small,medium,large"
                         />
                       </div>
                       <div className="space-y-2">
@@ -1215,99 +1234,103 @@ function Inventory() {
 
                 </TabsContent>
 
-                <TabsContent value="images" className="space-y-4">
-                  {/* Photo Upload Section */}
-                  <div className="space-y-4">
-                    <div className="space-y-2">
-                      <Label className="text-responsive-sm flex items-center gap-2">
-                        <ImagePlus className="icon-responsive-sm" />
-                        Product Photos *
-                      </Label>
-                      <p className="text-responsive-xs text-muted-foreground">
-                        Upload up to 5 photos (max 5MB each). Drag and drop or click to browse.
-                      </p>
-                    </div>
-
-                    {/* Image Upload Area */}
-                    <div
-                      className={`relative border-2 border-dashed rounded-lg responsive-padding transition-all ${
-                        dragActive
-                          ? 'border-primary bg-primary/5'
-                          : 'border-border hover:border-primary/50'
-                      } ${formData.images.length >= 5 ? 'opacity-50 pointer-events-none' : ''}`}
-                      onDragEnter={handleDragIn}
-                      onDragLeave={handleDragOut}
-                      onDragOver={handleDrag}
-                      onDrop={handleDrop}
-                    >
-                      <input
-                        type="file"
-                        multiple
-                        accept="image/*"
-                        onChange={handleFileSelect}
-                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                        disabled={formData.images.length >= 5}
-                      />
-                      <div className="flex flex-col items-center justify-center space-y-3 text-center">
-                        <div className="p-3 bg-muted rounded-full">
-                          <Upload className="icon-responsive-base text-muted-foreground" />
-                        </div>
-                        <div className="space-y-1">
-                          <p className="text-responsive-sm font-medium">
-                            {formData.images.length >= 5 
-                              ? 'Maximum photos reached' 
-                              : 'Drop your images here, or click to browse'
-                            }
-                          </p>
-                          <p className="text-responsive-xs text-muted-foreground">
-                            JPG, PNG, GIF up to 5MB each
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Image Preview Grid */}
-                    {formData.images.length > 0 && (
-                      <div className="space-y-3">
-                        <Label className="text-responsive-sm">Uploaded Photos ({formData.images.length}/5)</Label>
-                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
-                          {console.log(formData.images)}
-                          {formData.images.map((image, index) => (
-                            <div key={index} className="relative group aspect-square">
-                              <img
-                                src={previewUrls[index]}
-                                name="images"
-                                alt={`Product photo ${index + 1}`}
-                                className="w-full h-full object-cover rounded-lg border bg-muted"
-                              />
-                              <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-all rounded-lg flex items-center justify-center">
-                                <Button
-                                  type="button"
-                                  variant="destructive"
-                                  size="sm"
-                                  className="h-8 w-8 p-0"
-                                  onClick={() => removeImage(index)}
-                                >
-                                  <XIcon className="h-4 w-4" />
-                                </Button>
-                              </div>
-                              {index === 0 && (
-                                <div className="absolute -top-2 -left-2">
-                                  <Badge variant="secondary" className="text-xs px-2 py-1">
-                                    Main
-                                  </Badge>
-                                </div>
-                              )}
-                            </div>
-                          ))}
-                        </div>
+                {
+                  limitsInfo?.wantToUsePhotos &&
+                    <TabsContent value="images" className="space-y-4">
+                    {/* Photo Upload Section */}
+                    <div className="space-y-4">
+                      <div className="space-y-2">
+                        <Label className="text-responsive-sm flex items-center gap-2">
+                          <ImagePlus className="icon-responsive-sm" />
+                          Product Photos *
+                        </Label>
                         <p className="text-responsive-xs text-muted-foreground">
-                          First image will be used as the main product photo.
+                          Upload up to 5 photos (max 5MB each). Drag and drop or click to browse.
                         </p>
                       </div>
-                    )}
-                  </div>
-                </TabsContent>
+
+                      {/* Image Upload Area */}
+                      <div
+                        className={`relative border-2 border-dashed rounded-lg responsive-padding transition-all ${
+                          dragActive
+                            ? 'border-primary bg-primary/5'
+                            : 'border-border hover:border-primary/50'
+                        } ${formData.images.length >= 5 ? 'opacity-50 pointer-events-none' : ''}`}
+                        onDragEnter={handleDragIn}
+                        onDragLeave={handleDragOut}
+                        onDragOver={handleDrag}
+                        onDrop={handleDrop}
+                      >
+                        <input
+                          type="file"
+                          multiple
+                          accept="image/*"
+                          onChange={handleFileSelect}
+                          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                          disabled={formData.images.length >= 5}
+                        />
+                        <div className="flex flex-col items-center justify-center space-y-3 text-center">
+                          <div className="p-3 bg-muted rounded-full">
+                            <Upload className="icon-responsive-base text-muted-foreground" />
+                          </div>
+                          <div className="space-y-1">
+                            <p className="text-responsive-sm font-medium">
+                              {formData.images.length >= 5 
+                                ? 'Maximum photos reached' 
+                                : 'Drop your images here, or click to browse'
+                              }
+                            </p>
+                            <p className="text-responsive-xs text-muted-foreground">
+                              JPG, PNG, GIF up to 5MB each
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Image Preview Grid */}
+                      {formData.images.length > 0 && (
+                        <div className="space-y-3">
+                          <Label className="text-responsive-sm">Uploaded Photos ({formData.images.length}/5)</Label>
+                          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+                            {console.log(formData.images)}
+                            {formData.images.map((image, index) => (
+                              <div key={index} className="relative group aspect-square">
+                                <img
+                                  src={previewUrls[index]}
+                                  name="images"
+                                  alt={`Product photo ${index + 1}`}
+                                  className="w-full h-full object-cover rounded-lg border bg-muted"
+                                />
+                                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-all rounded-lg flex items-center justify-center">
+                                  <Button
+                                    type="button"
+                                    variant="destructive"
+                                    size="sm"
+                                    className="h-8 w-8 p-0"
+                                    onClick={() => removeImage(index)}
+                                  >
+                                    <XIcon className="h-4 w-4" />
+                                  </Button>
+                                </div>
+                                {index === 0 && (
+                                  <div className="absolute -top-2 -left-2">
+                                    <Badge variant="secondary" className="text-xs px-2 py-1">
+                                      Main
+                                    </Badge>
+                                  </div>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                          <p className="text-responsive-xs text-muted-foreground">
+                            First image will be used as the main product photo.
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                    </TabsContent>
+                }
+                
               </Tabs>
 
               <div className="flex gap-2 pt-4">
@@ -1735,7 +1758,7 @@ function Inventory() {
             
             {selectedProduct && (
               <div className="space-y-6">
-                <Label>SKU</Label>
+                {selectedProduct?.skus && selectedProduct.skus.length > 0 && <Label>SKU</Label> }
                 <div className="grid grid-cols-2">
                     {
                       selectedProduct?.skus?.map((sku)=>
@@ -1832,7 +1855,10 @@ function Inventory() {
                 <TabsTrigger value="basic">Basic Info</TabsTrigger>
                 <TabsTrigger value="variants">Variants/SKUs</TabsTrigger>
                 <TabsTrigger value="details">Details</TabsTrigger>
-                <TabsTrigger value="images">Images</TabsTrigger>
+                {
+                  limitsInfo?.wantToUsePhotos &&
+                  <TabsTrigger value="images">Images</TabsTrigger>
+                }
               </TabsList>
 
               <TabsContent value="basic" className="space-y-4">
@@ -2195,7 +2221,7 @@ function Inventory() {
                   </div>
 
                   <div>
-                    <Label htmlFor="dimensionsSection">Product Price and Color</Label>
+                    <Label htmlFor="dimensionsSection">Product Price, Size and Color</Label>
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-2">
                         <Label htmlFor="price">Price</Label>
@@ -2206,6 +2232,16 @@ function Inventory() {
                           value={formData.price}
                           onChange={(e) => setFormData({...formData, price: e.target.value})}
                           placeholder="0"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="size">Size</Label>
+                        <Input
+                          id="size"
+                          type="text"
+                          value={formData.size}
+                          onChange={(e) => setFormData({...formData, size: e.target.value})}
+                          placeholder="small,medium,large"
                         />
                       </div>
                       <div className="space-y-2">
@@ -2325,104 +2361,107 @@ function Inventory() {
                   </div>
               </TabsContent>
 
-              <TabsContent value="images" className="space-y-4">
-                {/* Photo Upload Section for Edit */}
-                <div className="space-y-4">
-                  <div className="space-y-2">
-                    <Label className="text-responsive-sm flex items-center gap-2">
-                      <ImagePlus className="icon-responsive-sm" />
-                      Product Photos
-                    </Label>
-                    <p className="text-responsive-xs text-muted-foreground">
-                      Upload up to 5 photos (max 5MB each). Drag and drop or click to browse.
-                    </p>
-                  </div>
-
-                  {/* Image Upload Area */}
-                  <div
-                    className={`relative border-2 border-dashed rounded-lg responsive-padding transition-all ${
-                      dragActive
-                        ? 'border-primary bg-primary/5'
-                        : 'border-border hover:border-primary/50'
-                    } ${formData.images.length >= 5 ? 'opacity-50 pointer-events-none' : ''}`}
-                    onDragEnter={handleDragIn}
-                    onDragLeave={handleDragOut}
-                    onDragOver={handleDrag}
-                    onDrop={handleDrop}
-                  >
-                    <input
-                      type="file"
-                      multiple
-                      accept="image/*"
-                      onChange={handleFileSelect}
-                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                      disabled={formData.images.length >= 5}
-                    />
-                    <div className="flex flex-col items-center justify-center space-y-3 text-center">
-                      <div className="p-3 bg-muted rounded-full">
-                        <Upload className="icon-responsive-base text-muted-foreground" />
-                      </div>
-                      <div className="space-y-1">
-                        <p className="text-responsive-sm font-medium">
-                          {formData.images.length >= 5 
-                            ? 'Maximum photos reached' 
-                            : 'Drop your images here, or click to browse'
-                          }
-                        </p>
-                        <p className="text-responsive-xs text-muted-foreground">
-                          JPG, PNG, GIF up to 5MB each
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Image Preview Grid */}
-                  {formData.images.length > 0 && (
-                    <div className="space-y-3">
-                      <Label className="text-responsive-sm">Uploaded Photos ({formData.images.length}/5)</Label>
-                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
-                        {
-                          formData.images.map((image, index) => (
-                            <div key={index} className="relative group aspect-square">
-
-                              <img
-                                src={
-                                  image instanceof File
-                                    ? URL.createObjectURL(image)              // new upload preview
-                                    : digital_ocean_url + image.url           // old image
-                                }
-                                alt={`Product ${index}`}
-                                className="w-full h-full object-cover rounded-lg border"
-                              />
-
-                              {/* Delete button */}
-                              <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-all rounded-lg flex items-center justify-center">
-                                <Button
-                                  type="button"
-                                  variant="destructive"
-                                  size="sm"
-                                  onClick={() => removeImage(index)}
-                                >
-                                  <XIcon className="h-4 w-4" />
-                                </Button>
-                              </div>
-
-                              {index === 0 && (
-                                <div className="absolute -top-2 -left-2">
-                                  <Badge variant="secondary" className="text-xs px-2 py-1">Main</Badge>
-                                </div>
-                              )}
-                            </div>
-                          ))
-                        }
-                      </div>
+              {
+                limitsInfo?.wantToUsePhotos &&
+                <TabsContent value="images" className="space-y-4">
+                  {/* Photo Upload Section for Edit */}
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label className="text-responsive-sm flex items-center gap-2">
+                        <ImagePlus className="icon-responsive-sm" />
+                        Product Photos
+                      </Label>
                       <p className="text-responsive-xs text-muted-foreground">
-                        First image will be used as the main product photo.
+                        Upload up to 5 photos (max 5MB each). Drag and drop or click to browse.
                       </p>
                     </div>
-                  )}
-                </div>
-              </TabsContent>
+
+                    {/* Image Upload Area */}
+                    <div
+                      className={`relative border-2 border-dashed rounded-lg responsive-padding transition-all ${
+                        dragActive
+                          ? 'border-primary bg-primary/5'
+                          : 'border-border hover:border-primary/50'
+                      } ${formData.images.length >= 5 ? 'opacity-50 pointer-events-none' : ''}`}
+                      onDragEnter={handleDragIn}
+                      onDragLeave={handleDragOut}
+                      onDragOver={handleDrag}
+                      onDrop={handleDrop}
+                    >
+                      <input
+                        type="file"
+                        multiple
+                        accept="image/*"
+                        onChange={handleFileSelect}
+                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                        disabled={formData.images.length >= 5}
+                      />
+                      <div className="flex flex-col items-center justify-center space-y-3 text-center">
+                        <div className="p-3 bg-muted rounded-full">
+                          <Upload className="icon-responsive-base text-muted-foreground" />
+                        </div>
+                        <div className="space-y-1">
+                          <p className="text-responsive-sm font-medium">
+                            {formData.images.length >= 5 
+                              ? 'Maximum photos reached' 
+                              : 'Drop your images here, or click to browse'
+                            }
+                          </p>
+                          <p className="text-responsive-xs text-muted-foreground">
+                            JPG, PNG, GIF up to 5MB each
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Image Preview Grid */}
+                    {formData.images.length > 0 && (
+                      <div className="space-y-3">
+                        <Label className="text-responsive-sm">Uploaded Photos ({formData.images.length}/5)</Label>
+                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+                          {
+                            formData.images.map((image, index) => (
+                              <div key={index} className="relative group aspect-square">
+
+                                <img
+                                  src={
+                                    image instanceof File
+                                      ? URL.createObjectURL(image)              // new upload preview
+                                      : digital_ocean_url + image.url           // old image
+                                  }
+                                  alt={`Product ${index}`}
+                                  className="w-full h-full object-cover rounded-lg border"
+                                />
+
+                                {/* Delete button */}
+                                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-all rounded-lg flex items-center justify-center">
+                                  <Button
+                                    type="button"
+                                    variant="destructive"
+                                    size="sm"
+                                    onClick={() => removeImage(index)}
+                                  >
+                                    <XIcon className="h-4 w-4" />
+                                  </Button>
+                                </div>
+
+                                {index === 0 && (
+                                  <div className="absolute -top-2 -left-2">
+                                    <Badge variant="secondary" className="text-xs px-2 py-1">Main</Badge>
+                                  </div>
+                                )}
+                              </div>
+                            ))
+                          }
+                        </div>
+                        <p className="text-responsive-xs text-muted-foreground">
+                          First image will be used as the main product photo.
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </TabsContent>
+              }
             </Tabs>
 
             <div className="flex gap-2 pt-4">

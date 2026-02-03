@@ -30,7 +30,7 @@ const paymentSchema  =  mongoose.Schema({
         ref:"User"
     },
     payment_amount:{
-        type:String,
+        type:Number,
         required:[true,"please enter the amount if not than zero"]
     },
     payment_type:{

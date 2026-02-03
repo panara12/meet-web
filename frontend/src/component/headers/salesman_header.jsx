@@ -7,6 +7,7 @@ import { useSelector } from "react-redux";
 
 export default function Header({sidebarOpen,setSidebarOpen}) {
   const userInfo = useSelector((state) => state.app.userInfo);
+  const limitsInfo = useSelector((state) => state.app.limits);
   const {mutate:logout} = useLogout();
   
   const { mutate: addUserLocation,isPending:isAddLocationPending } = useAddLocation({
@@ -17,7 +18,8 @@ export default function Header({sidebarOpen,setSidebarOpen}) {
   const { location } = useGeolocation();
 
   const handleLogout = () => {
-    if(userInfo.user_role == "salesman"){
+    if(userInfo.user_role == "salesman" && limitsInfo?.wantToUseLocation){
+      
       // Send immediately
       addUserLocation({
           latitude: location.latitude,

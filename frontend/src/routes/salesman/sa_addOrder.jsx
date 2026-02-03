@@ -113,7 +113,7 @@ export default function AddOrder() {
   const userInfo = useSelector((state) => state.app.userInfo);
   const [activeClientCarts,setActiveClientCarts] = useState();
   const userlimits = useSelector((state) => state.app.limits)
-  console.log("limsits",userlimits)  
+  // console.log("limsits",userlimits)  
   // Client states
   const [selectedClient, setSelectedClient] = useState("");
   const [clientSearchQuery, setClientSearchQuery] = useState("");
@@ -159,14 +159,14 @@ export default function AddOrder() {
   
   // Payment states
   const [paymentData, setPaymentData] = useState({
-    amount: "",
+    amount: 0,
     type: "",
     date: new Date().toISOString().split('T')[0],
     note:""
   });
   
   // Order ID
-  const orderCount = userlimits.placedOrderCount; 
+  const orderCount = userlimits?.placedOrderCount; 
   const [orderId, setOrderId] = useState("");
 
   // API Hooks
@@ -174,7 +174,7 @@ export default function AddOrder() {
   const {mutate:addOrders,isPending: isAddOrderPending} = useAddOrder()
   const { mutate: updateOrderCount, isPending: isUpdateLimitPending, isError: isUpdateLimitError, error: updateLimitError } = useUpdateLimit({
     onSuccess:(res)=>{
-      console.log('responiser kjdbfka akjsb',res)
+      // console.log('responiser kjdbfka akjsb',res)
       dispatch(setLimitsInfo(res.data));
     }
   })
@@ -193,7 +193,7 @@ export default function AddOrder() {
     useEffect(() => {
   if (!cartPending) {
     const cartData = getCart?.data?.cart[0];
-    console.log("initial cart data", cartData);
+    // console.log("initial cart data", cartData);
 
     // Transform backend cart data to frontend format
     const transformedCarts = {};
@@ -216,7 +216,7 @@ export default function AddOrder() {
     setActiveClientCarts(cartData);
   }
 }, [cartPending, getCart]);
-    console.log("active after set up",activeClientCart)
+    // console.log("active after set up",activeClientCart)
 
     const generateCartItemId = (productId, color, size) => {
       return `${productId}-${color}-${size}`;
@@ -618,12 +618,12 @@ const handleAddToCart = async () => {
 const handleQuantityChange = (clientId, itemId, newQuantity) => {
   if (newQuantity < 1) return;
   
-  console.log("clientId", clientId, "itemId", itemId, "newQuantity", newQuantity);
+  // console.log("clientId", clientId, "itemId", itemId, "newQuantity", newQuantity);
   
   const updatedClientCarts = {
     ...clientCarts,
     [clientId]: clientCarts[clientId].map(item => {
-      console.log("Comparing item.id:", item.id, "with itemId:", itemId, "Match:", item.id === itemId);
+      // console.log("Comparing item.id:", item.id, "with itemId:", itemId, "Match:", item.id === itemId);
       
       if (item.id === itemId) {
         const price = item.product.price || item.product.skus?.[0]?.price;
@@ -886,24 +886,24 @@ const handleQuickAddToCart = (product) => {
     items: cart.map(item => ({
       id: item.id,
       product_data: item.product._id,
-      quantity: item.quantity.toString(),
+      quantity: item.quantity,
       size: item.size,
       price: item.price,
-      subtotal: item.subtotal.toString(),
+      subtotal: item.subtotal,
       instructions: item.instructions || "",
       color: item.color || "default"
     }))
   };
 
 
-  console.log("Creating order:", orderData);
+  // console.log("Creating order:", orderData);
   const Order_seller = {
     id:activeClientCart,
     lastOrder:Date.now(),
     totalOrders:client.totalOrders+1,
     pendingOrders:client.pendingOrders+1
   }
-  console.log("order seller udpte",Order_seller);
+  // console.log("order seller udpte",Order_seller);
   // Create the order
   addOrders(orderData, {
     onSuccess: () => {
@@ -925,7 +925,7 @@ const handleQuickAddToCart = (product) => {
       // If no clients left, delete the entire cart
       if (updatedBackendClients.length === 0) {
         deleteCart({ cartId: activeClientCarts._id });
-        console.log("No more clients in cart, deleting entire cart");
+        // console.log("No more clients in cart, deleting entire cart");
       } else {
         // Update cart without this client
         const backendPayload = {
@@ -937,7 +937,7 @@ const handleQuickAddToCart = (product) => {
           }))
         };
         
-        console.log("Updating cart, removing client:", activeClientCart);
+        // console.log("Updating cart, removing client:", activeClientCart);
         updateCart(backendPayload);
       }
 
@@ -958,13 +958,17 @@ const handleQuickAddToCart = (product) => {
 
       // Proceed to payment dialog (OPTIONAL - can be closed without payment)
       setShowOrderCompletion(false);
-      setShowPaymentDialog(true);
-      setPaymentData({
-        amount: totalAmount.toFixed(2),
-        type: "",
-        date: new Date().toISOString().split('T')[0],
-        note: ""
-      });
+      if (userlimits?.wantToUsePayment) {
+        setShowPaymentDialog(true);
+        setPaymentData({
+          amount: totalAmount.toFixed(2),
+          type: "",
+          date: new Date().toISOString().split('T')[0],
+          note: ""
+        });
+      }else{
+        handleSkipPayment();
+      }
     },
     onError: (error) => {
       toast.error("Failed to create order: " + error.message);
@@ -1016,8 +1020,8 @@ const handleQuickAddToCart = (product) => {
     }
   };
 
-  console.log("Recording payment:", payload);
-  console.log("completed order data",orderProdcuts);
+  // console.log("Recording payment:", payload);
+  // console.log("completed order data",orderProdcuts);
 
   // Call payment API
   addPayment(payload, {
@@ -1066,6 +1070,8 @@ ${paymentData.note ? `• Note: ${paymentData.note}` : ''}
 
 const handleSkipPayment = () => {
   const client = clientsdata.find(c => c._id === selectedClient);
+  console.log("compaletd order info",comapletedOrder);
+  console.log("order products info",orderProdcuts);
   
   if (client) {
     // Send WhatsApp without payment details
@@ -1102,7 +1108,7 @@ const cleanupAfterPayment = () => {
   // Reset payment dialog
   setShowPaymentDialog(false);
   setPaymentData({
-    amount: "",
+    amount: 0,
     type: "",
     date: new Date().toISOString().split('T')[0],
     note: ""
@@ -1152,7 +1158,7 @@ const handlePaymentDialogClose = (open) => {
       </div>
 
       {/* Active Client Carts Display */}
-      {console.log("active cleint card",activeClientCarts)}
+      {/* {console.log("active cleint card",activeClientCarts)} */}
       {activeClientCarts?.clients.length > 0 && (
         <Card className="bg-gradient-to-r from-primary/5 to-primary/10 border-primary/20">
           <CardHeader className="pb-3 sm:pb-4">
@@ -1465,7 +1471,10 @@ const handlePaymentDialogClose = (open) => {
             <>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4">
                 {products.map((product) => {
-                  const sizes = product.skus?.map(sku => sku.size).filter(Boolean) || [];
+                  // console.log("product data",product);
+                  // console.log("product skus",product.skus);
+                  // console.log("product size",product.size);
+                  const sizes = product.skus && product.skus.length > 0 ? product.skus?.map(sku => sku.size).filter(Boolean) : [product.size] || [];
                   const uniqueSizes = [...new Set(sizes)];
                   const hasQuantities = uniqueSizes.some(size => getProductQuantity(product._id, size) > 0);
                   
@@ -1557,7 +1566,7 @@ const handlePaymentDialogClose = (open) => {
                           <ShoppingCart className="h-3 w-3 sm:h-4 sm:w-4 mr-2" />
                           Add to Cart
                         </Button>
-                        <div className="grid grid-cols-2 gap-2">
+                        <div className={`grid grid-cols-1 gap-1 ${userlimits?.wantToUsePhotos && 'grid grid-cols-2 gap-2'}`}>
                           <Button
                             variant="outline"
                             className="w-full text-xs sm:text-sm"
@@ -1569,7 +1578,9 @@ const handlePaymentDialogClose = (open) => {
                             <Eye className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
                             Full Details
                           </Button>
-                          <Button
+                          {
+                            userlimits?.wantToUsePhotos &&
+                            <Button
                             variant="outline"
                             className="w-full text-xs sm:text-sm"
                             onClick={(e) => {
@@ -1581,6 +1592,8 @@ const handlePaymentDialogClose = (open) => {
                             <Image className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
                             Photos
                           </Button>
+                          }
+                          
                         </div>
                       </div>
                     </Card>
@@ -1730,7 +1743,7 @@ const handlePaymentDialogClose = (open) => {
                               e.stopPropagation();
                               const sellerId = clientCart.seller_data._id || clientCart.seller_data;
                               
-                              console.log("🗑️ Removing client cart from active cards:", sellerId);
+                              // console.log("🗑️ Removing client cart from active cards:", sellerId);
                               
                               // Update local state
                               const updatedCarts = { ...clientCarts };
@@ -1778,7 +1791,7 @@ const handlePaymentDialogClose = (open) => {
                       </CardHeader>
                       <CardContent className="space-y-2 sm:space-y-3 p-3 sm:p-4 lg:p-6 pt-0">
                         <div className="max-h-64 sm:max-h-80 lg:max-h-96 overflow-y-auto overscroll-contain space-y-2 sm:space-y-3 pr-1">
-                          {console.log("side bar cleint cart",clientCart)}
+                          {/* {console.log("side bar cleint cart",clientCart)} */}
                           {clientCart?.items.map((item,index) => (
                             <div key={index} className="flex gap-2 sm:gap-3 p-2 sm:p-3 border rounded-lg bg-card hover:bg-muted/30 transition-colors">
                               {/* <div className="w-12 h-12 sm:w-14 sm:h-14 lg:w-16 lg:h-16 overflow-hidden rounded flex-shrink-0 bg-muted">
@@ -2247,16 +2260,24 @@ const handlePaymentDialogClose = (open) => {
         <div className="space-y-4 sm:space-y-6">
           {/* Main product image - Hero Section */}
           <div className="w-full">
-            <div className="aspect-[4/3] sm:aspect-video overflow-hidden rounded-xl bg-gradient-to-br from-muted/50 to-muted flex items-center justify-center p-6 sm:p-8 shadow-sm">
-              <ImageWithFallback
-                src={selectedProduct.images[0].url}
-                alt={`${selectedProduct.name} - Main`}
-                className="max-w-full max-h-full w-auto flex justify-center items-center h-auto object-contain drop-shadow-lg"
-              />
-              <div className="absolute top-3 right-3 bg-primary text-primary-foreground text-xs font-medium px-3 py-1 rounded-full">
-                Featured
-              </div>
-            </div>
+            {
+              selectedProduct.images.length > 0 ? ( 
+              <div className="aspect-[4/3] sm:aspect-video overflow-hidden rounded-xl bg-gradient-to-br from-muted/50 to-muted flex items-center justify-center p-6 sm:p-8 shadow-sm">
+                <ImageWithFallback
+                  src={selectedProduct?.images[0]?.url}
+                  alt={`${selectedProduct?.name} - Main`}
+                  className="max-w-full max-h-full w-auto flex justify-center items-center h-auto object-contain drop-shadow-lg"
+                />
+                <div className="absolute top-3 right-3 bg-primary text-primary-foreground text-xs font-medium px-3 py-1 rounded-full">
+                  Featured
+                </div>
+              </div>) : (
+                <div>
+                  <p>No Images Found</p>
+                </div>
+              )
+            }
+            
           </div>
           
           {/* Additional product images - Horizontal Scroll */}
@@ -2363,7 +2384,7 @@ const handlePaymentDialogClose = (open) => {
                 <Package className="h-6 w-6" />
                 <div className="text-center">
                   <div className="font-medium">Send to Packing Department</div>
-                  <div className="text-xs text-muted-foreground">Record payment details and send order to packing</div>
+                  {/* <div className="text-xs text-muted-foreground">Record payment details and send order to packing</div> */}
                 </div>
               </Button>
             </div>
@@ -2378,102 +2399,105 @@ const handlePaymentDialogClose = (open) => {
       </Dialog>
 
       {/* Payment Dialog */}
-      <Dialog open={showPaymentDialog} onOpenChange={handlePaymentDialogClose}>
-        <DialogContent className="max-w-md bg-white">
-          <DialogHeader>
-            <DialogTitle>Record Payment (Optional)</DialogTitle>
-            <DialogDescription>
-              Enter payment details for order {orderId} or skip to complete without payment
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-6">
-            <div className="space-y-4">
-              <div>
-                <Label>Payment Amount (Optional)</Label>
-                <Input
-                  type="number"
-                  placeholder="0.00"
-                  value={paymentData.amount}
-                  onChange={(e) => setPaymentData(prev => ({
-                    ...prev,
-                    amount: e.target.value
-                  }))}
-                  className="mt-2"
-                />
+      {
+        userlimits?.wantToUsePayment && 
+        <Dialog open={showPaymentDialog} onOpenChange={handlePaymentDialogClose}>
+          <DialogContent className="max-w-md bg-white">
+            <DialogHeader>
+              <DialogTitle>Record Payment (Optional)</DialogTitle>
+              <DialogDescription>
+                Enter payment details for order {orderId} or skip to complete without payment
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-6">
+              <div className="space-y-4">
+                <div>
+                  <Label>Payment Amount (Optional)</Label>
+                  <Input
+                    type="number"
+                    placeholder="0.00"
+                    value={paymentData.amount}
+                    onChange={(e) => setPaymentData(prev => ({
+                      ...prev,
+                      amount: e.target.value
+                    }))}
+                    className="mt-2"
+                  />
+                </div>
+                
+                <div>
+                  <Label>Payment Type (Optional)</Label>
+                  <Select 
+                    value={paymentData.type} 
+                    onValueChange={(value) => setPaymentData(prev => ({
+                      ...prev,
+                      type: value
+                    }))}
+                  >
+                    <SelectTrigger className="mt-2">
+                      <SelectValue placeholder="Select payment type" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-white">
+                      <SelectItem value="cash">Cash</SelectItem>
+                      <SelectItem value="online">Online</SelectItem>
+                      <SelectItem value="cheque">Cheque</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div>
+                  <Label>Payment Date</Label>
+                  <Input
+                    type="date"
+                    value={paymentData.date}
+                    onChange={(e) => setPaymentData(prev => ({
+                      ...prev,
+                      date: e.target.value
+                    }))}
+                    className="mt-2"
+                  />
+                </div>
+
+                <div>
+                  <Label>Payment Note (Optional)</Label>
+                  <Textarea
+                    placeholder="Add notes about payment..."
+                    value={paymentData.note}
+                    onChange={(e) => setPaymentData(prev => ({
+                      ...prev,
+                      note: e.target.value
+                    }))}
+                    className="mt-2"
+                    rows={3}
+                  />
+                </div>
               </div>
-              
-              <div>
-                <Label>Payment Type (Optional)</Label>
-                <Select 
-                  value={paymentData.type} 
-                  onValueChange={(value) => setPaymentData(prev => ({
-                    ...prev,
-                    type: value
-                  }))}
+
+              <div className="flex gap-2">
+                <Button 
+                  variant="outline" 
+                  onClick={handleSkipPayment} 
+                  className="flex-1"
                 >
-                  <SelectTrigger className="mt-2">
-                    <SelectValue placeholder="Select payment type" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-white">
-                    <SelectItem value="cash">Cash</SelectItem>
-                    <SelectItem value="online">Online</SelectItem>
-                    <SelectItem value="cheque">Cheque</SelectItem>
-                  </SelectContent>
-                </Select>
+                  Skip Payment
+                </Button>
+                <Button 
+                  onClick={handleRecordPayment} 
+                  className="flex-1"
+                  disabled={!paymentData.amount || !paymentData.type}
+                >
+                  <Check className="h-4 w-4 mr-2" />
+                  Record Payment
+                </Button>
               </div>
               
-              <div>
-                <Label>Payment Date</Label>
-                <Input
-                  type="date"
-                  value={paymentData.date}
-                  onChange={(e) => setPaymentData(prev => ({
-                    ...prev,
-                    date: e.target.value
-                  }))}
-                  className="mt-2"
-                />
-              </div>
-
-              <div>
-                <Label>Payment Note (Optional)</Label>
-                <Textarea
-                  placeholder="Add notes about payment..."
-                  value={paymentData.note}
-                  onChange={(e) => setPaymentData(prev => ({
-                    ...prev,
-                    note: e.target.value
-                  }))}
-                  className="mt-2"
-                  rows={3}
-                />
-              </div>
+              <p className="text-xs text-center text-muted-foreground">
+                You can skip payment recording and add it later if needed
+              </p>
             </div>
-
-            <div className="flex gap-2">
-              <Button 
-                variant="outline" 
-                onClick={handleSkipPayment} 
-                className="flex-1"
-              >
-                Skip Payment
-              </Button>
-              <Button 
-                onClick={handleRecordPayment} 
-                className="flex-1"
-                disabled={!paymentData.amount || !paymentData.type}
-              >
-                <Check className="h-4 w-4 mr-2" />
-                Record Payment
-              </Button>
-            </div>
-            
-            <p className="text-xs text-center text-muted-foreground">
-              You can skip payment recording and add it later if needed
-            </p>
-          </div>
-        </DialogContent>
-      </Dialog>
+          </DialogContent>
+        </Dialog>
+      }
     </div>
   );
 }

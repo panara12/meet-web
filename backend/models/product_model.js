@@ -63,6 +63,10 @@ const productSchema = new mongoose.Schema(
       type:String,
       default:null,
     },
+    size:{  
+      type:String,
+      default:null,
+    },
 
     price:{
       type:Number,
@@ -112,13 +116,7 @@ const productSchema = new mongoose.Schema(
     // Array of image URLs
     images: {
       type: [imageSchema],
-      validate: {
-        validator: function (arr) {
-          return arr.length > 0;
-        },
-        message: 'At least one product image is required',
-      },
-      required: true,
+      required: false,
     },
 
     // ✅ Dimensions (now fully nullable, with default units)
