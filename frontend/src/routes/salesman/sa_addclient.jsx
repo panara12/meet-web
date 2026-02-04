@@ -24,6 +24,20 @@ export default function AddClient() {
   const {mutate:addSeller,isPending, isError, error} = useAddSeller({
     onSuccess: (res) => {
     setSuccessMessage(res.data.message);
+    
+        console.log("Seller added successfully:", formData);
+        setTimeout(() => {
+          setSuccessMessage("");
+        }, 3000);
+    },
+  })
+
+  const handleChange = (field, value) => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleSubmit = () => {
+    addSeller(formData);
     setFormData({
           name: "",
           contactPerson: "",
@@ -40,16 +54,6 @@ export default function AddClient() {
           gstNumber: "",
           notes: "",
         });
-        console.log("Seller added successfully:", formData);
-  },
-  })
-
-  const handleChange = (field, value) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
-  };
-
-  const handleSubmit = () => {
-    addSeller(formData);
   };
 
       

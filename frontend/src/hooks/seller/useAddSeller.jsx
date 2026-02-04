@@ -8,7 +8,7 @@ export function useAddSeller() {
     mutationFn: sellerServices.addSeller,
     onSuccess: (res) => {
         console.log(res); 
-        queryClient.invalidateQueries(['GetAllSeller']); 
+        queryClient.invalidateQueries(['GetAllSeller']);
     }
   });
 }

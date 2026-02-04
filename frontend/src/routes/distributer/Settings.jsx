@@ -209,7 +209,7 @@ export function SettingsPanel() {
                   <Label htmlFor="company-name" className="text-sm">Company Name</Label>
                   <Input 
                     id="company-name" 
-                    value={getDistributerById.data.user_data.distributer_name}
+                    value={getDistributerById?.data?.user_data.distributer_name}
                     onChange={(e) => updateSystemSettings({ companyName: e.target.value })}
                     className="text-sm"
                   />
@@ -219,7 +219,7 @@ export function SettingsPanel() {
                   <Input 
                     id="company-email" 
                     type="email" 
-                    value={getDistributerById.data.user_data.distributer_email}
+                    value={getDistributerById?.data?.user_data.distributer_email}
                     onChange={(e) => updateSystemSettings({ companyEmail: e.target.value })}
                     className="text-sm"
                   />
@@ -229,7 +229,7 @@ export function SettingsPanel() {
                   <Input 
                     id="mobile-number" 
                     type="tel" 
-                    value={getDistributerById.data.user_data.distributer_mobile}
+                    value={getDistributerById?.data?.user_data.distributer_mobile}
                     onChange={(e) => updateSystemSettings({ mobileNumber: e.target.value })}
                     className="text-sm"
                   />
@@ -238,7 +238,7 @@ export function SettingsPanel() {
                   <Label htmlFor="username" className="text-sm">Default Username</Label>
                   <Input 
                     id="username" 
-                    value={getDistributerById.data.user_data.distributer_username}
+                    value={getDistributerById?.data?.user_data.distributer_username}
                     onChange={(e) => updateSystemSettings({ username: e.target.value })}
                     className="text-sm"
                   />
