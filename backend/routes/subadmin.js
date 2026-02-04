@@ -109,13 +109,13 @@ router.post('/subadminlogin', async (req, res) => {
         
         if (!subadmin) {
             manualLog(`subadmin login failed :: username not found ${username}`)
-            return res.status(401).json({ message: "invalid credentials" })
+            return res.status(401).json({ message: "invalid credentials",success:false })
         }
         
         const isPasswordValid = await bcrypt.compare(password, subadmin.password);
         if (!isPasswordValid) {
             manualLog(`subadmin login failed :: password invalid for username ${username}`)
-            return res.status(401).json({ message: "invalid credentials" })
+            return res.status(401).json({ message: "invalid credentials",success:false })
         }
         
         manualLog(`subadmin logged in successfully :: ${subadmin._id}`)

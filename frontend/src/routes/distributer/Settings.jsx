@@ -226,11 +226,11 @@ export function SettingsPanel() {
       <Tabs defaultValue="general" className="space-y-4">
         <TabsList className="grid w-full grid-cols-2 lg:grid-cols-6 h-auto">
           <TabsTrigger value="general" className="text-responsive-xs px-2 sm:px-4">General</TabsTrigger>
-          <TabsTrigger value="notifications" className="text-responsive-xs px-2 sm:px-4">Notifications</TabsTrigger>
+          {/* <TabsTrigger value="notifications" className="text-responsive-xs px-2 sm:px-4">Notifications</TabsTrigger> */}
           <TabsTrigger value="users" className="text-responsive-xs px-2 sm:px-4">Users</TabsTrigger>
           {/* <TabsTrigger value="backup" className="text-responsive-xs px-2 sm:px-4">Backup</TabsTrigger> */}
           {/* <TabsTrigger value="subscription" className="text-responsive-xs px-2 sm:px-4">Subscription</TabsTrigger> */}
-          <TabsTrigger value="about" className="text-responsive-xs px-2 sm:px-4">About</TabsTrigger>
+          {/* <TabsTrigger value="about" className="text-responsive-xs px-2 sm:px-4">About</TabsTrigger> */}
         </TabsList>
 
         <TabsContent value="general" className="space-y-4">
@@ -341,7 +341,7 @@ export function SettingsPanel() {
           </div>
         </TabsContent>
 
-        <TabsContent value="notifications" className="space-y-4">
+        {/* <TabsContent value="notifications" className="space-y-4">
           <Card>
             <CardHeader className="pb-4">
               <CardTitle className="flex items-center gap-2 text-lg">
@@ -432,7 +432,7 @@ export function SettingsPanel() {
               </Button>
             </CardContent>
           </Card>
-        </TabsContent>
+        </TabsContent> */}
 
         <TabsContent value="users" className="space-y-4">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -462,8 +462,8 @@ export function SettingsPanel() {
                       <TableHead className="text-sm">User</TableHead>
                       <TableHead className="text-sm">Role</TableHead>
                       <TableHead className="text-sm">Status</TableHead>
-                      <TableHead className="hidden sm:table-cell text-sm">Last Login</TableHead>
-                      <TableHead className="text-sm">Actions</TableHead>
+                      {/* <TableHead className="hidden sm:table-cell text-sm">Last Login</TableHead> */}
+                      {/* <TableHead className="text-sm">Actions</TableHead> */}
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -483,8 +483,8 @@ export function SettingsPanel() {
                             {user.status}
                           </Badge>
                         </TableCell>
-                        <TableCell className="text-xs hidden sm:table-cell">{user.lastLogin}</TableCell>
-                        <TableCell>
+                        {/* <TableCell className="text-xs hidden sm:table-cell">{user.lastLogin}</TableCell> */}
+                        {/* <TableCell>
                           <div className="flex items-center gap-1">
                             <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
                               <Edit className="h-3 w-3" />
@@ -493,7 +493,7 @@ export function SettingsPanel() {
                               <Trash2 className="h-3 w-3" />
                             </Button>
                           </div>
-                        </TableCell>
+                        </TableCell> */}
                       </TableRow>
                     ))}
                   </TableBody>
@@ -797,7 +797,7 @@ export function SettingsPanel() {
           </div>
         </TabsContent> */}
 
-        <TabsContent value="about" className="space-y-4">
+        {/* <TabsContent value="about" className="space-y-4">
           <div className="grid-responsive-1-2 gap-3 sm:gap-4">
             <Card>
               <CardHeader className="pb-4">
@@ -833,7 +833,7 @@ export function SettingsPanel() {
               </CardContent>
             </Card>
           </div>
-        </TabsContent>
+        </TabsContent> */}
       </Tabs>
 
       {/* Add SubAdmin Dialog */}

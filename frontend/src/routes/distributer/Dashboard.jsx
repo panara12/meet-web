@@ -220,8 +220,9 @@ export default function Dashboard({ onNavigate }) {
   const [isLoggingIn, setIsLoggingIn] = useState(false)
   const {data:listsubadmin} = useGetAllSubAdmins()
   console.log("list subadmin ",listsubadmin);
-  const { mutate: subAdminLogin, isPending: isSubAdminLoginPending } = useSubAdminLogin({
+  const { mutate: subAdminLogin, isPending: isSubAdminLoginPending ,isError: isSubAdminLoginError, error: subAdminLoginError} = useSubAdminLogin({
     onSuccess: (response) => {
+      console.log("seccess")
       toast.success('SubAdmin login successful!')
       setShowSubAdminLogin(false)
       setSubAdminCredentials({ username: '', password: '' })
@@ -231,10 +232,12 @@ export default function Dashboard({ onNavigate }) {
       // with subadminusername field
     },
     onError: (error) => {
+      console.log("error",error)
       toast.error(error?.response?.data?.message || 'Login failed. Please check your credentials.')
       setIsLoggingIn(false)
     }
   })
+  
 
   useEffect(() => {
     const shouldShowSubAdminLogin = 
@@ -356,7 +359,7 @@ export default function Dashboard({ onNavigate }) {
       action: () => onNavigate && onNavigate('payments'),
       color: "bg-teal-500 hover:bg-teal-600",
       textColor: "text-white",
-      hasNotification: true,
+      hasNotification: false,
       to:"/distributer/payments"
     },
     // {
@@ -900,11 +903,11 @@ export default function Dashboard({ onNavigate }) {
                 />
               </div>
 
-              <div className="flex flex-col sm:flex-row gap-3 pt-4">
+              <div className="flex sm:flex-row gap-3">
                 <Button 
                   onClick={handleSubAdminLogin} 
                   disabled={isLoggingIn}
-                  className="flex-1"
+                  className="flex justify-center p-2 flex-1 items-center"
                 >
                   {isSubAdminLoginPending ? (
                     <>
