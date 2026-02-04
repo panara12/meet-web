@@ -36,7 +36,7 @@ const limitsSchema = new mongoose.Schema({
         type: Boolean,
         default: true
     },
-    idAdminMembers:{
+    isAdminMembers:{
         type: Boolean,
         default: false
     },

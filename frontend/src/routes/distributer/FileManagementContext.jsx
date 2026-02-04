@@ -35,7 +35,7 @@ export function FileManagementProvider({ children }) {
   const [currentStaffFiles, setCurrentStaffFiles] = useState(null);
   const userInfo = useSelector((state) => state.app.userInfo);
   
-  console.log('🔵 FileManagementProvider - activeStaffId:', activeStaffId);
+  // console.log('🔵 FileManagementProvider - activeStaffId:', activeStaffId);
   
   // API Hooks
   const { 
@@ -47,14 +47,14 @@ export function FileManagementProvider({ children }) {
     enabled: !!activeStaffId
   });
   
-  console.log('🔵 Query state - isPending:', isGetFilesPending, 'filesData:', filesData);
+  // console.log('🔵 Query state - isPending:', isGetFilesPending, 'filesData:', filesData);
   
   const { mutate: addFileMutation, isPending: isAddFilePending } = useAddFile({
     onSuccess: () => {
-      console.log('✅ File upload successful!');
+      // console.log('✅ File upload successful!');
       toast.success('File uploaded successfully');
       if (activeStaffId) {
-        console.log('🔄 Refetching files after upload...');
+        // console.log('🔄 Refetching files after upload...');
         setTimeout(() => refetchFiles(), 500);
       }
     },
@@ -66,10 +66,10 @@ export function FileManagementProvider({ children }) {
   
   const { mutate: deleteFileMutation, isPending: isDeleteFilePending } = useDeleteFile({
     onSuccess: () => {
-      console.log('✅ File deletion successful!');
+      // console.log('✅ File deletion successful!');
       toast.success('File deleted successfully');
       if (activeStaffId) {
-        console.log('🔄 Refetching files after deletion...');
+        // console.log('🔄 Refetching files after deletion...');
         setTimeout(() => refetchFiles(), 500);
       }
     },
@@ -81,28 +81,28 @@ export function FileManagementProvider({ children }) {
 
   // Transform files whenever data changes
   useEffect(() => {
-    console.log('🔵 useEffect triggered - filesData:', filesData, 'activeStaffId:', activeStaffId);
+    // console.log('🔵 useEffect triggered - filesData:', filesData, 'activeStaffId:', activeStaffId);
     
     if (!activeStaffId) {
-      console.log('❌ No active staff ID, clearing files');
+      // console.log('❌ No active staff ID, clearing files');
       setCurrentStaffFiles(null);
       return;
     }
 
     if (isGetFilesPending) {
-      console.log('⏳ Files are loading...');
+      // console.log('⏳ Files are loading...');
       return;
     }
 
     if (filesData) {
-      console.log('✅ Files data received:', filesData);
+      // console.log('✅ Files data received:', filesData);
       
       if (filesData.data.files && Array.isArray(filesData.data.files)) {
-        console.log('📁 Processing', filesData.data.files.length, 'files for staff:', activeStaffId);
+        // console.log('📁 Processing', filesData.data.files.length, 'files for staff:', activeStaffId);
         const transformed = transformBackendFilesToStaffFormat(filesData.data.files, activeStaffId);
         setCurrentStaffFiles(transformed);
       } else {
-        console.log('📁 No files in response, setting empty week');
+        // console.log('📁 No files in response, setting empty week');
         setCurrentStaffFiles({
           staffId: activeStaffId,
           currentWeek: createEmptyWeek(),
@@ -114,13 +114,13 @@ export function FileManagementProvider({ children }) {
 
   // Transform backend files to staff-centric format
   const transformBackendFilesToStaffFormat = (backendFiles, staffId) => {
-    console.log('🔄 Transforming', backendFiles.length, 'files');
+    // console.log('🔄 Transforming', backendFiles.length, 'files');
     const weekData = createEmptyWeek();
 
     backendFiles.forEach(file => {
       const day = file.file_day?.toLowerCase();
       
-      console.log('📄 Processing file:', file.file_name, 'for day:', day);
+      // console.log('📄 Processing file:', file.file_name, 'for day:', day);
       
       if (!day || !weekData[day]) {
         console.warn('❌ Invalid day for file:', file.file_name, day);
@@ -140,10 +140,10 @@ export function FileManagementProvider({ children }) {
       };
 
       weekData[day].push(transformedFile);
-      console.log('✅ Added file to', day, '- Total files for day:', weekData[day].length);
+      // console.log('✅ Added file to', day, '- Total files for day:', weekData[day].length);
     });
 
-    console.log('📊 Final week data:', weekData);
+    // console.log('📊 Final week data:', weekData);
 
     return {
       staffId: staffId,
@@ -154,20 +154,20 @@ export function FileManagementProvider({ children }) {
 
   // Fetch files for a staff
   const fetchStaffFiles = (staffId) => {
-    console.log('🚀 fetchStaffFiles called for:', staffId);
+    // console.log('🚀 fetchStaffFiles called for:', staffId);
     
     if (!staffId) {
       console.error('❌ No staffId provided');
       return;
     }
     
-    console.log('✅ Setting active staff to:', staffId);
+    // console.log('✅ Setting active staff to:', staffId);
     setActiveStaffId(staffId);
   };
 
   // Get current staff files
   const getStaffFiles = () => {
-    console.log('📂 getStaffFiles called - returning:', currentStaffFiles);
+    // console.log('📂 getStaffFiles called - returning:', currentStaffFiles);
     return currentStaffFiles;
   };
 
@@ -175,11 +175,11 @@ export function FileManagementProvider({ children }) {
   const uploadFile = async (staffId, day, files, description) => {
     return new Promise((resolve, reject) => {
       try {
-        console.log('📤 uploadFile called with:');
-        console.log('  - staffId:', staffId);
-        console.log('  - day:', day);
-        console.log('  - description:', description);
-        console.log('  - files:', files);
+        // console.log('📤 uploadFile called with:');
+        // console.log('  - staffId:', staffId);
+        // console.log('  - day:', day);
+        // console.log('  - description:', description);
+        // console.log('  - files:', files);
         
         // Validate inputs
         if (!staffId) {
@@ -217,21 +217,21 @@ export function FileManagementProvider({ children }) {
         formData.append('uploaded_by', userInfo?.tenant_user_id || '');
         formData.append('uploaded_for', staffId);
         
-        console.log('📤 FormData created with:');
-        console.log('  - files count:', files.length);
-        console.log('  - file_day:', day);
-        console.log('  - file_description:', description || '(none)');
-        console.log('  - uploaded_by:', userInfo?.tenant_user_id);
-        console.log('  - uploaded_for:', staffId);
+        // console.log('📤 FormData created with:');
+        // console.log('  - files count:', files.length);
+        // console.log('  - file_day:', day);
+        // console.log('  - file_description:', description || '(none)');
+        // console.log('  - uploaded_by:', userInfo?.tenant_user_id);
+        // console.log('  - uploaded_for:', staffId);
 
-        console.log('📤 Setting active staff to:', staffId);
+        // console.log('📤 Setting active staff to:', staffId);
         setActiveStaffId(staffId);
         
-        console.log('📤 Calling addFileMutation...');
+        // console.log('📤 Calling addFileMutation...');
         // Call the mutation
         addFileMutation(formData, {
           onSuccess: () => {
-            console.log('✅ Upload mutation resolved successfully');
+            // console.log('✅ Upload mutation resolved successfully');
             resolve(true);
           },
           onError: (error) => {
@@ -251,8 +251,8 @@ export function FileManagementProvider({ children }) {
   // Delete file from backend
   const deleteFile = (fileId) => {
     try {
-      console.log('🗑️ deleteFile called with:');
-      console.log('  - fileId:', fileId);
+      // console.log('🗑️ deleteFile called with:');
+      // console.log('  - fileId:', fileId);
       
       // Validate inputs
       if (!fileId) {
@@ -261,10 +261,10 @@ export function FileManagementProvider({ children }) {
         return false;
       }
       
-      console.log('🗑️ Calling deleteFileMutation...');
+      // console.log('🗑️ Calling deleteFileMutation...');
       deleteFileMutation({ id: fileId });
       
-      console.log('✅ Delete mutation triggered successfully');
+      // console.log('✅ Delete mutation triggered successfully');
       return true;
     } catch (error) {
       console.error('❌ File deletion failed with exception:', error);

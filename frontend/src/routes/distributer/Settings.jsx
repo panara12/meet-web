@@ -35,13 +35,19 @@ import {
   TrendingUp,
   Zap,
   Shield,
-  RotateCcw
+  RotateCcw,
+  AlertTriangle
 } from "lucide-react"
 import { useGetDistributerById } from "../../hooks/distributer/useGetDistributerById"
 import { useSelector } from "react-redux"
+import { useGetAllSubAdmins } from "../../hooks/subadmin/useGetAllSubAdmin"
+import { useUpdateSubAdmin } from "../../hooks/subadmin/useUpdateSubAdmin"
+import { useDeleteSubAdmin } from "../../hooks/subadmin/useDeleteSubAdmin"
+import { useAddSubAdmin } from "../../hooks/subadmin/useAddSubAdmin"
 
 export function SettingsPanel() {
   const userInfo = useSelector((state) => state.app.userInfo);
+  const limitsInfo = useSelector((state) => state.app.limits);
   console.log("setting",userInfo)
   const { settings, updateSystemSettings, updateNotificationSettings, updateBackupSettings, resetToDefaults, exportSettings, importSettings } = useSettings()
   const { staff } = useStaff()
@@ -49,6 +55,16 @@ export function SettingsPanel() {
   const [showResetDialog, setShowResetDialog] = useState(false)
   const [showImportDialog, setShowImportDialog] = useState(false)
   const [importJson, setImportJson] = useState('')
+  const {data:listsubadmin} = useGetAllSubAdmins()
+  const {mutate : updatesubadmin, isPending:isUpdateSubAdminPending} = useUpdateSubAdmin()
+  const {mutate : deleteSubAdmin, isPending:isDeleteSubAdminPending} = useDeleteSubAdmin()
+  const {mutate : addsubadmin, isPending:isAddSubAdminPending} = useAddSubAdmin()
+  const [showAddSubAdminDialog, setShowAddSubAdminDialog] = useState(false)
+  const [addSubAdminFormData, setAddSubAdminFormData] = useState({
+    name: '',
+    username: '',
+    password: ''
+  })
 
   console.log("Distributer data fetched: ", getDistributerById);
 
@@ -104,6 +120,29 @@ export function SettingsPanel() {
     }
   }
 
+  const handleAddSubAdmin = () => {
+    if (!addSubAdminFormData.name || !addSubAdminFormData.username || !addSubAdminFormData.password) {
+      toast.error('All fields are required')
+      return
+    }
+
+    if (addSubAdminFormData.password.length < 6) {
+      toast.error('Password must be at least 6 characters long')
+      return
+    }
+
+    addsubadmin(addSubAdminFormData, {
+      onSuccess: () => {
+        toast.success('SubAdmin added successfully!')
+        setShowAddSubAdminDialog(false)
+        setAddSubAdminFormData({ name: '', username: '', password: '' })
+      },
+      onError: (error) => {
+        toast.error(error?.response?.data?.message || 'Failed to add SubAdmin')
+      }
+    })
+  }
+
   const handleResetSettings = () => {
     resetToDefaults()
     setShowResetDialog(false)
@@ -128,7 +167,7 @@ export function SettingsPanel() {
           <p className="text-sm sm:text-base text-muted-foreground">Configure your order management system preferences</p>
         </div>
         <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-          <Button variant="outline" onClick={handleExportSettings} className="w-full sm:w-auto">
+          {/* <Button variant="outline" onClick={handleExportSettings} className="w-full sm:w-auto">
             <Download className="h-4 w-4 mr-2" />
             Export
           </Button>
@@ -180,7 +219,7 @@ export function SettingsPanel() {
                 <Button variant="outline" onClick={() => setShowResetDialog(false)} className="flex-1 sm:flex-none">Cancel</Button>
               </div>
             </DialogContent>
-          </Dialog>
+          </Dialog> */}
         </div>
       </div>
 
@@ -243,80 +282,62 @@ export function SettingsPanel() {
                     className="text-sm"
                   />
                 </div>
-                <Button onClick={handleSystemSave} className="w-full text-sm">
+                {/* <Button onClick={handleSystemSave} className="w-full text-sm">
                   <Save className="h-4 w-4 mr-2" />
                   Save Changes
-                </Button>
+                </Button> */}
               </CardContent>
             </Card>
-
-            <Card>
-              <CardHeader className="pb-4">
-                <CardTitle className="flex items-center gap-2 text-lg">
-                  <Palette className="h-5 w-5" />
-                  Appearance
-                </CardTitle>
-                <CardDescription className="text-sm">Customize the look and feel of your dashboard</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
-                    <Label className="text-sm">Theme</Label>
-                    <p className="text-xs text-muted-foreground">Choose system theme</p>
+            {console.log(limitsInfo)}
+            {
+              limitsInfo.isAdminMembers && 
+                <Card>
+                <CardHeader className="pb-4">
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                    <div>
+                      <CardTitle className="flex items-center gap-2 text-lg">
+                        <Users className="h-5 w-5" />
+                        SubAdmin Management
+                      </CardTitle>
+                      <CardDescription className="text-sm">Manage SubAdmin accounts and permissions</CardDescription>
+                    </div>
+                    <Button 
+                      onClick={() => setShowAddSubAdminDialog(true)}
+                      size="sm"
+                      className="w-full sm:w-auto"
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add SubAdmin
+                    </Button>
                   </div>
-                  <Select 
-                    value={settings.system.theme} 
-                    onValueChange={(value) => updateSystemSettings({ theme: value })}
-                  >
-                    <SelectTrigger className="w-24 sm:w-32 text-sm">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="light">Light</SelectItem>
-                      <SelectItem value="dark">Dark</SelectItem>
-                      <SelectItem value="auto">Auto</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="date-format" className="text-sm">Date Format</Label>
-                  <Select 
-                    value={settings.system.dateFormat} 
-                    onValueChange={(value) => updateSystemSettings({ dateFormat: value })}
-                  >
-                    <SelectTrigger className="text-sm">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="mm-dd-yyyy">MM/DD/YYYY</SelectItem>
-                      <SelectItem value="dd-mm-yyyy">DD/MM/YYYY</SelectItem>
-                      <SelectItem value="yyyy-mm-dd">YYYY-MM-DD</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="language" className="text-sm">Language</Label>
-                  <Select 
-                    value={settings.system.language} 
-                    onValueChange={(value) => updateSystemSettings({ language: value })}
-                  >
-                    <SelectTrigger className="text-sm">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="en">English</SelectItem>
-                      <SelectItem value="es">Spanish</SelectItem>
-                      <SelectItem value="fr">French</SelectItem>
-                      <SelectItem value="de">German</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <Button onClick={handleSystemSave} className="w-full text-sm">
-                  <Save className="h-4 w-4 mr-2" />
-                  Apply Settings
-                </Button>
-              </CardContent>
-            </Card>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {listsubadmin?.subadmins && listsubadmin.subadmins.length > 0 ? (
+                    <div className="space-y-3">
+                      {listsubadmin.subadmins.map((subadmin) => (
+                        <SubAdminCard 
+                          key={subadmin._id} 
+                          subadmin={subadmin}
+                          onUpdate={updatesubadmin}
+                          onDelete={deleteSubAdmin}
+                          isUpdating={isUpdateSubAdminPending}
+                          isDeleting={isDeleteSubAdminPending}
+                        />
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="p-8 text-center bg-gray-50 rounded-lg border border-gray-200">
+                      <Users className="h-12 w-12 text-gray-400 mx-auto mb-3" />
+                      <h3 className="text-lg font-medium text-gray-900 mb-1">No SubAdmins Yet</h3>
+                      <p className="text-sm text-gray-600">
+                        No SubAdmin accounts have been created yet.
+                      </p>
+                    </div>
+                  )}
+                </CardContent>
+                </Card>
+            }
+            
           </div>
         </TabsContent>
 
@@ -814,7 +835,353 @@ export function SettingsPanel() {
           </div>
         </TabsContent>
       </Tabs>
+
+      {/* Add SubAdmin Dialog */}
+      <Dialog open={showAddSubAdminDialog} onOpenChange={setShowAddSubAdminDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Plus className="h-5 w-5 text-blue-600" />
+              Add New SubAdmin
+            </DialogTitle>
+            <DialogDescription>
+              Create a new SubAdmin account with login credentials
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 pt-4">
+            <div className="space-y-2">
+              <Label htmlFor="add-name">Full Name *</Label>
+              <Input
+                id="add-name"
+                value={addSubAdminFormData.name}
+                onChange={(e) => setAddSubAdminFormData({...addSubAdminFormData, name: e.target.value})}
+                placeholder="Enter full name"
+                disabled={isAddSubAdminPending}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="add-username">Username *</Label>
+              <Input
+                id="add-username"
+                value={addSubAdminFormData.username}
+                onChange={(e) => setAddSubAdminFormData({...addSubAdminFormData, username: e.target.value})}
+                placeholder="Enter username"
+                disabled={isAddSubAdminPending}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="add-password">Password *</Label>
+              <Input
+                id="add-password"
+                type="password"
+                value={addSubAdminFormData.password}
+                onChange={(e) => setAddSubAdminFormData({...addSubAdminFormData, password: e.target.value})}
+                placeholder="Enter password"
+                disabled={isAddSubAdminPending}
+              />
+            </div>
+
+            <div className="flex flex-col sm:flex-row gap-2 pt-4">
+              <Button 
+                onClick={handleAddSubAdmin} 
+                disabled={isAddSubAdminPending}
+                className="flex-1"
+              >
+                {isAddSubAdminPending ? (
+                  <>
+                    <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                    Adding...
+                  </>
+                ) : (
+                  <>
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add SubAdmin
+                  </>
+                )}
+              </Button>
+              <Button 
+                variant="outline" 
+                onClick={() => {
+                  setShowAddSubAdminDialog(false)
+                  setAddSubAdminFormData({ name: '', username: '', password: '' })
+                }}
+                disabled={isAddSubAdminPending}
+              >
+                Cancel
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
+  )
+}
+
+// SubAdmin Card Component with Edit and Delete functionality
+function SubAdminCard({ subadmin, onUpdate, onDelete, isUpdating, isDeleting }) {
+  const [showEditDialog, setShowEditDialog] = useState(false)
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false)
+  const [editFormData, setEditFormData] = useState({
+    name: subadmin.name,
+    username: subadmin.username,
+    password: ''
+  })
+  console.log('SubAdminCard render:', subadmin)
+
+  const handleUpdateSubAdmin = () => {
+    if (!editFormData.name || !editFormData.username) {
+      toast.error('Name and username are required')
+      return
+    }
+
+    const updateData = {
+      id: subadmin._id,
+      name: editFormData.name,
+      username: editFormData.username,
+    }
+
+    // Only include password if it's been changed
+    if (editFormData.password && editFormData.password.trim() !== '') {
+      updateData.password = editFormData.password
+    }
+
+    onUpdate(updateData, {
+      onSuccess: () => {
+        toast.success('SubAdmin updated successfully!')
+        setShowEditDialog(false)
+        setEditFormData({ name: '', username: '', password: '' })
+      },
+      onError: (error) => {
+        toast.error(error?.response?.data?.message || 'Failed to update SubAdmin')
+      }
+    })
+  }
+
+  const handleDeleteSubAdmin = () => {
+    onDelete(subadmin._id, {
+      onSuccess: () => {
+        toast.success('SubAdmin deleted successfully!')
+        setShowDeleteDialog(false)
+      },
+      onError: (error) => {
+        toast.error(error?.response?.data?.message || 'Failed to delete SubAdmin')
+      }
+    })
+  }
+
+  const recentLogins = [...(subadmin.log_history || [])]
+    .sort((a, b) => new Date(b.login_time) - new Date(a.login_time))
+    .slice(0, 2)
+
+  const isCurrentlyLoggedIn = recentLogins.length > 0 && !recentLogins[0].logout_time
+
+  return (
+    <>
+      <div className="p-4 border rounded-lg hover:border-blue-300 transition-colors">
+        <div className="flex items-start justify-between mb-3">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
+              <User className="h-5 w-5 text-blue-600" />
+            </div>
+            <div>
+              <h4 className="text-sm font-semibold flex items-center gap-2">
+                {subadmin.name}
+              </h4>
+              <p className="text-xs text-gray-600">@{subadmin.username}</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-1">
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="h-8 w-8 p-0"
+              onClick={() => {
+                setEditFormData({
+                  name: subadmin.name,
+                  username: subadmin.username,
+                  password: ''
+                })
+                setShowEditDialog(true)
+              }}
+            >
+              <Edit className="h-4 w-4 text-blue-600" />
+            </Button>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="h-8 w-8 p-0"
+              onClick={() => setShowDeleteDialog(true)}
+            >
+              <Trash2 className="h-4 w-4 text-red-600" />
+            </Button>
+          </div>
+        </div>
+
+        {recentLogins.length > 0 && (
+          <div className="space-y-2 pt-2 border-t">
+            <p className="text-xs font-medium text-gray-700 flex items-center gap-1">
+              <Clock className="h-3 w-3" />
+              Recent Activity
+            </p>
+            {recentLogins.map((log) => {
+              const loginDate = new Date(log.login_time)
+              const logoutDate = log.logout_time ? new Date(log.logout_time) : null
+
+              return (
+                <div key={log._id} className="text-xs text-gray-600 pl-4">
+                  <div className="flex items-center gap-1">
+                    <span className="font-medium">Login:</span>
+                    <span>{loginDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
+                    <span className="text-gray-400">•</span>
+                    <span>{loginDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</span>
+                  </div>
+                  {logoutDate && (
+                    <div className="flex items-center gap-1 text-gray-500">
+                      <span className="font-medium">Logout:</span>
+                      <span>{logoutDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</span>
+                    </div>
+                  )}
+                </div>
+              )
+            })}
+          </div>
+        )}
+      </div>
+
+      {/* Edit SubAdmin Dialog */}
+      <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Edit className="h-5 w-5 text-blue-600" />
+              Edit SubAdmin
+            </DialogTitle>
+            <DialogDescription>
+              Update SubAdmin account information
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 pt-4">
+            <div className="space-y-2">
+              <Label htmlFor="edit-name">Full Name *</Label>
+              <Input
+                id="edit-name"
+                value={editFormData.name}
+                onChange={(e) => setEditFormData({...editFormData, name: e.target.value})}
+                placeholder="Enter full name"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="edit-username">Username *</Label>
+              <Input
+                id="edit-username"
+                value={editFormData.username}
+                onChange={(e) => setEditFormData({...editFormData, username: e.target.value})}
+                placeholder="Enter username"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="edit-password">New Password (leave blank to keep current)</Label>
+              <Input
+                id="edit-password"
+                type="password"
+                value={editFormData.password}
+                onChange={(e) => setEditFormData({...editFormData, password: e.target.value})}
+                placeholder="Enter new password"
+              />
+              <p className="text-xs text-gray-500">Only enter a password if you want to change it</p>
+            </div>
+
+            <div className="flex flex-col sm:flex-row gap-2 pt-4">
+              <Button 
+                onClick={handleUpdateSubAdmin} 
+                disabled={isUpdating}
+                className="flex-1"
+              >
+                {isUpdating ? (
+                  <>
+                    <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                    Updating...
+                  </>
+                ) : (
+                  <>
+                    <Check className="h-4 w-4 mr-2" />
+                    Update SubAdmin
+                  </>
+                )}
+              </Button>
+              <Button 
+                variant="outline" 
+                onClick={() => setShowEditDialog(false)}
+                disabled={isUpdating}
+              >
+                Cancel
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Trash2 className="h-5 w-5 text-red-600" />
+              Delete SubAdmin
+            </DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete this SubAdmin account? This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="bg-red-50 p-4 rounded-lg border border-red-200 mt-4">
+            <div className="flex items-start gap-2">
+              <AlertTriangle className="h-5 w-5 text-red-600 mt-0.5 flex-shrink-0" />
+              <div className="text-sm">
+                <p className="font-medium text-red-800 mb-1">Warning</p>
+                <p className="text-red-700">
+                  Deleting <strong>{subadmin.name}</strong> (@{subadmin.username}) will remove all their access and login history permanently.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex flex-col sm:flex-row gap-2 pt-4">
+            <Button 
+              variant="destructive"
+              onClick={handleDeleteSubAdmin} 
+              disabled={isDeleting}
+              className="flex-1"
+            >
+              {isDeleting ? (
+                <>
+                  <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                  Deleting...
+                </>
+              ) : (
+                <>
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Delete SubAdmin
+                </>
+              )}
+            </Button>
+            <Button 
+              variant="outline" 
+              onClick={() => setShowDeleteDialog(false)}
+              disabled={isDeleting}
+            >
+              Cancel
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
   )
 }
 

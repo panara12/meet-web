@@ -124,7 +124,7 @@ export default function PaymentUpdate() {
 • Phone: ${salesmanById?.data.user.phone}
 
 💰 *PAYMENT DETAILS*
-• Amount Received: $${amount.toFixed(2)}
+• Amount Received: ₹${amount.toFixed(2)}
 • Payment Method: ${paymentType}
 • Payment Status: ✅ CONFIRMED
 
@@ -137,7 +137,7 @@ For any queries regarding this transaction, please contact your distributor’s 
 
 
     // Success messages
-    showToast(`Payment of $${amount.toFixed(2)} recorded for ${client?.name}`);
+    showToast(`Payment of ₹${amount.toFixed(2)} recorded for ${client?.name}`);
     showToast("Payment information sent to admin panel");
     
     // Send payment details to WhatsApp

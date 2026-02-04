@@ -1,15 +1,15 @@
 const mongoose = require('mongoose');
 
-const logs = {
-    login_time: {
-        type: Date,
-        required: true,
-    },
-    logout_time: {
-        type: Date,
-        required: false,
-    }
-};
+const logs = new mongoose.Schema({
+  login_time: {
+    type: Date,
+    default: Date.now
+  },
+  logout_time: {
+    type: Date,
+    default: null
+  }
+},{ _id: true });
 
 const SubadminSchema = new mongoose.Schema({
     name:{

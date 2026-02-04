@@ -22,6 +22,7 @@ async function initializeTenantDb(tenantDbConnection, distributerData, limitsDat
         const Distributer = tenantDbConnection.model("Distributer");
         const User = tenantDbConnection.model("User");
         const Limits = tenantDbConnection.model("Limits");
+        const subadmin = tenantDbConnection.model("Subadmin");
 
         // Create Distributer document
         const newDistributer = new Distributer({
@@ -35,6 +36,13 @@ async function initializeTenantDb(tenantDbConnection, distributerData, limitsDat
             user_role: "admin" // First distributor is always admin
         });
         await newDistributer.save();
+
+        const newSubadmin = new subadmin({
+            name: distributerData.distributer_name,
+            username: distributerData.distributer_username,
+            password: hashedPassword
+        });
+        await newSubadmin.save();
 
         // Create User document (admin user for the distributor)
         const newUser = await User.create({

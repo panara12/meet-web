@@ -70,7 +70,7 @@ router.get('/listsubadmin',user_session_checker("view_subadmin"),async(req,res)=
     manualLog('entered in list subadmin route')
     try {
         const SubadminModel = req.db.model("Subadmin");
-        const subadmins = await SubadminModel.find({}, {password:0});
+        const subadmins = await SubadminModel.find();
         manualLog(`subadmin list fetched successfully :: ${subadmins.length}`)
         res.status(200).json({
             message:"subadmin list fetched",
@@ -100,32 +100,97 @@ router.delete('/deletesubadmin/:subadminId',user_session_checker("delete_subadmi
     }
 })
 
-router.post('/subadminlogin',async(req,res)=>{
+router.post('/subadminlogin', async (req, res) => {
     manualLog('entered in subadmin login route')
     try {
-        const {username,password}  = req.body;
+        const { username, password } = req.body;
         const SubadminModel = req.db.model("Subadmin");
-        const subadmin = await SubadminModel.findOne({username:username});
-        if(!subadmin){
+        const subadmin = await SubadminModel.findOne({ username: username });
+        
+        if (!subadmin) {
             manualLog(`subadmin login failed :: username not found ${username}`)
-            return res.status(401).json({message:"invalid credentials"})
+            return res.status(401).json({ message: "invalid credentials" })
         }
+        
         const isPasswordValid = await bcrypt.compare(password, subadmin.password);
-        if(!isPasswordValid){
+        if (!isPasswordValid) {
             manualLog(`subadmin login failed :: password invalid for username ${username}`)
-            return res.status(401).json({message:"invalid credentials"})
+            return res.status(401).json({ message: "invalid credentials" })
         }
+        
         manualLog(`subadmin logged in successfully :: ${subadmin._id}`)
-        const updatedSubadmin = await SubadminModel.findByIdAndUpdate(subadmin._id, {...subadmin, log_history:{...log_history, login_time: new Date()} }, { new: true });
+        
+        // Calculate date 5 days ago
+        const fiveDaysAgo = new Date();
+        fiveDaysAgo.setDate(fiveDaysAgo.getDate() - 5);
+
+        // Filter out logs older than 5 days and add new login entry
+        const currentLogHistory = subadmin.log_history || [];
+        const filteredLogs = currentLogHistory.filter(log => 
+            new Date(log.login_time) >= fiveDaysAgo
+        );
+        
+        // Add new login entry
+        const newLogEntry = {
+            login_time: new Date(),
+            logout_time: null
+        };
+        
+        const updatedLogHistory = [...filteredLogs, newLogEntry];
+
+        // Single update operation
+        const updatedSubadmin = await SubadminModel.findByIdAndUpdate(
+            subadmin._id,
+            {
+                $set: {
+                    log_history: updatedLogHistory
+                }
+            },
+            { new: true }
+        );
+
+        // Update session with subadmin username
+        req.session.user = { 
+            ...req.session.user, 
+            subadmin_username: username 
+        };
+        
         res.status(200).json({
-            message:"login successful",
-            subadmin:updatedSubadmin
+            message: "login successful",
+            subadmin: updatedSubadmin
         })
+        
     } catch (error) {
         console.log('failed to login subadmin')
         manualLog(`failed to login subadmin :: ${error}`)
-        res.status(500).json({message:"internal server error",error:error})
+        res.status(500).json({ 
+            message: "internal server error", 
+            error: error.message 
+        })
     }
 })
 
+router.get('/subadminlogout',async(req,res)=>{
+    manualLog('entered in subadmin logout route')
+    try {        
+        const { subadmin_username } = req.session.user;
+        const SubadminModel = req.db.model("Subadmin");
+        await SubadminModel.findOneAndUpdate(
+            { username: subadmin_username },
+            { $push: { log_history: { logout_time: new Date() } } }
+        );
+        req.session.destroy(err => {
+            if (err) {
+                manualLog(`Error destroying session for subadmin ${subadmin_username}: ${err}`);
+                return res.status(500).json({ message: "Logout failed" });
+            }
+            manualLog(`Subadmin logged out successfully :: ${subadmin_username}`);
+            res.status(200).json({ message: "Subadmin logged out successfully" });
+        });
+    } catch (error) {
+        console.log('failed to logout subadmin');
+        manualLog(`failed to logout subadmin :: ${error}`);
+        res.status(500).json({ message: "Internal server error", error });
+    }
+})
 module.exports = router;

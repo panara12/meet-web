@@ -1046,7 +1046,7 @@ ${
 }
 
 💳 *Payment Details:*
-• Amount: ${paymentData.amount}
+• Amount: ₹${paymentData.amount}
 • Type: ${paymentData.type}
 • Date: ${new Date(paymentData.date).toLocaleDateString()}
 ${paymentData.note ? `• Note: ${paymentData.note}` : ''}

@@ -1,4 +1,4 @@
-import React, { useState } from "react"
+import React, { useEffect, useState } from "react"
 import { 
   TrendingUp, 
   TrendingDown, 
@@ -27,6 +27,8 @@ import { useStaff } from "./StaffContext";
 import { useInventory } from "./InventoryContext"
 import { useCompany } from "./CompanyContext"
 import { useSubAdminLogin } from "../../hooks/subadmin/useSubAdminLogin";
+import { useSelector } from "react-redux";
+import { useGetAllSubAdmins } from "../../hooks/subadmin/useGetAllSubAdmin";
 
 // Simple UI Components
 const Card = ({ children, className = "", onClick }) => (
@@ -208,10 +210,45 @@ export default function Dashboard({ onNavigate }) {
   const activeCompanies = companies.filter(c => c.status === 'active').length
   const lowStockProducts = products.filter(p => p.stockQuantity <= p.lowStockThreshold).length
   const outOfStockProducts = products.filter(p => p.stockQuantity === 0).length
+  const userInfo = useSelector((state) => state.app.userInfo)
 
-  const {mutate : subAdminLogin} = useSubAdminLogin();
+  const [showSubAdminLogin, setShowSubAdminLogin] = useState(false)
+  const [subAdminCredentials, setSubAdminCredentials] = useState({
+    username: '',
+    password: ''
+  })
+  const [isLoggingIn, setIsLoggingIn] = useState(false)
+  const {data:listsubadmin} = useGetAllSubAdmins()
+  console.log("list subadmin ",listsubadmin);
+  const { mutate: subAdminLogin, isPending: isSubAdminLoginPending } = useSubAdminLogin({
+    onSuccess: (response) => {
+      toast.success('SubAdmin login successful!')
+      setShowSubAdminLogin(false)
+      setSubAdminCredentials({ username: '', password: '' })
+      setIsLoggingIn(false)
+      
+      // Make sure your login hook updates userInfo in Redux/Context
+      // with subadminusername field
+    },
+    onError: (error) => {
+      toast.error(error?.response?.data?.message || 'Login failed. Please check your credentials.')
+      setIsLoggingIn(false)
+    }
+  })
 
+  useEffect(() => {
+    const shouldShowSubAdminLogin = 
+      limits?.data?.[0]?.isAdminMembers && 
+      !userInfo?.subadminusername
 
+    if (shouldShowSubAdminLogin) {
+      const timer = setTimeout(() => {
+        setShowSubAdminLogin(true)
+      }, 500) // 500ms delay for better UX
+      
+      return () => clearTimeout(timer)
+    }
+  }, [limits, userInfo])
   
   // Staff distribution by role
   // console.log(limits?.data[0].adminlimit)
@@ -236,6 +273,23 @@ export default function Dashboard({ onNavigate }) {
   const [isSubmittingMessage, setIsSubmittingMessage] = useState(false)
   const [showContactDialog, setShowContactDialog] = useState(false)
   const [showInbox, setShowInbox] = useState(false)
+
+  // Handle SubAdmin Login Submit
+  const handleSubAdminLogin = () => {
+    if (!subAdminCredentials.username || !subAdminCredentials.password) {
+      toast.error('Please enter both username and password')
+      return
+    }
+
+    setIsLoggingIn(true)
+    subAdminLogin(subAdminCredentials)
+  }
+
+  // Optional: Handle Skip Login
+  const handleSkipSubAdminLogin = () => {
+    setShowSubAdminLogin(false)
+    toast.success('You can login later from your profile settings')
+  }
 
   // Handle contact form submission
   const handleContactSubmit = async () => {
@@ -305,23 +359,23 @@ export default function Dashboard({ onNavigate }) {
       hasNotification: true,
       to:"/distributer/payments"
     },
-    {
-      title: "Contact VoidVortex",
-      description: "Request features & updates",
-      icon: MessageSquare,
-      action: () => setShowContactDialog(true),
-      color: "bg-orange-500 hover:bg-orange-600",
-      textColor: "text-white"
-    },
-    {
-      title: "VoidVortex Messages",
-      description: `Company updates & news${unreadCount > 0 ? ` (${unreadCount} new)` : ''}`,
-      icon: Inbox,
-      action: () => setShowInbox(true),
-      color: "bg-indigo-500 hover:bg-indigo-600",
-      textColor: "text-white",
-      hasNotification: unreadCount > 0
-    }
+    // {
+    //   title: "Contact VoidVortex",
+    //   description: "Request features & updates",
+    //   icon: MessageSquare,
+    //   action: () => setShowContactDialog(true),
+    //   color: "bg-orange-500 hover:bg-orange-600",
+    //   textColor: "text-white"
+    // },
+    // {
+    //   title: "VoidVortex Messages",
+    //   description: `Company updates & news${unreadCount > 0 ? ` (${unreadCount} new)` : ''}`,
+    //   icon: Inbox,
+    //   action: () => setShowInbox(true),
+    //   color: "bg-indigo-500 hover:bg-indigo-600",
+    //   textColor: "text-white",
+    //   hasNotification: unreadCount > 0
+    // }
   ]
 
   if (!limits?.data[0].wantToUsePayment) {
@@ -482,63 +536,111 @@ export default function Dashboard({ onNavigate }) {
           </div>
         </div>
 
-        {/* Staff Distribution */}
-        <div className="space-y-4">
-          <h2 className="text-xl font-semibold">Staff Distribution</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm font-medium text-center">Administrators</CardTitle>
-              </CardHeader>
-              <CardContent className="text-center">
-                <div className="text-2xl font-bold text-blue-600">{adminCount}</div>
-                {/* <p className="text-xs text-gray-600">Max: 1</p>
-                <Badge variant={adminCount === 1 ? "default" : adminCount > 1 ? "destructive" : "secondary"} className="mt-2">
-                  {adminCount === 1 ? "Optimal" : adminCount > 1 ? "Over Limit" : "Understaffed"}
-                </Badge> */}
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm font-medium text-center">Packagers</CardTitle>
-              </CardHeader>
-              <CardContent className="text-center">
-                <div className="text-2xl font-bold text-green-600">{packagerCount}</div>
-                {/* <p className="text-xs text-gray-600">Max: 2</p>
-                <Badge variant={packagerCount <= 2 ? "default" : "destructive"} className="mt-2">
-                  {packagerCount <= 2 ? "Within Limit" : "Over Limit"}
-                </Badge> */}
-              </CardContent>
-            </Card>
-
-            {/* <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm font-medium text-center">Billers</CardTitle>
-              </CardHeader>
-              <CardContent className="text-center">
-                <div className="text-2xl font-bold text-purple-600">{billerCount}</div>
-                <p className="text-xs text-gray-600">Max: 1</p>
-                <Badge variant={billerCount === 1 ? "default" : billerCount > 1 ? "destructive" : "secondary"} className="mt-2">
-                  {billerCount === 1 ? "Optimal" : billerCount > 1 ? "Over Limit" : "Understaffed"}
-                </Badge>
-              </CardContent>
-            </Card> */}
-
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm font-medium text-center">Sales Staff</CardTitle>
-              </CardHeader>
-              <CardContent className="text-center">
-                <div className="text-2xl font-bold text-orange-600">{salesmanCount}</div>
-                {/* <p className="text-xs text-gray-600">Max: 4</p>
-                <Badge variant={salesmanCount <= 4 ? "default" : "destructive"} className="mt-2">
-                  {salesmanCount <= 4 ? "Within Limit" : "Over Limit"}
-                </Badge> */}
-              </CardContent>
-            </Card>
+        {/* SubAdmin Distribution - Only show if isAdminMembers is true */}
+        {limits?.data?.[0]?.isAdminMembers && (
+          <div className="space-y-4">
+            <h2 className="text-xl font-semibold">SubAdmin Activity</h2>
+            {listsubadmin?.subadmins && listsubadmin.subadmins.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {listsubadmin.subadmins.map((subadmin) => {
+                  // Get last 3 login entries, sorted by most recent first
+                  const recentLogins = [...(subadmin.log_history || [])]
+                    .sort((a, b) => new Date(b.login_time) - new Date(a.login_time))
+                    .slice(0, 3);
+                  
+                  return (
+                    <Card key={subadmin._id}>
+                      <CardHeader className="pb-3">
+                        <div className="flex items-center justify-between">
+                          <CardTitle className="text-base font-medium">{subadmin.name}</CardTitle>
+                          <Badge variant="default" className="text-xs">
+                            @{subadmin.username}
+                          </Badge>
+                        </div>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-3">
+                          <div className="flex items-center gap-2 text-sm text-gray-600">
+                            <Clock className="h-4 w-4" />
+                            <span className="font-medium">Recent Login History</span>
+                          </div>
+                          
+                          {recentLogins.length > 0 ? (
+                            <div className="space-y-2">
+                              {recentLogins.map((log, index) => {
+                                const loginDate = new Date(log.login_time);
+                                const logoutDate = log.logout_time ? new Date(log.logout_time) : null;
+                                
+                                return (
+                                  <div 
+                                    key={log._id} 
+                                    className={`p-2 rounded-lg border bg-gray-50 border-gray-200`}
+                                  >
+                                    <div className="flex items-center justify-between mb-1">
+                                      <span className="text-xs font-medium text-gray-700">
+                                        Login #{recentLogins.length - index}
+                                      </span>
+                                    </div>
+                                    <div className="text-xs text-gray-600 space-y-0.5">
+                                      <div className="flex items-center gap-1">
+                                        <span className="font-medium">In:</span>
+                                        <span>{loginDate.toLocaleDateString('en-US', { 
+                                          month: 'short', 
+                                          day: 'numeric',
+                                          year: 'numeric'
+                                        })}</span>
+                                        <span className="text-gray-400">•</span>
+                                        <span>{loginDate.toLocaleTimeString('en-US', { 
+                                          hour: '2-digit', 
+                                          minute: '2-digit'
+                                        })}</span>
+                                      </div>
+                                      {logoutDate && (
+                                        <div className="flex items-center gap-1">
+                                          <span className="font-medium">Out:</span>
+                                          <span>{logoutDate.toLocaleDateString('en-US', { 
+                                            month: 'short', 
+                                            day: 'numeric',
+                                            year: 'numeric'
+                                          })}</span>
+                                          <span className="text-gray-400">•</span>
+                                          <span>{logoutDate.toLocaleTimeString('en-US', { 
+                                            hour: '2-digit', 
+                                            minute: '2-digit'
+                                          })}</span>
+                                        </div>
+                                      )}
+                                    </div>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          ) : (
+                            <div className="p-4 text-center bg-gray-50 rounded-lg border border-gray-200">
+                              <Clock className="h-8 w-8 text-gray-400 mx-auto mb-2" />
+                              <p className="text-sm text-gray-600">No login history yet</p>
+                            </div>
+                          )}
+                          
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+              </div>
+            ) : (
+              <Card>
+                <CardContent className="p-8 text-center">
+                  <UserPlus className="h-12 w-12 text-gray-400 mx-auto mb-3" />
+                  <h3 className="text-lg font-medium text-gray-900 mb-1">No SubAdmins Yet</h3>
+                  <p className="text-sm text-gray-600">
+                    No SubAdmin accounts have been created yet. SubAdmins will appear here once they're added to the system.
+                  </p>
+                </CardContent>
+              </Card>
+            )}
           </div>
-        </div>
+        )}
 
         {/* System Status */}
         <div className="space-y-4">
@@ -737,6 +839,105 @@ export default function Dashboard({ onNavigate }) {
 
         {/* VoidVortex Inbox */}
         <VoidVortexInbox isOpen={showInbox} onClose={() => setShowInbox(false)} />
+        {console.log("userinfo ",userInfo?.subadmin_username)}
+        {/* SubAdmin Login Dialog */}
+        {limits?.data?.[0]?.isAdminMembers && userInfo.subadmin_username==undefined && (
+        <Dialog open={showSubAdminLogin} onOpenChange={(open) => {
+          // Prevent closing without login
+          if (!open && !userInfo?.subadminusername) {
+            toast.error('SubAdmin login is required to continue')
+            return
+          }
+          setShowSubAdminLogin(open)
+        }}>
+          <DialogContent>
+            <DialogHeader>
+              <div className="flex items-center justify-between">
+                <DialogTitle className="flex items-center gap-2">
+                  <UserPlus className="h-5 w-5 text-blue-600" />
+                  SubAdmin Login Required
+                </DialogTitle>
+              </div>
+              <DialogDescription>
+                Please login with your SubAdmin credentials to access the dashboard.
+              </DialogDescription>
+            </DialogHeader>
+            
+            <div className="space-y-4 pt-4">
+              <div className="space-y-2">
+                <Label htmlFor="subadmin-username">Username *</Label>
+                <Input
+                  id="subadmin-username"
+                  type="text"
+                  placeholder="Enter your SubAdmin username"
+                  value={subAdminCredentials.username}
+                  onChange={(e) => setSubAdminCredentials({
+                    ...subAdminCredentials, 
+                    username: e.target.value
+                  })}
+                  disabled={isLoggingIn}
+                  onKeyPress={(e) => {
+                    if (e.key === 'Enter') handleSubAdminLogin()
+                  }}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="subadmin-password">Password *</Label>
+                <Input
+                  id="subadmin-password"
+                  type="password"
+                  placeholder="Enter your password"
+                  value={subAdminCredentials.password}
+                  onChange={(e) => setSubAdminCredentials({
+                    ...subAdminCredentials, 
+                    password: e.target.value
+                  })}
+                  disabled={isLoggingIn}
+                  onKeyPress={(e) => {
+                    if (e.key === 'Enter') handleSubAdminLogin()
+                  }}
+                />
+              </div>
+
+              <div className="flex flex-col sm:flex-row gap-3 pt-4">
+                <Button 
+                  onClick={handleSubAdminLogin} 
+                  disabled={isLoggingIn}
+                  className="flex-1"
+                >
+                  {isSubAdminLoginPending ? (
+                    <>
+                      <div className="h-4 w-4 mr-2 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
+                      Logging in...
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle className="h-4 w-4 mr-2" />
+                      Login
+                    </>
+                  )}
+                </Button>
+              </div>
+
+              <div className="text-center pt-2">
+                <p className="text-sm text-gray-600">
+                  Forgot your credentials?{' '}
+                  <button 
+                    onClick={() => {
+                      setShowSubAdminLogin(false)
+                      setShowContactDialog(true)
+                    }}
+                    className="text-blue-600 hover:underline"
+                  >
+                    Contact Support
+                  </button>
+                </p>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
       </div>
     </div>
   )
