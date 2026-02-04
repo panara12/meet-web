@@ -290,7 +290,7 @@ export function SettingsPanel() {
             </Card>
             {console.log(limitsInfo)}
             {
-              limitsInfo.isAdminMembers && 
+              limitsInfo?.isAdminMembers && 
                 <Card>
                 <CardHeader className="pb-4">
                   <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
