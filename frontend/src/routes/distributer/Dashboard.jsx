@@ -492,10 +492,10 @@ export default function Dashboard({ onNavigate }) {
               </CardHeader>
               <CardContent className="text-center">
                 <div className="text-2xl font-bold text-blue-600">{adminCount}</div>
-                <p className="text-xs text-gray-600">Max: 1</p>
+                {/* <p className="text-xs text-gray-600">Max: 1</p>
                 <Badge variant={adminCount === 1 ? "default" : adminCount > 1 ? "destructive" : "secondary"} className="mt-2">
                   {adminCount === 1 ? "Optimal" : adminCount > 1 ? "Over Limit" : "Understaffed"}
-                </Badge>
+                </Badge> */}
               </CardContent>
             </Card>
 
@@ -505,10 +505,10 @@ export default function Dashboard({ onNavigate }) {
               </CardHeader>
               <CardContent className="text-center">
                 <div className="text-2xl font-bold text-green-600">{packagerCount}</div>
-                <p className="text-xs text-gray-600">Max: 2</p>
+                {/* <p className="text-xs text-gray-600">Max: 2</p>
                 <Badge variant={packagerCount <= 2 ? "default" : "destructive"} className="mt-2">
                   {packagerCount <= 2 ? "Within Limit" : "Over Limit"}
-                </Badge>
+                </Badge> */}
               </CardContent>
             </Card>
 
@@ -531,10 +531,10 @@ export default function Dashboard({ onNavigate }) {
               </CardHeader>
               <CardContent className="text-center">
                 <div className="text-2xl font-bold text-orange-600">{salesmanCount}</div>
-                <p className="text-xs text-gray-600">Max: 4</p>
+                {/* <p className="text-xs text-gray-600">Max: 4</p>
                 <Badge variant={salesmanCount <= 4 ? "default" : "destructive"} className="mt-2">
                   {salesmanCount <= 4 ? "Within Limit" : "Over Limit"}
-                </Badge>
+                </Badge> */}
               </CardContent>
             </Card>
           </div>

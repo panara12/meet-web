@@ -59,10 +59,10 @@ async function initializeTenantDb(tenantDbConnection, distributerData, limitsDat
             totalLiveLocationlimit: limitsData.totalLiveLocationlimit || 35,
             routeLocationlimit: limitsData.routeLocationlimit || 35,
             totalRouteLocationlimit: limitsData.totalRouteLocationlimit || 35,
-            wantToUsePhotos:limitsData.wantToUsePhotos || true,
-            idAdminMembers:limitsData.idAdminMembers||false,
-            wantToUsePayment:limitsData.wantToUsePayment||true,
-            wantToUseLocation:limitsData.wantToUseLocation||true,
+            wantToUsePhotos:limitsData.wantToUsePhotos,
+            isAdminMembers:limitsData.isAdminMembers,
+            wantToUsePayment:limitsData.wantToUsePayment,
+            wantToUseLocation:limitsData.wantToUseLocation,
             placedOrderCount:0
         });
 
@@ -117,7 +117,7 @@ router.post('/addtenant', async (req, res) => {
             routeLocationlimit,
             totalRouteLocationlimit,
             wantToUsePhotos,
-            idAdminMembers,
+            isAdminMembers,
             wantToUsePayment,
             wantToUseLocation
         } = req.body;
@@ -180,7 +180,7 @@ router.post('/addtenant', async (req, res) => {
             routeLocationlimit,
             totalRouteLocationlimit,
             wantToUsePhotos,
-            idAdminMembers,
+            isAdminMembers,
             wantToUsePayment,
             wantToUseLocation
         };
