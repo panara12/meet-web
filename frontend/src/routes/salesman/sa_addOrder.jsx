@@ -1807,7 +1807,7 @@ const handlePaymentDialogClose = (open) => {
                               <div className="flex-1 min-w-0 space-y-1">
                                 <h4 className="text-xs sm:text-sm font-medium line-clamp-2">{item.product_data?.name}</h4>
                                 <div className="flex flex-wrap gap-1 text-xs text-muted-foreground">
-                                  <span>Color: {item.color}</span>
+                                  {/* <span>Color: {item.color}</span> */}
                                   <span>•</span>
                                   <span>Size: {item.size}</span>
                                 </div>
