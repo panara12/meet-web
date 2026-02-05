@@ -73,6 +73,11 @@ const productSchema = new mongoose.Schema(
       default:null
     },
 
+    costPrice:{
+      type:Number,
+      default:null
+    },
+
     // Low stock threshold – optional integer
     lowStockThreshold: {
       type: Number,

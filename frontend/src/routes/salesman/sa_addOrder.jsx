@@ -470,8 +470,8 @@ const handleAddToCart = async () => {
           ? {
               ...item,
               quantity: item.quantity + quantity,
-              price: selectedSku?.price || selectedProduct.price,
-              subtotal: (selectedSku?.price || selectedProduct.price) * (item.quantity + quantity),
+              price: selectedSku?.costPrice || selectedProduct.costPrice,
+              subtotal: (selectedSku?.costPrice || selectedProduct.costPrice) * (item.quantity + quantity),
               instructions: instructions || item.instructions
             }
           : item
@@ -487,8 +487,8 @@ const handleAddToCart = async () => {
       size: selectedSize,
       quantity,
       instructions,
-      price:selectedSku?.price || selectedProduct.price,
-      subtotal: (selectedSku?.price || selectedProduct.price) * quantity
+      price:selectedSku?.costPrice || selectedProduct.costPrice,
+      subtotal: (selectedSku?.costPrice || selectedProduct.costPrice) * quantity
     };
 
     updatedClientCarts = {
@@ -626,7 +626,7 @@ const handleQuantityChange = (clientId, itemId, newQuantity) => {
       // console.log("Comparing item.id:", item.id, "with itemId:", itemId, "Match:", item.id === itemId);
       
       if (item.id === itemId) {
-        const price = item.product.price || item.product.skus?.[0]?.price;
+        const price = item.product.costPrice || item.product.skus?.[0]?.costPrice;
         return { 
           ...item, 
           quantity: newQuantity, 
@@ -716,9 +716,10 @@ const handleQuickAddToCart = (product) => {
   
   sizesWithQty.forEach(([size, qty]) => {
     const matchingSku = product.skus?.find(sku => sku.size === size);
-    const price = matchingSku?.price || product.price;
+    console.log("matchingSku", matchingSku,product.costPrice);
+    const price = (matchingSku && matchingSku.costPrice) || product.costPrice;
     const productColor = product.color || (product.skus?.[0]?.color || "Default");
-    
+    console.log("price", price, "color", productColor)
     // Generate consistent ID
     const itemId = generateCartItemId(product._id, productColor, size);
     
@@ -746,6 +747,7 @@ const handleQuickAddToCart = (product) => {
         instructions: productInstr,
         subtotal: price * qty
       };
+      console.log("Adding cart item", cartItem);
       updatedCart.push(cartItem);
       addedCount++;
     }
@@ -755,6 +757,7 @@ const handleQuickAddToCart = (product) => {
     ...clientCarts,
     [activeClientCart]: updatedCart
   };
+  console.log("updatedClientCarts", updatedClientCarts);
   setClientCarts(updatedClientCarts);
 
   // Backend update logic remains the same
@@ -1318,7 +1321,7 @@ const handlePaymentDialogClose = (open) => {
                 {cart.length > 0 && (
                   <div className="pt-2 mt-2 border-t">
                     <p className="text-sm font-medium">
-                      Cart: {cart.length} item{cart.length > 1 ? 's' : ''} · ${getTotalAmount().toFixed(2)}
+                      Cart: {cart.length} item{cart.length > 1 ? 's' : ''} · ₹{getTotalAmount().toFixed(2)}
                     </p>
                   </div>
                 )}
@@ -1483,7 +1486,7 @@ const handlePaymentDialogClose = (open) => {
                       <div className="p-3 sm:p-4 border-b bg-muted/30">
                         <h4 className="font-medium text-sm sm:text-base line-clamp-2 min-h-[2.5em] mb-2">{product.name}</h4>
                         <div className="flex items-center justify-between">
-                          <span className="font-semibold text-primary"><IndianRupeeIcon className='w-3 h-3 inline-block' />{product.price}</span>
+                          {/* <span className="font-semibold text-primary"><IndianRupeeIcon className='w-3 h-3 inline-block' />{product.costPrice}</span> */}
                           <div className="flex items-center gap-1">
                             <Badge variant="outline" className="text-xs">{product.category}</Badge>
                           </div>
@@ -2145,7 +2148,7 @@ const handlePaymentDialogClose = (open) => {
                             )}
                           </div>
                           <p className="text-base sm:text-lg font-bold text-primary">
-                            ₹{sku.price?.toFixed(2) || '0.00'}
+                            ₹{sku.costPrice?.toFixed(2) || '0.00'}
                           </p>
                         </div>
                       ))}
@@ -2155,7 +2158,7 @@ const handlePaymentDialogClose = (open) => {
                     <div className="grid grid-cols-2 gap-3 sm:gap-4">
                       <div>
                         <p className="text-xs text-muted-foreground mb-1">
-                          MRP
+                          M.R.P.
                         </p>
                         <p className="text-base sm:text-lg font-semibold text-muted-foreground line-through">
                           ₹{selectedProduct.price?.toFixed(2) || '0.00'}
@@ -2163,10 +2166,10 @@ const handlePaymentDialogClose = (open) => {
                       </div>
                       <div>
                         <p className="text-xs text-muted-foreground mb-1">
-                          Selling Rate
+                          D.P.
                         </p>
                         <p className="text-lg sm:text-2xl font-bold text-primary">
-                          ₹{selectedProduct.price?.toFixed(2) || '0.00'}
+                          ₹{selectedProduct.costPrice?.toFixed(2) || '0.00'}
                         </p>
                       </div>
                     </div>

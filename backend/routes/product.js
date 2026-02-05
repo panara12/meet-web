@@ -29,6 +29,7 @@ router.post(
       const color = req.body.color;
       const size = req.body.size;
       const price = req.body.price;
+      const costPrice = req.body.costPrice;
       const lowStockThreshold = req.body.lowStockThreshold;
       const status = req.body.status;
       const tags = req.body.tags;
@@ -151,6 +152,7 @@ router.post(
         color: color || null,
         size: size || null,
         price: price || null,
+        costPrice: costPrice||null,
         lowStockThreshold: lowStockThreshold ? parseInt(lowStockThreshold, 10) : null,
         status: status || 'active',
         tags: tags || null,

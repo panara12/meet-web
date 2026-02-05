@@ -116,6 +116,8 @@ function Inventory() {
   companyId: "",
   size: "",        // still useful for generating SKUs
   color: "",       // still useful for generating SKUs
+  price:0,
+  costPrice: 0,
   lowStockThreshold: "",
   status: "active",
   tags: '',
@@ -200,10 +202,10 @@ function Inventory() {
       category: "",
       brand: "",
       companyId: "",
-      price:'',
+      price:0,
       color:'',
       size:'',
-      costPrice: "",
+      costPrice: 0,
       stockQuantity: "",
       lowStockThreshold: "",
       status: "active",
@@ -275,8 +277,8 @@ function Inventory() {
       formDataToSend.append("companyName", company.name);
       formDataToSend.append("color", formData.color || "");
       formDataToSend.append("size", formData.size || "");
-      formDataToSend.append("price", formData.price?.toString() || "0");
-      formDataToSend.append("costPrice", formData.costPrice?.toString() || "0");
+      formDataToSend.append("price", formData.price || 0);
+      formDataToSend.append("costPrice", formData.costPrice || 0);
       formDataToSend.append("stockQuantity", formData.stockQuantity?.toString() || "0");
       formDataToSend.append("lowStockThreshold", formData.lowStockThreshold?.toString() || "10");
       formDataToSend.append("status", formData.status || "active");
@@ -310,7 +312,7 @@ function Inventory() {
         color:formData.color||'',
         companyId: formData.companyId,
         companyName: company.name,
-        price: formData.price || '0',
+        price: formData.price || 0,
         costPrice: parseFloat(formData.costPrice) || 0,
         currency: "INR",
         stockQuantity: parseInt(formData.stockQuantity) || 0,
@@ -398,8 +400,8 @@ function Inventory() {
       formDataToSend.append("companyName", company.name);
       formDataToSend.append("color", formData.color || "");
       formDataToSend.append("size", formData.size || "");
-      formDataToSend.append("price", formData.price?.toString() || "0");
-      formDataToSend.append("costPrice", formData.costPrice?.toString() || "0");
+      formDataToSend.append("price", formData.price || 0);
+      formDataToSend.append("costPrice", formData.costPrice || 0);
       formDataToSend.append("stockQuantity", formData.stockQuantity?.toString() || "0");
       formDataToSend.append("lowStockThreshold", formData.lowStockThreshold?.toString() || "10");
       formDataToSend.append("status", formData.status || "active");
@@ -1005,7 +1007,7 @@ function Inventory() {
                               </div>
                               
                               <div className="space-y-2">
-                                <Label>Price *</Label>
+                                <Label>M.R.P. *</Label>
                                 <Input
                                   type="number"
                                   step="0.01"
@@ -1020,7 +1022,7 @@ function Inventory() {
                               </div>
                               
                               <div className="space-y-2">
-                                <Label>Cost Price</Label>
+                                <Label>D.P.</Label>
                                 <Input
                                   type="number"
                                   step="0.01"
@@ -1093,16 +1095,27 @@ function Inventory() {
                   </div>
 
                   <div>
-                    <Label htmlFor="dimensionsSection">Product Price, Size and Color</Label>
+                    <Label htmlFor="dimensionsSection">Product M.R.P., D.P., Size and Color</Label>
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-2">
-                        <Label htmlFor="price">Price</Label>
+                        <Label htmlFor="price">M.R.P.</Label>
                         <Input
                           id="price"
                           type="number"
                           step="0.01"
                           value={formData.price}
                           onChange={(e) => setFormData({...formData, price: e.target.value})}
+                          placeholder="0"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="cost-price">D.P.</Label>
+                        <Input
+                          id="cost-price"
+                          type="number"
+                          step="0.01"
+                          value={formData.costPrice}
+                          onChange={(e) => setFormData({...formData, costPrice: e.target.value})}
                           placeholder="0"
                         />
                       </div>
@@ -1550,7 +1563,7 @@ function Inventory() {
                         </TableHead>
                         <TableHead>Company</TableHead>
                         <TableHead>Category</TableHead>
-                        <TableHead 
+                        {/* <TableHead 
                           className="cursor-pointer"
                           onClick={() => {
                             if (sortField === "price") {
@@ -1562,8 +1575,8 @@ function Inventory() {
                           }}
                         >
                           Price {sortField === "price" && (sortOrder === "asc" ? "↑" : "↓")}
-                        </TableHead>
-                        <TableHead 
+                        </TableHead> */}
+                        {/* <TableHead 
                           className="cursor-pointer"
                           onClick={() => {
                             if (sortField === "stock") {
@@ -1576,8 +1589,8 @@ function Inventory() {
                         >
                           Stock {sortField === "stock" && (sortOrder === "asc" ? "↑" : "↓")}
                         </TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead className="text-center">Actions</TableHead>
+                        <TableHead>Status</TableHead>*/}
+                        <TableHead className="text-center">Actions</TableHead> 
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -1600,8 +1613,8 @@ function Inventory() {
                             <TableCell>
                               <Badge variant="outline">{product.category}</Badge>
                             </TableCell>
-                            <TableCell>{formatCurrency(product.price)}</TableCell>
-                            <TableCell>
+                            {/* <TableCell>{formatCurrency(product.price)}</TableCell> */}
+                            {/* <TableCell>
                               <Badge variant={stockStatus.variant}>
                                 {product.stockQuantity} units
                               </Badge>
@@ -1613,7 +1626,7 @@ function Inventory() {
                               >
                                 {product.status}
                               </Badge>
-                            </TableCell>
+                            </TableCell> */}
                             <TableCell>
                               <div className="flex justify-center gap-1">
                                 <Button
@@ -2106,10 +2119,9 @@ function Inventory() {
                               </div>
                               
                               <div className="space-y-2">
-                                <Label>Color <button className="border border-gray-300 rounded-md px-2 py-1" onClick={() => {setIsCommonColorSelected((prev) => !prev); setCommonColors(sku.color)}}>common</button></Label>
+                                <Label>Color </Label>
                                 <Input
                                   value={sku.color}
-                                  disabled={isCommonColorSelected}
                                   onChange={(e) => {
                                     const newSkus = [...formData.skus];
                                     newSkus[index].color = e.target.value;
@@ -2224,13 +2236,24 @@ function Inventory() {
                     <Label htmlFor="dimensionsSection">Product Price, Size and Color</Label>
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-2">
-                        <Label htmlFor="price">Price</Label>
+                        <Label htmlFor="price">M.R.P.</Label>
                         <Input
                           id="price"
                           type="number"
                           step="0.01"
                           value={formData.price}
                           onChange={(e) => setFormData({...formData, price: e.target.value})}
+                          placeholder="0"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="cost-price">D.P.</Label>
+                        <Input
+                          id="cost-price"
+                          type="number"
+                          step="0.01"
+                          value={formData.costPrice}
+                          onChange={(e) => setFormData({...formData, costPrice: e.target.value})}
                           placeholder="0"
                         />
                       </div>

@@ -260,11 +260,11 @@ export function OrderList({
                                       }`}>
                                         {item.product_data.name} {item.size && `(${item.size})`}
                                       </h4>
-                                      {item.product_data.description && (
+                                      {item.product_data.description && item.product_data.description !== null && (
                                         <p className={`text-xs sm:text-sm mb-2 ${
                                           item.sentToBilling ? 'line-through text-muted-foreground' : 'text-muted-foreground'
                                         }`}>
-                                          {item.product_data.description}
+                                          {item.product_data?.description}
                                         </p>
                                       )}
                                     </div>
