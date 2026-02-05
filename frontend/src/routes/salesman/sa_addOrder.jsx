@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./addOrder/card";
 import { Button } from "./addOrder/button";
 import { Badge } from "./addOrder/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./addOrder/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../distributer/ui/select";
 import { Input } from "./addOrder/input";
 import dayjs from "dayjs";
 import { Label } from "./addOrder/label";
