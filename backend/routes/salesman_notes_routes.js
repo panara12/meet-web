@@ -11,7 +11,7 @@ router.post('/addnotes', user_session_checker("add_notes"), async (req, res) => 
         const { type, title, content, color, priority } = req.body;
         const Note = req.db.model("Salesman_notes");
         const new_note = await Note.create({
-            salesman_id:req.session.user.user_id,
+            salesman_id:req.session.user.tenant_user_id,
             type,
             title,
             content,
@@ -38,7 +38,7 @@ router.post('/updatenotes/:id', user_session_checker("update_notes"), async (req
     try {
         const Note = req.db.model("Salesman_notes");
         const updated_note = await Note.findByIdAndUpdate(
-            req.params.id,
+            _id=req.params.id,
             {$set:req.body},
             { new: true }
         );
@@ -117,7 +117,7 @@ router.get('/getallnotes', user_session_checker("get_all_notes"), async (req, re
     try {
         const Note = req.db.model("Salesman_notes");
         const notes = await Note.find({salesman_id:req.session.user.tenant_user_id}).sort({ createdAt: -1 });
-        manualLog("all notes retrieved successfully");
+        manualLog("all notes retrieved successfully",notes);
         
         // ✅ SIMPLE WAY: Calculate current month dates
         const now = new Date();
