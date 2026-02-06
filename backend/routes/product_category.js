@@ -6,7 +6,6 @@ const router = express.Router();
 //add product category
 router.post('/addcategory', user_session_checker('add_category'), async (req, res) => {
   manualLog("enter in add category routte")
-  console.log(req.body)
   try {
     const { name,lgst,sgst,cgst,other } = req.body;
     console.log('Adding category with name:', name);
@@ -17,20 +16,21 @@ router.post('/addcategory', user_session_checker('add_category'), async (req, re
     });
 
     await newCategory.save();
-
+    manualLog("added new category",newCategory)
     res.status(200).send({
       message: 'Product category added successfully',
       category: newCategory,
     });
   } catch (error) {
     console.log('Error in add category:', error);
-    manualLog(`error in add category :: ${JSON.stringify(error)}`);
+    manualLog(`error in add category :: ${error}`);
     res.status(500).json({ message: 'Error adding product category', error });
   }
 });
 
 //update product category
 router.post('/updatecategory/:id', user_session_checker('update_category'), async (req, res) => {
+  manualLog("enter in update category")
   try {
     const {id} = req.params;
     const data_to_update = req.body;
@@ -38,7 +38,7 @@ router.post('/updatecategory/:id', user_session_checker('update_category'), asyn
     const ProductCategory = req.db.model('ProductCategory');
 
     const newCategory = await ProductCategory.findOneAndUpdate({_id:id}, data_to_update, {new: true});
-
+    manualLog("category udapted successfully",newCategory)
     res.send(200).json({
       message: 'Product category updated successfully',
       category: newCategory,
@@ -60,10 +60,11 @@ router.get('/getallcategory', user_session_checker('get_all_category'), async (r
     if(category.length == 0 ){
       res.send({message:"no category found",category:null})
     }
+    manualLog("get all the category successfully",category)
     res.send({message:"all category fetched",category:category})
     
   } catch (error) {
-    manualLog("some error accured in get category");
+    manualLog("some error accured in get category",error);
     console.log("some error accured in get all category ",error)
     res.send({
       message:"some error accurred in get all category",
@@ -74,13 +75,14 @@ router.get('/getallcategory', user_session_checker('get_all_category'), async (r
 
 //delete product category
 router.delete('/deletecategory/:id', user_session_checker('delete_category'), async (req, res) => {
+  manualLog("entered in delete category by id")
   try {
     const {id} = req.params;
     console.log('delete category with id:', id);
     const ProductCategory = req.db.model('ProductCategory');
 
     await ProductCategory.findOneAndDelete({_id:id});
-
+    manualLog("deleted category by id successfully")
     res.send(200).json({
       message: 'Product category deleted successfully',
       id: id,

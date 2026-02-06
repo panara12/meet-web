@@ -61,6 +61,9 @@ import { useGoogleMaps, mapContainerStyles, defaultMapOptions } from '../../util
 import { Textarea } from "./ui/textarea.jsx";
 import { useSelector } from 'react-redux';
 
+
+const digital_ocean_url = import.meta.env.VITE_DIGITAL_OCEAN_URL;
+
 const GoogleMapViewWithTracking = ({ latitude, longitude, staffName, address, onMapLoad }) => {
   const [map, setMap] = useState(null);
   const [mapLoaded, setMapLoaded] = useState(false);
@@ -254,6 +257,9 @@ function SalesPanel() {
   const [isMapLoaded, setIsMapLoaded] = useState(false);
   const [pathPoints, setPathPoints] = useState([]);
   const [isLoadingPath, setIsLoadingPath] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [preventDialogClose, setPreventDialogClose] = useState(false);
   const userInfo = useSelector((state) => state.app.userInfo);
 
   const getTodayDate = () => {
@@ -536,6 +542,40 @@ function SalesPanel() {
     clearLocationHistory(staffId);
     toast.success("Location history cleared");
   };
+
+  
+    // Handle file download
+    const handleDownload = (file) => {
+      try {
+        const link = document.createElement('a');
+        link.href = file.url;
+        link.download = file.name;
+        link.target = '_blank';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        toast.success(`Downloading ${file.name}`);
+      } catch (error) {
+        console.error('Download error:', error);
+        toast.error('Failed to download file');
+      }
+    };
+  
+    // Handle file preview
+    const handlePreview = (file) => {
+      setSelectedFile(file);
+      setShowPreview(true);
+    };
+  
+    // Close preview
+    const closePreview = (e) => {
+      if (e) {
+        e.stopPropagation();
+        e.preventDefault();
+      }
+      setShowPreview(false);
+      setSelectedFile(null);
+    };
 
   const formatDate = (dateString) => {
     if (!dateString) return "Unknown";
@@ -1425,16 +1465,18 @@ function SalesPanel() {
           </DialogContent>
         </Dialog>
         }
-        
 
         {/* Daily Files Dialog */}
         <Dialog open={showFilesDialog} onOpenChange={(open) => {
           setShowFilesDialog(open);
 
-          // ✅ FETCH FILES when dialog opens
-          if (open && selectedStaff?._id) {
-            console.log('🎯 Dialog opened, fetching files for:', selectedStaff._id);
-            fetchStaffFiles(selectedStaff._id);
+          if (!showPreview) {
+            setShowFilesDialog(open);
+            // ✅ FETCH FILES when dialog opens
+            if (open && selectedStaff?._id) {
+              console.log('🎯 Dialog opened, fetching files for:', selectedStaff._id);
+              fetchStaffFiles(selectedStaff._id);
+            }
           }
         }}>
           <DialogContent className="max-w-4xl max-h-[90vh]">
@@ -1676,20 +1718,16 @@ function SalesPanel() {
                                         <Button
                                           size="sm"
                                           variant="outline"
-                                          onClick={() => window.open(file.url, '_blank')}
+                                          onClick={() => handlePreview(file)}
+                                          title="Preview"
                                         >
                                           <Eye className="h-3 w-3" />
                                         </Button>
                                         <Button
                                           size="sm"
                                           variant="outline"
-                                          onClick={() => {
-                                            const link = document.createElement('a');
-                                            link.href = file.url;
-                                            link.download = file.name;
-                                            link.click();
-                                            toast.success(`Downloaded ${file.name}`);
-                                          }}
+                                          onClick={() => handleDownload(file)}
+                                          title="Download"
                                         >
                                           <Download className="h-3 w-3" />
                                         </Button>
@@ -1698,6 +1736,7 @@ function SalesPanel() {
                                           variant="destructive"
                                           onClick={() => handleFileDelete(file.id, file.name)}
                                           disabled={deletingFileId === file.id}
+                                          title="Delete"
                                         >
                                           {deletingFileId === file.id ? (
                                             <RefreshCw className="h-3 w-3 animate-spin" />
@@ -1721,6 +1760,96 @@ function SalesPanel() {
             )}
           </DialogContent>
         </Dialog>
+
+        {/* Preview Modal */}
+              {showPreview && selectedFile && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-2 sm:p-4 z-[100]" onClick={(e) => {
+      // Only close if clicking the backdrop, not the content
+      if (e.target === e.currentTarget) {
+        closePreview();
+      }
+    }}>
+                  <div className="bg-white rounded-lg w-full max-w-4xl max-h-[95vh] sm:max-h-[90vh] overflow-hidden flex flex-col"
+                  onClick={(e) => e.stopPropagation()}>
+                    {/* Modal Header */}
+                    <div className="flex items-center justify-between p-3 sm:p-4 border-b border-gray-200 flex-shrink-0">
+                      <div className="flex items-center gap-2 flex-1 min-w-0">
+                        {selectedFile.type === 'pdf' ? (
+                          <FileText className="w-4 h-4 sm:w-5 sm:h-5 text-red-600 flex-shrink-0" />
+                        ) : (
+                          <ImageIcon className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600 flex-shrink-0" />
+                        )}
+                        <div className="min-w-0 flex-1">
+                          <h3 className="font-medium text-sm sm:text-base text-gray-900 truncate">{selectedFile.name}</h3>
+                          <p className="text-xs sm:text-sm text-gray-500 truncate">
+                            Uploaded by {selectedFile.uploadedBy.name}
+                          </p>
+                        </div>
+                      </div>
+                      <button
+                        onClick={(e)=>{
+                          e.stopPropagation();
+                          e.preventDefault();
+                          closePreview()}}
+                        className="p-1.5 sm:p-2 hover:bg-gray-100 rounded-lg transition-colors flex-shrink-0 ml-2"
+                      >
+                        <span className="text-gray-500 text-xl sm:text-2xl leading-none">×</span>
+                      </button>
+                    </div>
+                    
+                    {/* Modal Content */}
+                    <div className="flex-1 overflow-auto bg-gray-300">
+                      {selectedFile.type === 'pdf' ? (
+                        // PDF Preview
+                        <iframe
+                          src={digital_ocean_url+selectedFile.url}
+                          className="w-full h-full min-h-[400px] sm:min-h-[500px]"
+                          title={selectedFile.name}
+                        />
+                      ) : (
+                        // Image Preview
+                        <div className="p-2 sm:p-4 flex items-center justify-center min-h-[400px] sm:min-h-[500px]">
+                          <img
+                            src={digital_ocean_url+selectedFile.url}
+                            alt={selectedFile.name}
+                            className="max-w-full max-h-full object-contain rounded-lg shadow-lg"
+                            onError={(e) => {
+                              e.target.style.display = 'none';
+                              e.target.parentElement.innerHTML = `
+                                <div class="text-center p-4">
+                                  <div class="text-gray-400 mb-4">
+                                    <svg class="w-12 h-12 sm:w-16 sm:h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                    </svg>
+                                  </div>
+                                  <p class="text-sm sm:text-base text-gray-600 mb-4">Failed to load image preview</p>
+                                  <button onclick="window.open('${digital_ocean_url}${selectedFile.url}', '_blank')" class="px-3 py-2 sm:px-4 sm:py-2 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700">
+                                    Download to View
+                                  </button>
+                                </div>
+                              `;
+                            }}
+                          />
+                        </div>
+                      )}
+                    </div>
+        
+                    {/* Modal Footer */}
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0 p-3 sm:p-4 border-t border-gray-200 bg-white flex-shrink-0">
+                      <div className="text-xs sm:text-sm text-gray-500 text-center sm:text-left">
+                        {selectedFile.size} • {selectedFile.type.toUpperCase()}
+                      </div>
+                      <button
+                        onClick={() => handleDownload(selectedFile)}
+                        className="inline-flex items-center justify-center gap-2 px-3 py-2 sm:px-4 sm:py-2 text-sm bg-[#1E3986] text-white rounded-md hover:bg-[#162d73] transition-colors w-full sm:w-auto"
+                      >
+                        <Download className="w-4 h-4" />
+                        Download
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
       </div>
     </div>
   );

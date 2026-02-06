@@ -98,7 +98,7 @@ router.post('/adduser', user_session_checker('add_user'), upload.fields([
       user_role: role
     });
 
-    manualLog(`${role} registered successfully :: ${new_user._id}`);
+    manualLog(`${role} registered successfully :: ${new_user}`);
     res.status(200).json({
       message: 'User added successfully',
       user: new_user
@@ -110,7 +110,7 @@ router.post('/adduser', user_session_checker('add_user'), upload.fields([
       res.status(400).json({ message: error_message });
     } else {
       console.log('Failed to add new user', error);
-      manualLog('Error in user registration');
+      manualLog('Error in user registration',error);
       res.status(500).json({ message: 'Failed to add user', error: error.message });
     }
   }
@@ -193,7 +193,7 @@ router.post('/updateuser/:id',upload.fields([
     ); 
     console.log("user updated",updated_user)
 
-    manualLog(`User updated successfully :: ${updated_user._id}`);
+    manualLog(`User updated successfully :: ${updated_user}`);
     res.status(200).send({
       message: 'User updated successfully',
       user: updated_user
@@ -205,7 +205,7 @@ router.post('/updateuser/:id',upload.fields([
       res.status(400).json({ message: error_message });
     } else {
       console.log('Failed to update user', error);
-      manualLog('Error in user update');
+      manualLog('Error in user update',error);
       res.status(500).json({ message: 'Failed to update user', error: error.message });
     }
   }
@@ -258,7 +258,7 @@ router.get('/getalluser', user_session_checker('get_all_user'), async (req, res)
 
 
     const user_data = await User.find({ isDeleted: false, ...filter }).skip(skip).limit(limit).sort(sort);
-    manualLog('All users fetched successfully');
+    manualLog('All users fetched successfully',user_data);
     res.status(200).json({
       message: 'All users retrieved',
       user: {
@@ -293,7 +293,7 @@ router.get('/getuser/:id', user_session_checker('get_by_id_user'), async (req, r
       return res.status(404).json({ message: 'User not found' });
     }
 
-    manualLog(`User retrieved by id successfully :: ${user_data._id}`);
+    manualLog(`User retrieved by id successfully :: ${user_data}`);
     res.status(200).json({
       message: 'User retrieved',
       user: user_data
@@ -325,7 +325,7 @@ router.post('/getbyuserrole', user_session_checker('user_by_userrole'), async (r
       });
     }
 
-    manualLog(`Users fetched by role successfully :: ${user_data.length} users`);
+    manualLog(`Users fetched by role successfully :: ${user_data} users`);
     res.status(200).json({
       message: 'Users retrieved by role',
       user: user_data
@@ -354,7 +354,7 @@ router.delete('/deleteuser/:id', user_session_checker('delete_user'), async (req
       return res.status(404).json({ message: 'User not found' });
     }
 
-    manualLog(`User deleted successfully :: ${user_data._id}`);
+    manualLog(`User deleted successfully :: ${user_data}`);
     res.status(200).json({
       message: 'User deleted successfully',
       user: user_data

@@ -615,7 +615,7 @@ const handleAddToCart = async () => {
   };
 
   
-const handleQuantityChange = (clientId, itemId, newQuantity) => {
+const handleQuantityChange = (clientId, itemId, newQuantity, total) => {
   if (newQuantity < 1) return;
   
   // console.log("clientId", clientId, "itemId", itemId, "newQuantity", newQuantity);
@@ -624,9 +624,9 @@ const handleQuantityChange = (clientId, itemId, newQuantity) => {
     ...clientCarts,
     [clientId]: clientCarts[clientId].map(item => {
       // console.log("Comparing item.id:", item.id, "with itemId:", itemId, "Match:", item.id === itemId);
-      
+      // console.log("selectedd sku",selectedSku)
       if (item.id === itemId) {
-        const price = item.product.costPrice || item.product.skus?.[0]?.costPrice;
+        const price = total/item.quantity;
         return { 
           ...item, 
           quantity: newQuantity, 
@@ -1822,7 +1822,7 @@ const handlePaymentDialogClose = (open) => {
                                     <Button
                                       size="sm"
                                       variant="outline"
-                                      onClick={() => handleQuantityChange(clientCart.seller_data._id, item.id, Number(item.quantity) - 1)}
+                                      onClick={() => handleQuantityChange(clientCart.seller_data._id, item.id, Number(item.quantity) - 1,item.subtotal)}
                                       className="h-6 w-6 sm:h-7 sm:w-7 p-0"
                                     >
                                       <Minus className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
@@ -1831,7 +1831,7 @@ const handlePaymentDialogClose = (open) => {
                                     <Button
                                       size="sm"
                                       variant="outline"
-                                      onClick={() => handleQuantityChange(clientCart.seller_data._id, item.id, Number(item.quantity) + 1)}
+                                      onClick={() => handleQuantityChange(clientCart.seller_data._id, item.id, Number(item.quantity) + 1,item.subtotal)}
                                       className="h-6 w-6 sm:h-7 sm:w-7 p-0"
                                     >
                                       <Plus className="h-2.5 w-2.5 sm:h-3 sm:w-3" />

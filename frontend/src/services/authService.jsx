@@ -2,7 +2,7 @@ import apiHelper from '../utils/Url'
 
 
 const authServices = {
-    login : (payload)=> apiHelper.post('/auth/login',{type:payload.type,username: payload.username,password:payload.password}),
+    login : (payload)=> apiHelper.post('/auth/login',{dept:payload.dept,type:payload.type,username: payload.username,password:payload.password}),
     getLoggedUser : async ()=> {
         const res = await apiHelper.get('/getme/me')
         console.log("loggesdsd",res.data)

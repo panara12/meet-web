@@ -298,7 +298,7 @@ const decrementPathRequest = () => {
   updateLimit({
     id: limits.data[0]._id,
     updates: {
-      placedOrderCount: newUsedCount
+      routeLocationlimit: newUsedCount
     }
   })
 

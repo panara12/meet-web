@@ -8,6 +8,7 @@ router.post(
   '/locationEntry',
   user_session_checker('add_location'),
   async (req, res) => {
+    manualLog('entered in location route')
     try {
       const userId = req.session.user.tenant_user_id;
       const tenantName = req.session.user.tenant;
@@ -36,7 +37,7 @@ router.post(
         }
       );
 
-      manualLog(`Location updated for user :: ${userId}`);
+      manualLog(`Location updated for user :: ${location}`);
       res.status(200).json({
         message: 'Location updated successfully',
         location
@@ -58,6 +59,7 @@ router.get(
   '/locationHistory/:userId',
   user_session_checker('view_location'),
   async (req, res) => {
+    manualLog("entered in location history route")
     try {
       const { userId } = req.params;
       const Location = req.db.model('Location');
@@ -68,12 +70,13 @@ router.get(
       })
         .sort({ createdAt: -1 })
         .limit(50);
-
+      manualLog("location history fethced successfully",locations)
       res.status(200).json({
         message: 'Location history retrieved',
         locations
       });
     } catch (error) {
+      manualLog("error in location history route",error)
       res.status(500).json({
         message: 'Failed to fetch location history',
         error: error.message
@@ -103,13 +106,14 @@ router.get(
           message: 'No location found for this user'
         });
       }
-
+      manualLog('location fetched',location)
       res.status(200).json({
         message: 'Latest location retrieved',
         location
       });
     } catch (error) {
       console.log('Error fetching latest location', error);
+      manualLog('error in latest location route',error)
       res.status(500).json({
         message: 'Failed to fetch location',
         error: error.message
@@ -124,6 +128,7 @@ router.get(
   '/locationsByTenant',
   user_session_checker('view_location'),
   async (req, res) => {
+    manualLog('Entered get locations by tenant route');
     try {
       const tenantName = req.session.user.tenant;
       const Location = req.db.model('Location');
@@ -132,12 +137,13 @@ router.get(
         tenantName,
         isDeleted: false
       }).sort({ updatedAt: -1 });
-
+      manualLog('location by tenant fetched successfully',locations)
       res.status(200).json({
         message: 'Tenant locations retrieved',
         locations
       });
     } catch (error) {
+      manualLog('error in locations by tenant route',error)
       res.status(500).json({
         message: 'Failed to fetch locations',
         error: error.message
@@ -170,13 +176,14 @@ router.post('/pathPoints', user_session_checker('view_location'), async (req, re
     }).sort({ createdAt: 1 });
     
     console.log(`Fetched ${locations.length} location points for user ${userId} on date ${date}`);
-
+    manualLog("pathpoints getted",locations)
     res.status(200).json({
       message: 'Path points retrieved',
       locations
     });
   } catch (error) {
     console.log('Error fetching path points', error);
+    manualLog("errror in fetch path poinst",error)
     res.status(500).json({
       message: 'Failed to fetch path points',
       error: error.message

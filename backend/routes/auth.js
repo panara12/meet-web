@@ -13,17 +13,17 @@ const user_session_checker = require('../middleware/user_session');
 router.post('/login',async(req,res)=>{
     manualLog(`entered in login`)
     try {
-        const {type,username,password} = req.body
+        const {dept,type,username,password} = req.body
         console.log("tyeo",type)
         let user_data = {}
         if(type == "Username"){
-            user_data = await Tenent_user_master.findOne({ user_username: username })
+            user_data = await Tenent_user_master.findOne({ user_username: username, user_role: dept})
             console.log("username worke", user_data)
         }else if(type == "Mobile"){
-            user_data = await Tenent_user_master.findOne({ user_mobile: username })
+            user_data = await Tenent_user_master.findOne({ user_mobile: username, user_role: dept })
             console.log("mobile", user_data,username)
         }else{
-            user_data = await Tenent_user_master.findOne({ user_email: username })
+            user_data = await Tenent_user_master.findOne({ user_email: username, user_role: dept })
             console.log("email", user_data)
         }
 
@@ -35,8 +35,10 @@ router.post('/login',async(req,res)=>{
         //     ]
         // });
         console.log("get user data",user_data);
+        manualLog('get user data',user_data);
 
         if(user_data == null){
+            manualLog("user not found for",dept,type,username,password)
             return res.status(400).send({ 
                 success:false,
                 message: "User not Found" 
@@ -45,6 +47,7 @@ router.post('/login',async(req,res)=>{
 
         const isMatch = await bcrypt.compare(password, user_data.user_password);
         if (!isMatch) {
+            manualLog("password does not mathch")
             return res.status(400).send({ 
                 message: 'Username or password does not match',
                 success:false,
@@ -69,7 +72,7 @@ router.post('/login',async(req,res)=>{
             tenant: user_data.user_tenant
         };
 
-        manualLog(`user logged in successfully: ${username}`);
+        manualLog(`user logged in successfully: ${req.session.user}`);
   
         res.status(200).send({
         success:true,
@@ -79,7 +82,7 @@ router.post('/login',async(req,res)=>{
         
 
     } catch (error) {
-        manualLog(`Error in user login: ${JSON.stringify(error)}`);
+        manualLog(`Error in user login: ${error}`);
         res.status(500).send({ message: "Error in user login",error });
     }
 })
@@ -87,6 +90,7 @@ router.post('/login',async(req,res)=>{
 
 
 router.get('/logout',(req,res)=>{
+    manualLog("entered in logout")
     const userInfo = req.session.user;
     try {
         req.session.destroy(err => {
@@ -114,26 +118,32 @@ router.get('/logout',(req,res)=>{
 })
 
 router.post('/forgotpassword',async(req,res)=>{
+    manualLog("entered in forgot password")
     try {
         const {email} = req.body
         const userData = await Tenent_user_master.findOne({user_email:email});
         console.log(userData)
+        manualLog("user entered email",email)
         if(!userData){
+            manualLog("user not found for email",email)
             return res.status(400).send({
                 success:false,
                 message:"user not found"
             })
         }
         const result = await resetPassword(email,userData);
+        manualLog("otp sent successfully",result)
         return res.status(200).send(result);    
     } catch (error) {
         console.log("something went wronge in forgot password",error)
+        manualLog("something went wronge in forgot password",error)
         return res.status(500).send({message:"something went wronge in forgot password",error})
     }
     
 })
 
 router.post("/checkotp",async(req,res)=>{
+    manualLog("enter in check otp")
     try {
         const {email,otp}= req.body;
         if(email==null){
@@ -156,10 +166,12 @@ router.post("/checkotp",async(req,res)=>{
         userdata.is_successfull = true;
         await userdata.save();
         console.log("userdata saved")
+        manualLog("otp verificed successfully");
         res.status(200).send({message:"OTP verified successfully",success:true})
         
     } catch (error) {
-        console.log("there something wronge in otp verification")
+        console.log("there something wronge in otp verification",error)
+        manualLog("there something wronge in otp verification",error)
         res.status(500).send({
             message:"something went wronge please try again"
         })
@@ -168,6 +180,7 @@ router.post("/checkotp",async(req,res)=>{
 
 
 router.post('/resetpassword',async(req,res)=>{
+    manualLog("enetered in reset password")
     try {
         console.log(req.body)
         const {email,password} = req.body
@@ -177,15 +190,18 @@ router.post('/resetpassword',async(req,res)=>{
         const userData = await Tenent_user_master.findOneAndUpdate({user_email:email},{user_password:hashedPassword},{new:true});
         console.log(userData)
         if(!userData){
+            manualLog("user not found for email",email)
             return res.status(400).send({
                 success:false,
                 message:"user not found"
             })
         }
         console.log('password updated')
+        manualLog("password updated successfully for email",email)
         return res.status(200).send({success:true,message:"password updated successfully",data:userData});    
     } catch (error) {
         console.log("something went wronge in reset password",error)
+        manualLog("something went wronge in reset password",error)
         return res.status(500).send({message:"something went wronge in reset password",error})
     }
     

@@ -18,7 +18,7 @@ router.post('/addnotes', user_session_checker("add_notes"), async (req, res) => 
             color,
             priority
         });
-        manualLog("note added successfully");
+        manualLog("note added successfully",new_note);
         res.status(200).send({
             message: "note added successfully",
             success: true,
@@ -34,7 +34,6 @@ router.post('/addnotes', user_session_checker("add_notes"), async (req, res) => 
 // Update note
 router.post('/updatenotes/:id', user_session_checker("update_notes"), async (req, res) => {
     manualLog("entered in update notes method");
-    console.log(req.body)
     try {
         const Note = req.db.model("Salesman_notes");
         const updated_note = await Note.findByIdAndUpdate(
@@ -48,7 +47,7 @@ router.post('/updatenotes/:id', user_session_checker("update_notes"), async (req
                 success: false
             });
         }
-        manualLog("note updated successfully");
+        manualLog("note updated successfully",updated_note);
         res.status(200).send({
             message: "note updated successfully",
             success: true,
@@ -73,7 +72,7 @@ router.delete('/deletenotes/:id', user_session_checker("delete_notes"), async (r
                 success: false
             });
         }
-        manualLog("note deleted successfully");
+        manualLog("note deleted successfully",deleted_note);
         res.status(200).send({
             message: "note deleted successfully",
             success: true,
@@ -98,7 +97,7 @@ router.get('/getnotes/:id', user_session_checker("get_notes"), async (req, res) 
                 success: false
             });
         }
-        manualLog("note retrieved successfully");
+        manualLog("note retrieved successfully",note);
         res.status(200).send({
             message: "note retrieved successfully",
             success: true,
@@ -159,7 +158,7 @@ router.get('/getallnotes', user_session_checker("get_all_notes"), async (req, re
         };
         
         console.log("📊 Totals:", totals);
-
+        manualLog("all noted successfully",notes)
         res.status(200).send({
             message: "all notes retrieved successfully",
             success: true,

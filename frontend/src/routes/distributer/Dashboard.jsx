@@ -923,7 +923,7 @@ export default function Dashboard({ onNavigate }) {
                 </Button>
               </div>
 
-              <div className="text-center pt-2">
+              {/* <div className="text-center pt-2">
                 <p className="text-sm text-gray-600">
                   Forgot your credentials?{' '}
                   <button 
@@ -936,7 +936,7 @@ export default function Dashboard({ onNavigate }) {
                     Contact Support
                   </button>
                 </p>
-              </div>
+              </div> */}
             </div>
           </DialogContent>
         </Dialog>

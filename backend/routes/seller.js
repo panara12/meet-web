@@ -45,7 +45,7 @@ router.post('/addseller',user_session_checker("add_seller"),async(req,res)=>{
             user_tenant:req.session.user.tenant,
             user_role:"seller"
         });
-        manualLog(`seller registred successfully :: ${new_seller._id}`)
+        manualLog(`seller registred successfully :: ${new_seller}`)
         res.status(200).json({
             message:"new seller added",
             seller:{new_seller}
@@ -58,7 +58,7 @@ router.post('/addseller',user_session_checker("add_seller"),async(req,res)=>{
             res.status(400).json({message:"something broke",error:validationErrors})
         }else{
         console.log('failed to add new seller')
-        manualLog(`there is error in seller registration :: ${JSON.stringify(error)}`)
+        manualLog(`there is error in seller registration :: ${error}`)
         res.status(500).json({message:"new seller not added",error})  
         }  
     }
@@ -88,7 +88,7 @@ router.post('/updateseller/:id',user_session_checker("edit_seller"),async(req,re
 
         const SellerModel = req.db.model("Seller");
         const updated_seller = await SellerModel.findOneAndUpdate({_id:id},{$set:user_data},{new:true})
-        manualLog(`seller updated successfully :: ${updated_seller._id}`)
+        manualLog(`seller updated successfully :: ${updated_seller}`)
         res.status(200).json({
             message:"seller updated",
             seller:{updated_seller}
@@ -101,7 +101,7 @@ router.post('/updateseller/:id',user_session_checker("edit_seller"),async(req,re
             res.status(400).json({message:error_message})
         }else{
             console.log('failed to update seller')
-            manualLog(`there is error in update seller :: ${JSON.stringify(error)}`)
+            manualLog(`there is error in update seller :: ${error}`)
             res.status(500).json({message:"seller not updated"})    
         }
     }
@@ -113,14 +113,14 @@ router.post("/updatesellerorders/:id",user_session_checker("udpate_seller_orders
         const {id} = req.params
         const SellerModel = req.db.model("Seller");
         const updated_seller = await SellerModel.findOneAndUpdate({_id:id},{$set:req.body},{new:true})
-        manualLog(`seller updated successfully :: ${updated_seller._id}`)
+        manualLog(`seller updated successfully :: ${updated_seller}`)
         res.status(200).json({
             message:"seller updated",
             seller:{updated_seller}
         })
     }catch(error){
         console.log('failed to update order seller')
-        manualLog(`there is error in update order seller :: ${JSON.stringify(error)}`)
+        manualLog(`there is error in update order seller :: ${error}`)
         res.status(500).json({message:"seller order not updated"})  
     }
 })
@@ -179,6 +179,7 @@ router.get('/allseller', user_session_checker("get_all_seller"), async (req, res
             .skip(skip)
             .limit(limit)
             .lean(); // Use lean() for better performance
+        manualLog("get all sellers successfully",seller_data)
 
         res.status(200).json({
             message: "Get all sellers successfully",
@@ -211,14 +212,14 @@ router.get('/getseller/:id',user_session_checker("get_by_id_seller"),async(req,r
         const {id} = req.params;
         const SellerModel = req.db.model("Seller");
         const seller_data = await SellerModel.findOne({_id:id});
-        manualLog(`get seller by id successfully :: ${seller_data._id}`)
+        manualLog(`get seller by id successfully :: ${seller_data}`)
         res.status(200).json({
             message:"",
             seller:{seller_data}
         })
     } catch (error) {
         console.log("seller data not found");
-        manualLog(`there is error in get seller by id :: ${JSON.stringify(error)}`)
+        manualLog(`there is error in get seller by id :: ${error}`)
         res.status(500).json({message:"seller data is not found"})
     }
 })
@@ -229,14 +230,14 @@ router.delete('/deleteseller/:id',user_session_checker("delete_seller"),async(re
         const {id} = req.params;
         const SellerModel = req.db.model("Seller");
         const seller_data = await SellerModel.findOneAndDelete({_id:id});
-        manualLog(`seller deleted successfully :: ${seller_data._id}`)
+        manualLog(`seller deleted successfully :: ${seller_data}`)
         res.status(200).json({
             message:"seller deleted",
             seller:{seller_data}
         })
     } catch (error) {
         console.log("seller data not deleted");
-        manualLog(`there is error in delete seller by id :: ${JSON.stringify(error)}`)
+        manualLog(`there is error in delete seller by id :: ${error}`)
         res.status(500).json({message:"seller data is not deleted"})
     }
 })

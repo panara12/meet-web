@@ -5,6 +5,7 @@ const router = express.Router();
 
 // Add Company
 router.post('/addcompany', user_session_checker("add_company"), async (req, res) => {
+    manualLog("entered in add company method")
     try {
         const company_data  = req.body;
         console.log(company_data);
@@ -14,6 +15,7 @@ router.post('/addcompany', user_session_checker("add_company"), async (req, res)
         }
 
         const new_company_data = await Company.create(company_data);
+        manualLog("companny aadedd successfully",new_company_data)
         res.status(200).send({
             message: "company added successfully",
             company: new_company_data
@@ -27,6 +29,7 @@ router.post('/addcompany', user_session_checker("add_company"), async (req, res)
 
 // Update Company
 router.post('/updatecompany/:id', user_session_checker("edit_company"), async (req, res) => {
+    manualLog("enter in update company")
     try {
         console.log(req.body);
         const { id } = req.params;
@@ -37,7 +40,7 @@ router.post('/updatecompany/:id', user_session_checker("edit_company"), async (r
             { $set: req.body },
             { new: true }
         );
-
+        manualLog("company updated successfully",company_data)
         res.status(200).json({
             message: "company updated successfully",
             company: company_data
@@ -51,6 +54,7 @@ router.post('/updatecompany/:id', user_session_checker("edit_company"), async (r
 
 // Get All Companies
 router.get('/getallcompany', user_session_checker("get_all_company"), async (req, res) => {
+    manualLog("entered in get all company methods")
     try {
         
         const page = parseInt(req.query.page) || 1;
@@ -95,6 +99,7 @@ router.get('/getallcompany', user_session_checker("get_all_company"), async (req
 
 
         const company_data = await Company.find(filter).sort(sort).skip(skip).limit(limit);
+        manualLog("company fethced successfully",company_data)
         res.status(200).json({
             message: "get all company successfully",
             company: {
@@ -118,6 +123,7 @@ router.get('/getallcompany', user_session_checker("get_all_company"), async (req
 });
 
 router.get('/getcompany/:id', user_session_checker("get_company"), async (req, res) => {
+    manualLog("entered in get company by id method");
     try {
         const { id } = req.params;
         const Company = req.db.model('Company');
@@ -126,7 +132,7 @@ router.get('/getcompany/:id', user_session_checker("get_company"), async (req, r
         if (!company_data) {
             return res.status(404).json({ message: "Company not found" });
         }
-
+        manualLog("company fethced successfully",company_data)
         res.status(200).json({
             message: "get company by id successfully",
             company: company_data
@@ -140,11 +146,13 @@ router.get('/getcompany/:id', user_session_checker("get_company"), async (req, r
 
 // Delete Company
 router.delete('/deletecompany/:id', user_session_checker("delete_company"), async (req, res) => {
+    manualLog("entered in delete company")
     try {
         console.log(req.body);
         const { id } = req.params;
         const Company = req.db.model('Company');
         const company_data = await Company.findOneAndDelete({ _id: id });
+        manualLog("company deleted successfuly",company_data)
         res.status(200).json({
             message: "company deleted successfully",
             company: company_data

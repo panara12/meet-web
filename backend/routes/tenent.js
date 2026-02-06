@@ -17,6 +17,7 @@ const tenentCache = require('../cache/tenent_list');
  * @returns {Object} Created documents
  */
 async function initializeTenantDb(tenantDbConnection, distributerData, limitsData, hashedPassword) {
+    manualLog("enter in initialize tenant methods")
     try {
         // Get all models from tenant DB connection
         const Distributer = tenantDbConnection.model("Distributer");
@@ -74,7 +75,7 @@ async function initializeTenantDb(tenantDbConnection, distributerData, limitsDat
             placedOrderCount:0
         });
 
-        manualLog(`✅ Tenant DB initialized successfully with Distributer: ${newDistributer._id}, User: ${newUser._id}, Limits: ${newLimits._id}`);
+        manualLog(`✅ Tenant DB initialized successfully with Distributer: ${newDistributer}, User: ${newUser}, Limits: ${newLimits}`);
 
         return {
             distributer: newDistributer,
@@ -231,7 +232,7 @@ router.post('/addtenant', async (req, res) => {
             database_initialized: true
         });
 
-        manualLog(`🎉 Complete tenant registration successful :: Tenant: ${newTenant._id}, Distributor: ${newDistributer._id}`);
+        manualLog(`🎉 Complete tenant registration successful :: Tenant: ${newTenant}, Distributor: ${newDistributer}`);
 
     } catch (error) {
         // ========== ERROR HANDLING WITH ROLLBACK ==========

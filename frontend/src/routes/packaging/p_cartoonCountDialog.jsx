@@ -53,10 +53,10 @@ export function CartoonCountDialog({
             </div>
             <div className="flex-1 min-w-0">
               <DialogTitle className="text-base sm:text-lg md:text-xl font-bold text-foreground mb-1">
-                {t('Send to Billing')}
+                {t('Send to Dispatch')}
               </DialogTitle>
               <DialogDescription className="text-xs sm:text-sm text-muted-foreground">
-                Configure billing details for this batch
+                Configure Dispatch details for this batch
               </DialogDescription>
             </div>
           </div>
@@ -105,7 +105,7 @@ export function CartoonCountDialog({
               className="text-xs sm:text-sm font-semibold text-foreground flex items-center gap-2"
             >
               <Calendar className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-primary" />
-              {t('Billing Date')}
+              {t('Dispatch Date')}
               <span className="text-destructive">*</span>
             </Label>
             <Input
@@ -126,7 +126,7 @@ export function CartoonCountDialog({
               <div className="text-xs sm:text-sm text-primary space-y-1">
                 <p className="font-semibold">Important:</p>
                 <p className="text-primary/80">
-                  These items will be marked as sent to billing and cannot be modified afterwards.
+                  These items will be marked as sent to Dispatch and cannot be modified afterwards.
                 </p>
               </div>
             </div>

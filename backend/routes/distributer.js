@@ -68,7 +68,7 @@ router.post('/adddistributer',async (req,res)=>{
         routeLocationlimit:35,
         totalRouteLocationlimit:35
     });
-
+    manualLog("distributer registered successfully",new_user)
     res.status(200).json({
         message:"user registerd",
         Distributer:{new_user}
@@ -81,7 +81,7 @@ router.post('/adddistributer',async (req,res)=>{
             res.status(400).json({message:error_message})
         }else{
             console.log("resistration error");
-            manualLog(`there is an error in new distributer adding error :: ${JSON.stringify(error)}`);
+            manualLog(`there is an error in new distributer adding error :: ${error}`);
             res.status(500).json({message:'regisstration error'})  
         }
     }
@@ -95,14 +95,14 @@ router.get('/distributerdata',user_session_checker("get_distributer_data"),async
         const Distributer = req.db.model("Distributer");
         const user_data = await Distributer.findOne({_id:req.session.user.tenant_user_id});
         console.log(req.session.user.tenant_user_id,user_data);
-        manualLog(`distributer get by id ::${user_data._id}`)
+        manualLog(`distributer get by id ::${user_data}`)
         res.status(200).json({
             message:"got the user data",
             user_data:user_data
         })
     } catch (error) {
         console.log("user data not getting error");
-        manualLog(`there is error in getting distributer by id :: ${JSON.stringify(error)}`)
+        manualLog(`there is error in getting distributer by id :: ${error}`)
         res.status(500).json({message:'somehow user does not get',error})  
     }
 })
@@ -121,7 +121,7 @@ router.post('/distributerupdate/:id',user_session_checker("get_by_id_distributer
         })
     } catch (error) {
         console.log("user data is not updated");
-        manualLog(`there is error in updating distributer :: ${JSON.stringify(error)}`)
+        manualLog(`there is error in updating distributer :: ${error}`)
         res.status(500).json({message:'data is not updated'})
     }
 })

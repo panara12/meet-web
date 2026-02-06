@@ -17,7 +17,7 @@ router.post('/addpayment',user_session_checker("add_payment"),async(req,res)=>{
             order_with_payment,
             status:[status]
         })
-        manualLog("payment added successfully")
+        manualLog("payment added successfully",new_payment)
         res.status(200).send({
             message:"payment added successfully",
             success:true,
@@ -81,7 +81,7 @@ router.get('/getallpayments',user_session_checker("view_payments"),async(req,res
             .limit(limit)
             .lean().populate('payment_client').populate('payment_salesman')
 
-        manualLog("payments fetched successfully")
+        manualLog("payments fetched successfully",payments)
         res.status(200).send({
             message:"payments fetched successfully",
             success:true,
@@ -112,7 +112,7 @@ router.post('/updatepaymentstatus/:id',user_session_checker("update_payment_stat
         const updated_payment = await Payment.findByIdAndUpdate(req.params.id,{
             $push:{status:status}
         })
-        manualLog("payment status updated successfully")
+        manualLog("payment status updated successfully",updated_payment)
         res.status(200).send({
             message:"payment status updated successfully",
             success:true,

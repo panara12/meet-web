@@ -40,7 +40,7 @@ function Login() {
       color: 'border-green-200 bg-green-50'
     },
     {
-      id: 'packing',
+      id: 'packaging',
       name: 'Packing',
       icon: <Package className="w-5 h-5 text-blue-500" />,
       color: 'border-blue-200 bg-blue-50'
@@ -87,6 +87,7 @@ function Login() {
       return;
     }
     const userdata = {
+      dept:selectedRole.id,
       type:selectedLoginType,
       username:username.trim(),
       password:password.trim()

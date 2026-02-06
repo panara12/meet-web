@@ -15,8 +15,8 @@ router.post(
   multerErrorHandler,
   async (req, res) => {
     manualLog('entered add file route');
-    console.log('file data', req.files);
-    console.log('req body data', req.body);
+    // console.log('file data', req.files);
+    // console.log('req body data', req.body);
     
     try {
       const { file_day, file_description, uploaded_by, uploaded_for } = req.body;
@@ -50,7 +50,7 @@ router.post(
 
       const uploadedFiles = await Promise.all(uploadPromises);
       console.log("All files uploaded:", uploadedFiles);
-
+      manualLog("All files uploaded:", uploadedFiles)
       // Get File model
       const File = req.db.model('File');
 
@@ -150,7 +150,7 @@ router.post(
         { new: true, runValidators: true }
       ).populate('uploaded_by uploaded_for', 'name email');
 
-      manualLog(`File updated: ${updatedFile._id}`);
+      manualLog(`File updated: ${updatedFile}`);
       
       res.status(200).json({
         message: 'File updated successfully',
@@ -187,7 +187,7 @@ router.get(
         return res.status(404).json({ message: 'File not found' });
       }
 
-      manualLog(`Retrieved file by id: ${fileData._id}`);
+      manualLog(`Retrieved file by id: ${fileData}`);
       
       res.status(200).json({
         message: 'File retrieved successfully',
@@ -196,7 +196,7 @@ router.get(
 
     } catch (error) {
       console.log('Error in get file by id:', error);
-      manualLog(`Error in get file by id :: ${JSON.stringify(error)}`);
+      manualLog(`Error in get file by id :: ${error}`);
       res.status(500).json({
         message: 'Error retrieving file',
         error: error.message,
@@ -221,7 +221,7 @@ router.get(
         .populate('uploaded_for', 'name email')
         .sort({ uploaded_at: -1 });
 
-      manualLog(`Retrieved ${files.length} files for day: ${day}`);
+      manualLog(`Retrieved ${files} files for day: ${day}`);
       
       res.status(200).json({
         message: 'Files retrieved successfully',
@@ -232,7 +232,7 @@ router.get(
 
     } catch (error) {
       console.log('Error in get files by day:', error);
-      manualLog(`Error in get files by day :: ${JSON.stringify(error)}`);
+      manualLog(`Error in get files by day :: ${error}`);
       res.status(500).json({
         message: 'Error retrieving files by day',
         error: error.message,
@@ -258,7 +258,7 @@ router.get(
         .populate('uploaded_for', 'firstName email')
         .sort({ uploaded_at: -1 });
 
-      manualLog(`Retrieved ${files.length} files`);
+      manualLog(`Retrieved ${files} files`);
 
       res.status(200).json({
         message: 'Files retrieved successfully',
@@ -267,7 +267,7 @@ router.get(
 
     } catch (error) {
       console.error('Error in get all files:', error);
-      manualLog(`Error in get all files :: ${JSON.stringify(error)}`);
+      manualLog(`Error in get all files :: ${error}`);
       res.status(500).json({
         message: 'Error retrieving files',
         error: error.message,
@@ -328,7 +328,7 @@ router.get(
         .populate('uploaded_for', 'firstName email')
         .sort({ uploaded_at: -1 });
 
-      manualLog(`Retrieved ${files.length} files for user ${userId} for current week`);
+      manualLog(`Retrieved ${files} files for user ${userId} for current week`);
       
       res.status(200).json({
         message: 'Files retrieved successfully',
@@ -343,7 +343,7 @@ router.get(
 
     } catch (error) {
       console.log('Error in get files by week:', error);
-      manualLog(`Error in get files by week :: ${JSON.stringify(error)}`);
+      manualLog(`Error in get files by week :: ${error}`);
       res.status(500).json({
         message: 'Error retrieving files by week',
         error: error.message,

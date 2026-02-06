@@ -16,8 +16,6 @@ router.post(
   multerErrorHandler,
   async (req, res) => {
     manualLog('entered add products route');
-    console.log('file data', req.files);
-    console.log('req body data', req.body);
     
     try {
       // ✅ Extract all fields from req.body
@@ -55,6 +53,7 @@ router.post(
         );
 
         console.log("digital ocean response", res_DO);
+        manualLog("digital ocean imgs",res_DO)
         imageDocs = res_DO.map((file) => ({
           url: file.url,
           doc_name: file.name,
@@ -95,6 +94,7 @@ router.post(
       }
 
       console.log('Processed dimensions:', dimensionsObj);
+      manualLog('Processed dimensions:', dimensionsObj)
 
       // ✅ Handle SKUs - convert [Object: null prototype] to plain array
       let skusArray = [];
@@ -116,6 +116,7 @@ router.post(
       }
 
       console.log('Processed SKUs:', skusArray);
+      manualLog('Processed SKUs:', skusArray);
 
       // ✅ Convert companyId to ObjectId
       let companyObjectId = null;
@@ -186,8 +187,7 @@ router.post(
 
     } catch (error) {
       console.log('Error in add new product:', error);
-      console.log('Error name:', error.name);
-      console.log('Error stack:', error.stack);
+      manualLog("error in add new product",error)
       
       if (error.name === 'ValidationError') {
         const messages = Object.values(error.errors).map(err => err.message);
@@ -327,7 +327,7 @@ router.post(
         { new: true }
       );
 
-      manualLog(`Product updated: ${updated_product._id}`);
+      manualLog(`Product updated: ${updated_product}`);
       res.status(200).json({
         message: 'Product updated successfully',
         product: updated_product,
@@ -352,14 +352,14 @@ router.get(
       const product_data = await Product.findById(id).populate('companyId');
       if (!product_data) return res.status(404).json({ message: 'Product not found' });
 
-      manualLog(`get the product by id :: ${product_data._id}`);
+      manualLog(`get the product by id :: ${product_data}`);
       res.status(200).json({
         message: 'got the product',
         product: product_data,
       });
     } catch (error) {
       console.log('there is error in get by id product');
-      manualLog(`error in get by id product :: ${JSON.stringify(error)}`);
+      manualLog(`error in get by id product :: ${error}`);
       res.status(500).json({ message: 'errror in get by id product', error: error });
     }
   }
@@ -369,6 +369,7 @@ router.get(
   '/getallproduct',
   user_session_checker('get_all_product'),
   async (req, res) => {
+    manualLog("entered in get all products")
     try {
       const page = parseInt(req.query.page) || 1;
       const limit = parseInt(req.query.limit) || 10;
@@ -440,7 +441,7 @@ router.get(
       ]))[0]?.count || 0;
 
       const totalPages = Math.ceil(totalRecords / limit);
-
+      manualLog("get all products successfully",productData)
       res.status(200).json({
         message: 'got all the product',
         product: productData,
@@ -455,6 +456,7 @@ router.get(
 
     } catch (error) {
       console.error('error in get all product', error);
+      manualLog("error in get all products",error)
       res.status(500).json({
         message: 'error in get all product',
         error: error.message
@@ -467,20 +469,21 @@ router.delete(
   '/deleteproduct/:id',
   user_session_checker('delete_product'),
   async (req, res) => {
+    manualLog("entered in delete product")
     try {
       const { id } = req.params;
       const Product = req.db.model('Product');
       const deleted_product = await Product.findByIdAndDelete(id);
       if (!deleted_product)
         return res.status(404).json({ message: 'Product not found' });
-
+      manualLog("product deleted successfully",deleted_product)
       res.status(200).json({
         message: 'product deleted',
         product: deleted_product,
       });
     } catch (error) {
       console.log('there is error in delete products');
-      manualLog(`error in delete product :: ${JSON.stringify(error)}`);
+      manualLog(`error in delete product :: ${error}`);
       res.status(500).json({ message: 'error in delete product', error: error });
     }
   }
@@ -490,6 +493,7 @@ router.delete(
   '/deleteproductsbycompany/:companyId',
   user_session_checker('delete_company'),
   async (req, res) => {
+    manualLog("entered in delete products by company")
     try {
       const { companyId } = req.params;
       const Product = req.db.model('Product');
@@ -513,7 +517,7 @@ router.delete(
       if (all_imgs.length > 0) {
         await cloudinary_delete(all_imgs);
       }
-
+      manualLog("all products of comapnt deleted")
       res.status(200).json({
         message: `All products of company ${companyId} deleted`,
         deletedCount: deleteResult.deletedCount,
@@ -534,12 +538,13 @@ router.get(
   '/productcount/:companyId',
   user_session_checker('get_product'),
   async (req, res) => {
+    manualLog("enter in product count by company")
     try {
       const { companyId } = req.params;
       const Product = req.db.model('Product');
 
       const count = await Product.countDocuments({ companyId });
-
+      manualLog("product count fetched by company")
       res.status(200).json({
         message: 'Product count fetched successfully',
         companyId,
@@ -558,6 +563,7 @@ router.get(
   '/getskus/:productId',
   user_session_checker('get_by_id_product'),
   async (req, res) => {
+    manualLog("entered in get skus")
     try {
       const { productId } = req.params;
       const Product = req.db.model('Product');
@@ -585,6 +591,7 @@ router.put(
   '/updatesku/:productId/:skuId',
   user_session_checker('edit_product'),
   async (req, res) => {
+    manualLog("entered in update sku in products")
     try {
       const { productId, skuId } = req.params;
       const skuData = req.body;

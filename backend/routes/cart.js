@@ -9,7 +9,7 @@ router.post('/addtocart',user_session_checker("add_cart"),async(req,res)=>{
         console.log(req.body)
         const Cart = req.db.model("Cart");
         const res_data = await Cart.create(req.body) 
-        manualLog("cart added successfully")
+        manualLog("cart added successfully",res_data)
         res.status(200).send({
             message:"cart added successfully",
             success:true,
@@ -28,7 +28,7 @@ router.get("/getcart",user_session_checker("get_cart"),async(req,res)=>{
         const salesman = req.session.user.tenant_user_id;
         const Cart = req.db.model("Cart");
         const res_data = await Cart.find({salesman_data:salesman}).populate('salesman_data').populate('clients.seller_data').populate("clients.items.product_data");
-        manualLog("cart fetched successfully")
+        manualLog("cart fetched successfully",res_data)
         res.status(200).send({
             message:"cart fetched successfully",
             success:true,
@@ -79,7 +79,7 @@ router.put("/updatecart/:cartId", user_session_checker("update_cart"), async(req
             .populate('clients.seller_data')
             .populate("clients.items.product_data");
         
-        manualLog("cart updated successfully")
+        manualLog("cart updated successfully",res_data)
         res.status(200).send({
             message: "cart updated successfully",
             success: true,
@@ -109,7 +109,7 @@ router.delete("/deletecart/:cartId", user_session_checker("delete_cart"), async(
             });
         }
         
-        manualLog("cart deleted successfully")
+        manualLog("cart deleted successfully",res_data)
         res.status(200).send({
             message: "cart deleted successfully",
             success: true,

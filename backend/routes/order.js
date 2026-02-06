@@ -30,7 +30,7 @@ router.post('/addorder', user_session_checker("add_order"), async (req, res) => 
             status,
             order_firm : order_firm || ""
         });
-        manualLog("order added successfully");
+        manualLog("order added successfully",new_order);
         res.status(200).send({
             message: "order added successfully",
             success: true,
@@ -74,12 +74,13 @@ router.put('/updateorder/:id', user_session_checker("update_order"), async (req,
             { new: true }
         );
         if (!updated_order) {
+            manualLog("order not found")
             return res.status(404).send({
                 message: "order not found",
                 success: false
             });
         }
-        manualLog("order updated successfully");
+        manualLog("order updated successfully",updated_order);
         res.status(200).send({
             message: "order updated successfully",
             success: true,
@@ -104,7 +105,7 @@ router.delete('/deleteorder/:id', user_session_checker("delete_order"), async (r
                 success: false
             });
         }
-        manualLog("order deleted successfully");
+        manualLog("order deleted successfully",deleted_order);
         res.status(200).send({
             message: "order deleted successfully",
             success: true,
@@ -127,12 +128,13 @@ router.get('/getorder/:id', user_session_checker("get_order"), async (req, res) 
             .populate('order_salesman')
             .populate('items.product_data');
         if (!order) {
+            manualLog("order not found")
             return res.status(404).send({
                 message: "order not found",
                 success: false
             });
         }
-        manualLog("order retrieved successfully");
+        manualLog("order retrieved successfully",order);
         res.status(200).send({
             message: "order retrieved successfully",
             success: true,
@@ -155,7 +157,7 @@ router.get('/getallorders', user_session_checker("get_all_orders"), async (req, 
             .populate('order_salesman')
             .populate('items.product_data')
             .sort({ createdAt: -1 });
-        manualLog("all orders retrieved successfully");
+        manualLog("all orders retrieved successfully",orders);
         res.status(200).send({
             message: "all orders retrieved successfully",
             success: true,
@@ -179,7 +181,7 @@ router.get('/getmyorders', user_session_checker("get_my_orders"), async (req, re
             .populate('order_salesman')
             .populate('items.product_data')
             .sort({ createdAt: -1 });
-        manualLog("salesman orders retrieved successfully");
+        manualLog("salesman orders retrieved successfully",orders);
         res.status(200).send({
             message: "salesman orders retrieved successfully",
             success: true,
@@ -203,7 +205,7 @@ router.get('/getordersbystatus/:status', user_session_checker("get_orders_by_sta
             .populate('order_salesman')
             .populate('items.product_data')
             .sort({ createdAt: -1 });
-        manualLog("orders by status retrieved successfully");
+        manualLog("orders by status retrieved successfully",orders);
         res.status(200).send({
             message: "orders by status retrieved successfully",
             success: true,

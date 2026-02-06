@@ -19,7 +19,7 @@ router.post('/addsubadmin',user_session_checker("add_subadmin"),async(req,res)=>
             password:hashedPassword
         })
         await new_subadmin.save();
-        manualLog(`subadmin registred successfully :: ${new_subadmin._id}`)
+        manualLog(`subadmin registred successfully :: ${new_subadmin}`)
         res.status(200).json({
             message:"new subadmin added",
             subadmin:{new_subadmin}
@@ -54,7 +54,7 @@ router.post('/editsubadmin/:subadminId',user_session_checker("edit_subadmin"),as
             updateData.password = hashedPassword;
         }
         const updatedSubadmin = await SubadminModel.findByIdAndUpdate(subadminId,updateData,{new:true});
-        manualLog(`subadmin updated successfully :: ${updatedSubadmin._id}`)
+        manualLog(`subadmin updated successfully :: ${updatedSubadmin}`)
         res.status(200).json({
             message:"subadmin updated",
             subadmin:updatedSubadmin
@@ -71,7 +71,7 @@ router.get('/listsubadmin',user_session_checker("view_subadmin"),async(req,res)=
     try {
         const SubadminModel = req.db.model("Subadmin");
         const subadmins = await SubadminModel.find();
-        manualLog(`subadmin list fetched successfully :: ${subadmins.length}`)
+        manualLog(`subadmin list fetched successfully :: ${subadmins}`)
         res.status(200).json({
             message:"subadmin list fetched",
             subadmins:subadmins
@@ -118,7 +118,7 @@ router.post('/subadminlogin', async (req, res) => {
             return res.status(401).json({ message: "invalid credentials",success:false })
         }
         
-        manualLog(`subadmin logged in successfully :: ${subadmin._id}`)
+        manualLog(`subadmin logged in successfully :: ${subadmin}`)
         
         // Calculate date 5 days ago
         const fiveDaysAgo = new Date();
@@ -154,7 +154,7 @@ router.post('/subadminlogin', async (req, res) => {
             ...req.session.user, 
             subadmin_username: username 
         };
-        
+        manualLog("login successfully",updatedSubadmin)
         res.status(200).json({
             message: "login successful",
             subadmin: updatedSubadmin
