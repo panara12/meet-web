@@ -6,7 +6,7 @@ import { Button } from '../distributer/ui/button';
 import { Checkbox } from '../distributer/ui/checkbox';
 import Separator from '../distributer/ui/separator';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '../distributer/ui/dialog';
-import { Eye, EyeOff, Lock, User, Building2, Database, CreditCard, Users, MapPin, Mail, Phone, CheckCircle2 } from 'lucide-react';
+import { Eye, EyeOff, Lock, User, Building2, Database, CreditCard, Users, MapPin, Mail, Phone, CheckCircle2, AlertCircle, X } from 'lucide-react';
 import { toast } from 'sonner';
 import {useAddTenant} from '../../hooks/tenant/useAddTenant';
 
@@ -19,7 +19,7 @@ export default function TenantRegistrationPage() {
     username: '',
     password: ''
   });
-  const {mutate:addtenant, isPensing: isAddTenantPending} = useAddTenant()
+  const {mutate:addtenant, isPending: isAddTenantPending} = useAddTenant()
 
   // Form state - Tenant fields
   const [tenantData, setTenantData] = useState({
@@ -57,6 +57,7 @@ export default function TenantRegistrationPage() {
 
   const [showDistributorPassword, setShowDistributorPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [validationErrors, setValidationErrors] = useState([]);
 
   // Handle login
   const handleLogin = () => {
@@ -70,20 +71,106 @@ export default function TenantRegistrationPage() {
     }
   };
 
+  // Validation function
+  const validateForm = () => {
+    const errors = [];
+
+    // Validate tenant fields
+    if (!tenantData.D_name || tenantData.D_name.trim() === '') {
+      errors.push('Tenant Name is required');
+    }
+
+    // Domain validation - basic domain format
+    if (!tenantData.D_domain || tenantData.D_domain.trim() === '') {
+      errors.push('Domain is required');
+    } else {
+      const domainRegex = /^[a-zA-Z0-9][a-zA-Z0-9-]{0,61}[a-zA-Z0-9]?$/;
+      if (!domainRegex.test(tenantData.D_domain.trim())) {
+        errors.push('Domain must be valid');
+      }
+    }
+
+    if (!tenantData.D_plan || tenantData.D_plan.trim() === '') {
+      errors.push('Plan is required');
+    }
+
+    if (!tenantData.D_payment || tenantData.D_payment.trim() === '') {
+      errors.push('Payment is required');
+    }
+
+    // Database name validation - alphanumeric and underscores only
+    if (!tenantData.D_dbname || tenantData.D_dbname.trim() === '') {
+      errors.push('Database Name is required');
+    } else {
+      const dbNameRegex = /^[a-zA-Z0-9_-]+$/;
+      if (!dbNameRegex.test(tenantData.D_dbname)) {
+        errors.push('Database name can only contain letters, numbers, and underscores');
+      }
+      if (tenantData.D_dbname.length < 3) {
+        errors.push('Database name must be at least 3 characters long');
+      }
+    }
+
+    // Validate distributor fields
+    if (!distributorData.distributer_name || distributorData.distributer_name.trim() === '') {
+      errors.push('Distributor Name is required');
+    }
+
+    // Username validation - alphanumeric and underscores
+    if (!distributorData.distributer_username || distributorData.distributer_username.trim() === '') {
+      errors.push('Username is required');
+    } else {
+      const usernameRegex = /^[a-zA-Z0-9_-]+$/;
+      if (!usernameRegex.test(distributorData.distributer_username)) {
+        errors.push('Username can only contain letters, numbers, and underscores');
+      }
+      if (distributorData.distributer_username.length < 3) {
+        errors.push('Username must be at least 3 characters long');
+      }
+    }
+
+    // Mobile validation - exactly 10 digits
+    if (!distributorData.distributer_mobile || distributorData.distributer_mobile.trim() === '') {
+      errors.push('Mobile Number is required');
+    } else {
+      const mobileRegex = /^\d{10}$/;
+      if (!mobileRegex.test(distributorData.distributer_mobile.replace(/\s+/g, ''))) {
+        errors.push('Mobile number must be exactly 10 digits');
+      }
+    }
+
+    // Email validation - proper email format with @ and domain
+    if (!distributorData.distributer_email || distributorData.distributer_email.trim() === '') {
+      errors.push('Email is required');
+    } else {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(distributorData.distributer_email)) {
+        errors.push('Email must be valid (e.g., user@example.com)');
+      }
+    }
+
+    // Password validation
+    if (!distributorData.distributer_password || distributorData.distributer_password.trim() === '') {
+      errors.push('Password is required');
+    } else if (distributorData.distributer_password.length < 6) {
+      errors.push('Password must be at least 6 characters long');
+    }
+
+    return errors;
+  };
+
   // Handle form submission
   const handleSubmit = async () => {
     setIsSubmitting(true);
 
-    // Validate required fields
-    const requiredTenantFields = ['D_name', 'D_domain', 'D_plan', 'D_payment', 'D_dbname'];
-    const requiredDistributorFields = ['distributer_name', 'distributer_mobile', 'distributer_email', 'distributer_password', 'distributer_username'];
+    // Validate form
+    const errors = validateForm();
+    setValidationErrors(errors);
 
-    const missingTenantFields = requiredTenantFields.filter(field => !tenantData[field]);
-    const missingDistributorFields = requiredDistributorFields.filter(field => !distributorData[field]);
-
-    if (missingTenantFields.length > 0 || missingDistributorFields.length > 0) {
-      toast.error('Please fill in all required fields');
+    if (errors.length > 0) {
       setIsSubmitting(false);
+      window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+      toast.error(`Please fix ${errors.length} validation error${errors.length > 1 ? 's' : ''}`);
       return;
     }
 
@@ -128,17 +215,6 @@ export default function TenantRegistrationPage() {
     console.log('Payload to submit:', JSON.stringify(payload, null, 2));
 
     try {
-      // Replace with your actual API call
-      // const response = await fetch('YOUR_API_ENDPOINT', {
-      //   method: 'POST',
-      //   headers: {
-      //     'Content-Type': 'application/json',
-      //   },
-      //   body: JSON.stringify(payload)
-      // });
-      // const data = await response.json();
-
-      // Simulate API call
       addtenant(payload);
       
       toast.success('Tenant registered successfully!');
@@ -147,6 +223,7 @@ export default function TenantRegistrationPage() {
       setTenantData({ D_name: '', D_domain: '', D_plan: '', D_payment: '', D_dbname: '' });
       setDistributorData({ distributer_name: '', distributer_mobile: '', distributer_email: '', distributer_password: '', distributer_firms: '', distributer_city: '', distributer_username: '' });
       setLimitsData({ adminlimit: 0, salesmanlimit: 0, packagelimit: 0, billinglimit: 0, liveLocationlimit: 0, routeLocationlimit: 0, wantToUsePhotos: false, isAdminMembers: false, wantToUsePayment: false, wantToUseLocation: false });
+      setValidationErrors([]);
 
     } catch (error) {
       console.error('Error submitting form:', error);
@@ -252,7 +329,10 @@ export default function TenantRegistrationPage() {
                   id="D_name"
                   placeholder="Enter tenant name"
                   value={tenantData.D_name}
-                  onChange={(e) => setTenantData(prev => ({ ...prev, D_name: e.target.value }))}
+                  onChange={(e) => {
+                    setTenantData(prev => ({ ...prev, D_name: e.target.value }));
+                    setValidationErrors([]);
+                  }}
                 />
               </div>
               <div className="space-y-2">
@@ -261,7 +341,10 @@ export default function TenantRegistrationPage() {
                   id="D_domain"
                   placeholder="example.com"
                   value={tenantData.D_domain}
-                  onChange={(e) => setTenantData(prev => ({ ...prev, D_domain: e.target.value }))}
+                  onChange={(e) => {
+                    setTenantData(prev => ({ ...prev, D_domain: e.target.value }));
+                    setValidationErrors([]);
+                  }}
                 />
               </div>
               <div className="space-y-2">
@@ -270,7 +353,10 @@ export default function TenantRegistrationPage() {
                   id="D_plan"
                   placeholder="Basic, Pro, Enterprise"
                   value={tenantData.D_plan}
-                  onChange={(e) => setTenantData(prev => ({ ...prev, D_plan: e.target.value }))}
+                  onChange={(e) => {
+                    setTenantData(prev => ({ ...prev, D_plan: e.target.value }));
+                    setValidationErrors([]);
+                  }}
                 />
               </div>
               <div className="space-y-2">
@@ -279,7 +365,10 @@ export default function TenantRegistrationPage() {
                   id="D_payment"
                   placeholder="Monthly, Yearly"
                   value={tenantData.D_payment}
-                  onChange={(e) => setTenantData(prev => ({ ...prev, D_payment: e.target.value }))}
+                  onChange={(e) => {
+                    setTenantData(prev => ({ ...prev, D_payment: e.target.value }));
+                    setValidationErrors([]);
+                  }}
                 />
               </div>
               <div className="space-y-2 sm:col-span-2">
@@ -290,10 +379,14 @@ export default function TenantRegistrationPage() {
                     id="D_dbname"
                     placeholder="tenant_db_name"
                     value={tenantData.D_dbname}
-                    onChange={(e) => setTenantData(prev => ({ ...prev, D_dbname: e.target.value }))}
+                    onChange={(e) => {
+                      setTenantData(prev => ({ ...prev, D_dbname: e.target.value }));
+                      setValidationErrors([]);
+                    }}
                     className="pl-10"
                   />
                 </div>
+                <p className="text-xs text-muted-foreground">Only letters, numbers, and underscores allowed (min 3 characters)</p>
               </div>
             </CardContent>
           </Card>
@@ -316,7 +409,10 @@ export default function TenantRegistrationPage() {
                   id="distributer_name"
                   placeholder="Distributor full name"
                   value={distributorData.distributer_name}
-                  onChange={(e) => setDistributorData(prev => ({ ...prev, distributer_name: e.target.value }))}
+                  onChange={(e) => {
+                    setDistributorData(prev => ({ ...prev, distributer_name: e.target.value }));
+                    setValidationErrors([]);
+                  }}
                 />
               </div>
               <div className="space-y-2">
@@ -327,10 +423,14 @@ export default function TenantRegistrationPage() {
                     id="distributer_username"
                     placeholder="username"
                     value={distributorData.distributer_username}
-                    onChange={(e) => setDistributorData(prev => ({ ...prev, distributer_username: e.target.value }))}
+                    onChange={(e) => {
+                      setDistributorData(prev => ({ ...prev, distributer_username: e.target.value }));
+                      setValidationErrors([]);
+                    }}
                     className="pl-10"
                   />
                 </div>
+                <p className="text-xs text-muted-foreground">Letters, numbers, and underscores only (min 3 characters)</p>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="distributer_mobile">Mobile <span className="text-destructive">*</span></Label>
@@ -339,12 +439,16 @@ export default function TenantRegistrationPage() {
                   <Input
                     id="distributer_mobile"
                     type="tel"
-                    placeholder="+1234567890"
+                    placeholder="1234567890"
                     value={distributorData.distributer_mobile}
-                    onChange={(e) => setDistributorData(prev => ({ ...prev, distributer_mobile: e.target.value }))}
+                    onChange={(e) => {
+                      setDistributorData(prev => ({ ...prev, distributer_mobile: e.target.value }));
+                      setValidationErrors([]);
+                    }}
                     className="pl-10"
                   />
                 </div>
+                <p className="text-xs text-muted-foreground">Exactly 10 digits required</p>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="distributer_email">Email <span className="text-destructive">*</span></Label>
@@ -355,10 +459,14 @@ export default function TenantRegistrationPage() {
                     type="email"
                     placeholder="distributor@example.com"
                     value={distributorData.distributer_email}
-                    onChange={(e) => setDistributorData(prev => ({ ...prev, distributer_email: e.target.value }))}
+                    onChange={(e) => {
+                      setDistributorData(prev => ({ ...prev, distributer_email: e.target.value }));
+                      setValidationErrors([]);
+                    }}
                     className="pl-10"
                   />
                 </div>
+                <p className="text-xs text-muted-foreground">Valid email format required</p>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="distributer_password">Password <span className="text-destructive">*</span></Label>
@@ -369,7 +477,10 @@ export default function TenantRegistrationPage() {
                     type={showDistributorPassword ? 'text' : 'password'}
                     placeholder="••••••••"
                     value={distributorData.distributer_password}
-                    onChange={(e) => setDistributorData(prev => ({ ...prev, distributer_password: e.target.value }))}
+                    onChange={(e) => {
+                      setDistributorData(prev => ({ ...prev, distributer_password: e.target.value }));
+                      setValidationErrors([]);
+                    }}
                     className="pl-10 pr-10"
                   />
                   <button
@@ -380,6 +491,7 @@ export default function TenantRegistrationPage() {
                     {showDistributorPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
                 </div>
+                <p className="text-xs text-muted-foreground">Minimum 6 characters</p>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="distributer_firms">Firms</Label>
@@ -570,15 +682,42 @@ export default function TenantRegistrationPage() {
             </CardContent>
           </Card>
 
+          {/* Validation Errors Display */}
+          {validationErrors.length > 0 && (
+            <Card className="border-destructive bg-destructive/5">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-destructive">
+                  <AlertCircle className="h-5 w-5" />
+                  Validation Errors ({validationErrors.length})
+                </CardTitle>
+                <CardDescription className="text-destructive/80">
+                  Please fix the following errors before submitting
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ul className="space-y-2">
+                  {validationErrors.map((error, index) => (
+                    <li key={index} className="flex items-start gap-2 text-sm text-destructive">
+                      <X className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                      <span>{error}</span>
+                    </li>
+                  ))}
+                </ul>
+              </CardContent>
+            </Card>
+          )}
+
           {/* Submit Button */}
           <div className="flex gap-4">
             <Button
               variant="outline"
               className="flex-1"
+              disabled={isSubmitting}
               onClick={() => {
                 setTenantData({ D_name: '', D_domain: '', D_plan: '', D_payment: '', D_dbname: '' });
                 setDistributorData({ distributer_name: '', distributer_mobile: '', distributer_email: '', distributer_password: '', distributer_firms: '', distributer_city: '', distributer_username: '' });
                 setLimitsData({ adminlimit: 0, salesmanlimit: 0, packagelimit: 0, billinglimit: 0, liveLocationlimit: 0, routeLocationlimit: 0, wantToUsePhotos: false, isAdminMembers: false, wantToUsePayment: false, wantToUseLocation: false });
+                setValidationErrors([]);
                 toast.info('Form reset');
               }}
             >

@@ -1103,7 +1103,7 @@ function SalesPanel() {
                       </div>
                       <div>
                         <label className="text-sm font-medium">Email</label>
-                        <p className="text-sm text-muted-foreground">{selectedStaff.email}</p>
+                        <p className="text-sm text-muted-foreground text-wrap">{selectedStaff.email}</p>
                       </div>
                       <div>
                         <label className="text-sm font-medium">Phone</label>

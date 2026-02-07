@@ -87,6 +87,7 @@ function StaffAccount() {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
   const [editingStaff, setEditingStaff] = useState(null)
   const [formData, setFormData] = useState(defaultFormData)
+  const [newPassword, setNewPassword] = useState("");
   const [documentFiles, setDocumentFiles] = useState({})
 
 
@@ -264,8 +265,6 @@ function StaffAccount() {
       }
     }
 
-
-
     const updatedData = {
       firstName: formData.firstName.trim(),
       lastName: formData.lastName.trim(),
@@ -297,15 +296,17 @@ function StaffAccount() {
       bankBranch: formData.bankBranch.trim() || undefined,
       accountHolderName: formData.accountHolderName.trim() || undefined,
       username: formData.username.trim() || undefined,
-      password: formData.password.trim() || undefined
+      // Only include password if it was changed
+      ...(newPassword.trim() && { password: newPassword.trim() })
     }
     
     updateStaff(editingStaff._id, updatedData)
     setIsEditDialogOpen(false)
     setEditingStaff(null)
+    setNewPassword("") // Clear the password field
     resetForm()
     toast.success("Staff member updated successfully")
-  }, [editingStaff, formData, resetForm, updateStaff])
+  }, [editingStaff, formData, newPassword, resetForm, updateStaff])
 
   const handleDeleteStaff = useCallback((staffId) => {
     deleteStaff(staffId)
@@ -366,6 +367,7 @@ function StaffAccount() {
   const closeEditDialog = useCallback(() => {
     setIsEditDialogOpen(false)
     setEditingStaff(null)
+    setNewPassword("") // Clear password field
     resetForm()
   }, [resetForm])
 
@@ -600,7 +602,7 @@ function StaffAccount() {
               </CardHeader>
               <CardContent>
                 <div className="mx-4 overflow-auto sm:mx-0">
-                  <div className="min-w-[800px] overflow-hidden px-4 sm:px-0">
+                  <div className="min-w-[800px] overflow-hidden px-2 sm:px-0">
                     <Table>
                     <TableHeader>
                       <TableRow>
@@ -645,7 +647,7 @@ function StaffAccount() {
                         <TableHead className="text-center">Actions</TableHead>
                       </TableRow>
                     </TableHeader>
-                    <TableBody className="overflow-hidden">
+                    <TableBody className="">
                       {isLoading ? (
                         <TableRow>
                           <TableCell colSpan={7} className="text-center py-8">
@@ -1507,7 +1509,7 @@ function StaffAccount() {
                 <Input 
                   id="add-username" 
                   value={formData.username}
-                  onChange={(e) => updateFormData('username', e.target.value)}
+                  onChange={(e) => updateFormData('username', e.target.value.replace(/\s/g, ''))}
                   placeholder="Enter username" 
                 />
                 <p className="text-xs text-muted-foreground mt-1">This will be the user's login ID</p>
@@ -1677,7 +1679,7 @@ function StaffAccount() {
                 <Label htmlFor="edit-emergencyContact">Person Name</Label>
                 <Input 
                   id="edit-emergencyContact" 
-                  value={formData.emergencyContact.name1= null ? formData.emergencyContact.name : ''}
+                  value={formData.emergencyContact.name || ''}
                   onChange={(e) => updateFormData('emergencyContact', { ...formData.emergencyContact, name: e.target.value })}
                   placeholder="Contact name" 
                 />
@@ -1835,6 +1837,29 @@ function StaffAccount() {
                       value={formData.bankBranch}
                       onChange={(e) => updateFormData('bankBranch', e.target.value)}
                       placeholder="Main Branch, City" 
+                    />
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <Label htmlFor="">username and password</Label>
+                  <div>
+                    <Label htmlFor="username">Username</Label>
+                    <Input 
+                      id="username" 
+                      value={formData.username}
+                      disabled
+                      onChange={(e) => updateFormData('username', e.target.value)}
+                      placeholder="username" 
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="password">Password</Label>
+                    <Input 
+                      id="password" 
+                      type="password"
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      placeholder="password" 
                     />
                   </div>
                 </div>

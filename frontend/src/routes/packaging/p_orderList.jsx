@@ -142,7 +142,7 @@ export function OrderList({
       <div className="flex flex-col h-full bg-background" dir={language === 'ar' ? 'rtl' : 'ltr'}>
         {/* Orders List */}
         <div className="flex-1 overflow-y-auto p-2 sm:p-3 md:p-4">
-          <div className="space-y-2 sm:space-y-3">
+          <div className="space-y-2 mb-28 sm:space-y-3">
             {orders.map((order) => {
               const isExpanded = expandedOrders.has(order._id);
               const orderSelections = globalSelectedItems.get(order._id) || new Set();

@@ -1145,7 +1145,7 @@ const handlePaymentDialogClose = (open) => {
   const selectedClientData = clientsdata.find(c => c._id === selectedClient);
 
   return (
-    <div className="p-3 sm:p-4 lg:p-6 space-y-4 sm:space-y-6">
+    <div className="p-0 sm:p-2 lg:p-6 space-y-4 sm:space-y-6">
       {/* Header */}
       <div className="flex items-center gap-2 sm:gap-3">
         <ShoppingCart className="h-5 w-5 sm:h-6 sm:w-6 flex-shrink-0" />
@@ -1173,35 +1173,38 @@ const handlePaymentDialogClose = (open) => {
               Manage multiple client orders simultaneously
             </CardDescription>
           </CardHeader>
-          <CardContent>
-            <ScrollArea className="w-full">
-              <div className="flex gap-2 pb-2">
-                
-                {activeClientCarts.clients.map((clientCart) => (
-                  <Card
-                    key={clientCart.seller_data._id}
-                    className={`flex-shrink-0 w-64 cursor-pointer transition-all ${
-                      activeClientCart === clientCart.seller_data._id
-                        ? 'border-primary bg-primary/10 shadow-md'
-                        : 'hover:border-primary/50 hover:shadow-sm'
-                    }`}
-                    onClick={() => {
-                      setActiveClientCart(clientCart.seller_data._id);
-                      setSelectedClient(clientCart.seller_data._id);
-                      // console.log("client fata fro",clientCart)
-                      const client = clientsdata.find(c => c._id === clientCart.seller_data._id);
-                      if (client) setClientSearchQuery(client.name);
-                    }}
-                  >
-                    {/* {console.log("client cart data",clientCart)} */}
-                    <CardContent className="p-3 sm:p-4">
-                      <div className="flex items-start justify-between gap-2 mb-2">
-                        <div className="flex-1 min-w-0">
-                          <h4 className="font-semibold text-sm truncate">{clientCart?.seller_data?.name}</h4>
-                          <p className="text-xs text-muted-foreground">
-                            {clientCart?.items?.length} item{clientCart?.items.length > 1 ? 's' : ''}
-                          </p>
-                        </div>
+          <CardContent className="p-0 sm:p-6">
+            {/* Mobile View - Vertical Stack */}
+            <div className="sm:hidden px-3 space-y-2">
+              {activeClientCarts.clients.map((clientCart) => (
+                <Card
+                  key={clientCart.seller_data._id}
+                  className={`cursor-pointer transition-all ${
+                    activeClientCart === clientCart.seller_data._id
+                      ? 'border-primary bg-primary/10 shadow-md'
+                      : 'hover:border-primary/50 hover:shadow-sm'
+                  }`}
+                  onClick={() => {
+                    setActiveClientCart(clientCart.seller_data._id);
+                    setSelectedClient(clientCart.seller_data._id);
+                    const client = clientsdata.find(c => c._id === clientCart.seller_data._id);
+                    if (client) setClientSearchQuery(client.name);
+                  }}
+                >
+                  <CardContent className="p-3">
+                    <div className="flex items-start justify-between gap-2 mb-2">
+                      <div className="flex-1 min-w-0">
+                        <h4 className="font-semibold text-sm truncate">
+                          {clientCart?.seller_data?.name}
+                        </h4>
+                        <p className="text-xs text-muted-foreground">
+                          {clientCart?.items?.length} item{clientCart?.items.length > 1 ? 's' : ''}
+                        </p>
+                      </div>
+                      <div className="flex gap-1 flex-shrink-0">
+                        {activeClientCart === clientCart.seller_data._id && (
+                          <Badge variant="default" className="text-xs">Active</Badge>
+                        )}
                         <Button
                           variant="ghost"
                           size="sm"
@@ -1213,7 +1216,6 @@ const handlePaymentDialogClose = (open) => {
                             delete updatedCarts[sellerId];
                             setClientCarts(updatedCarts);
                             
-                            // FIX: Keep other clients, remove only this one
                             const existingClients = activeClientCarts?.clients || [];
                             const updatedBackendClients = existingClients.filter(
                               client => (client.seller_data._id || client.seller_data) !== sellerId
@@ -1243,19 +1245,92 @@ const handlePaymentDialogClose = (open) => {
                           <Trash2 className="h-3 w-3" />
                         </Button>
                       </div>
-                      <div className="flex items-center justify-between">
-                        {/* <span className="text-lg font-bold text-primary">
-                          ${clientCart.total.toFixed(2)}
-                        </span> */}
-                        {activeClientCart === clientCart.clientId && (
-                          <Badge variant="default" className="text-xs">Active</Badge>
-                        )}
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            </ScrollArea>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+
+            {/* Desktop View - Horizontal Scroll */}
+            <div className="hidden sm:block">
+              <ScrollArea className="w-full">
+                <div className="flex gap-2 pb-2 px-3 sm:px-0">
+                  {activeClientCarts.clients.map((clientCart) => (
+                    <Card
+                      key={clientCart.seller_data._id}
+                      className={`flex-shrink-0 w-64 cursor-pointer transition-all ${
+                        activeClientCart === clientCart.seller_data._id
+                          ? 'border-primary bg-primary/10 shadow-md'
+                          : 'hover:border-primary/50 hover:shadow-sm'
+                      }`}
+                      onClick={() => {
+                        setActiveClientCart(clientCart.seller_data._id);
+                        setSelectedClient(clientCart.seller_data._id);
+                        const client = clientsdata.find(c => c._id === clientCart.seller_data._id);
+                        if (client) setClientSearchQuery(client.name);
+                      }}
+                    >
+                      <CardContent className="p-3 sm:p-4">
+                        <div className="flex items-start justify-between gap-2 mb-2">
+                          <div className="flex-1 min-w-0">
+                            <h4 className="font-semibold text-sm truncate">
+                              {clientCart?.seller_data?.name}
+                            </h4>
+                            <p className="text-xs text-muted-foreground">
+                              {clientCart?.items?.length} item{clientCart?.items.length > 1 ? 's' : ''}
+                            </p>
+                          </div>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              const sellerId = clientCart.seller_data._id;
+                              
+                              const updatedCarts = { ...clientCarts };
+                              delete updatedCarts[sellerId];
+                              setClientCarts(updatedCarts);
+                              
+                              const existingClients = activeClientCarts?.clients || [];
+                              const updatedBackendClients = existingClients.filter(
+                                client => (client.seller_data._id || client.seller_data) !== sellerId
+                              );
+                              
+                              const backendPayload = {
+                                cartId: activeClientCarts._id,
+                                salesman_data: userInfo.tenant_user_id,
+                                clients: updatedBackendClients
+                              };
+                              
+                              if (updatedBackendClients.length === 0) {
+                                deleteCart({ cartId: activeClientCarts._id });
+                              } else {
+                                updateCart(backendPayload);
+                              }
+                              
+                              if (activeClientCart === sellerId) {
+                                setActiveClientCart("");
+                                setSelectedClient("");
+                                setClientSearchQuery("");
+                              }
+                              toast.success("Cart cleared");
+                            }}
+                            className="h-6 w-6 p-0 text-destructive hover:text-destructive hover:bg-destructive/10"
+                          >
+                            <Trash2 className="h-3 w-3" />
+                          </Button>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          {activeClientCart === clientCart.seller_data._id && (
+                            <Badge variant="default" className="text-xs">Active</Badge>
+                          )}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </ScrollArea>
+            </div>
           </CardContent>
         </Card>
       )}
@@ -1493,7 +1568,7 @@ const handlePaymentDialogClose = (open) => {
                         </div>
                       </div>
 
-                      <ScrollArea className="flex-1 verflow-y-auto overscroll-contain max-h-64 min-h-0">
+                      <ScrollArea className="flex-1 overflow-y-auto overscroll-contain max-h-64 min-h-0">
                         <div className="flex-1 overflow-y-auto overscroll-contain max-h-64">
                           <div className="p-3 sm:p-4 space-y-2">
                             <Label className="text-xs font-semibold text-muted-foreground uppercase">Sizes</Label>

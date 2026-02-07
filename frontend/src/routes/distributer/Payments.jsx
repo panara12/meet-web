@@ -700,7 +700,7 @@ function Payments() {
                 </TableHeader>
                 <TableBody>
                   {paymentRequests.map((request) => (
-                    <TableRow key={request._id} className="hover:bg-muted/50">
+                    <TableRow key={request._id} className="hover:bg-black/20">
                       <TableCell>
                         <div className="space-y-1">
                           <p className="text-responsive-xs font-medium">{request._id}</p>
@@ -759,13 +759,13 @@ function Payments() {
                               setShowDetailsDialog(open)
                               if (open) setSelectedRequest(request)
                             }}
-                          className="">
+                          className="bg-white">
                             <DialogTrigger asChild>
                               <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
                                 <Eye className="h-3 w-3" />
                               </Button>
                             </DialogTrigger>
-                            <DialogContent className="dialog-responsive-lg dialog-responsive-height">
+                            <DialogContent className="dialog-responsive-lg overflow-auto h-3/4 dialog-responsive-height">
                               <DialogHeader>
                                 <DialogTitle className="flex items-center gap-2">
                                   <CreditCard className="icon-responsive-base" />
@@ -882,13 +882,13 @@ function Payments() {
                                   </div>
 
                                   {/* Action Buttons */}
-                                  <div className="flex flex-col sm:flex-row gap-2 pt-4 border-t">
+                                  <div className="flex flex-col justify-between sm:flex-row gap-2 pt-4 border-t">
                                     {selectedRequest.status !== "approved" && (
                                       <AlertDialog>
                                         <AlertDialogTrigger asChild>
-                                          <Button className="flex-1 bg-green-primary hover:bg-green-600">
-                                            <Check className="icon-responsive-sm mr-2" />
-                                            Approve Payment
+                                          <Button className="flex bg-primary hover:bg-green-600">
+                                            <Check className="icon-responsive-sm mr-1" />
+                                            Approve
                                           </Button>
                                         </AlertDialogTrigger>
                                         <AlertDialogContent>
@@ -914,9 +914,9 @@ function Payments() {
                                     {selectedRequest.status !== "rejected" && (
                                       <AlertDialog>
                                         <AlertDialogTrigger asChild>
-                                          <Button variant="destructive" className="flex-1">
-                                            <X className="icon-responsive-sm mr-2" />
-                                            Reject Payment
+                                          <Button variant="destructive" className="flex">
+                                            <X className="icon-responsive-sm mr-1" />
+                                            Reject
                                           </Button>
                                         </AlertDialogTrigger>
                                         <AlertDialogContent>
@@ -942,8 +942,8 @@ function Payments() {
                                     {selectedRequest.status !== "pending" && (
                                       <AlertDialog>
                                         <AlertDialogTrigger asChild>
-                                          <Button variant="outline" className="flex-1">
-                                            <RotateCcw className="icon-responsive-sm mr-2" />
+                                          <Button variant="outline" className="flex">
+                                            <RotateCcw className="icon-responsive-sm mr-1" />
                                             Return to Pending
                                           </Button>
                                         </AlertDialogTrigger>
@@ -990,7 +990,7 @@ function Payments() {
                                   <AlertDialogCancel>Cancel</AlertDialogCancel>
                                   <AlertDialogAction
                                     onClick={() => handleStatusChange(request._id, "approved")}
-                                    className="bg-green-primary hover:bg-green-600"
+                                    className="bg-primary hover:bg-green-600"
                                   >
                                     Approve
                                   </AlertDialogAction>

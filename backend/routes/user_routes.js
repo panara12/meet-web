@@ -127,7 +127,7 @@ router.post('/updateuser/:id',upload.fields([
     const { id } = req.params;
     const req_user_data = req.body.updates;
     console.log("req sata body",req.body.updates);
-    // return;
+    manualLog(`req sata body :: `)
 
     const User = req.db.model('User'); 
     const user_data = await User.findById(id);
@@ -160,6 +160,7 @@ router.post('/updateuser/:id',upload.fields([
         }));
 
       console.log("digital ocean response", res_DO);
+      manualLog(`digital ocean response :: ${res_DO}`)
       const imageDocs = res_DO.map(file => ({
         url: file.url,
         doc_name: file.name // Default name, can be modified as needed
@@ -175,16 +176,28 @@ router.post('/updateuser/:id',upload.fields([
       req_user_data.emergencyContact = JSON.parse(req_user_data.emergencyContact);
     }
     console.log("emergancy")
-    // if (req_user_data.permissions && typeof req_user_data.permissions === 'string') {
-    //   req_user_data.permissions = JSON.parse(req_user_data.permissions);
-    // }
 
-    // Hash password if provided
-    if (req_user_data?.password) {
+    if(req_user_data?.email || req_user_data?.phone){
+      await Tenent_user_master.findOneAndUpdate({tenant_user_id:id},{user_email:req_user_data.email,user_phone:req_user_data.phone},{new:true})
+    }
+
+    // Hash password only if provided (new password entered)
+    if (req_user_data?.password && req_user_data.password.trim() !== '') {
+      manualLog(`new password :: ${req_user_data.password}`)
       const saltRounds = 10;
       req_user_data.password = await bcrypt.hash(req_user_data.password, saltRounds);
+      await Tenent_user_master.findOneAndUpdate({tenant_user_id:id},{user_password:req_user_data.password},{new:true})
+      console.log("password hashed and updated")
+      manualLog(`password hash updated`)
+    } else {
+      // Remove password field from update data to keep old password
+      delete req_user_data.password;
+      console.log("password field removed - keeping old password",req_user_data)
+      manualLog(`password field removed - keeping old password :: ${req_user_data.password}`)
     }
-    console.log("passswword passed")
+    console.log("password handling completed")
+    manualLog(`password handling completed :: ${req_user_data.password}`)
+    
     // Update user
     const updated_user = await User.findOneAndUpdate(
       { _id: id },
@@ -210,7 +223,6 @@ router.post('/updateuser/:id',upload.fields([
     }
   }
 });
-
 // GET ALL USERS
 router.get('/getalluser', user_session_checker('get_all_user'), async (req, res) => {
   manualLog('entered in get all user route');

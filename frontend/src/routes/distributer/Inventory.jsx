@@ -1761,7 +1761,7 @@ function Inventory() {
 
         {/* Product Details Dialog */}
         <Dialog open={showProductDialog} onOpenChange={setShowProductDialog}>
-          <DialogContent className="max-w-2xl">
+          <DialogContent className="max-w-xl h-3/4 overflow-y-auto">
             <DialogHeader>
               <DialogTitle>{selectedProduct?.name}</DialogTitle>
               <DialogDescription>
@@ -1828,14 +1828,24 @@ function Inventory() {
                 )}
                 {console.log(selectedProduct.images)}
                 {selectedProduct.images.length > 0 && (
-                  <div>
+                  <>
+                  <div className="max-[375px]:hidden">
                     <Label>Images</Label>
-                    <div className="flex gap-1 mt-1">
+                    <div className="flex gap-2 mt-1">
                       {selectedProduct.images.map(image => (
                         <img key={image} src={digital_ocean_url+image.url} alt={selectedProduct.name} className="h-16 w-16 object-cover" />
                       ))}
                     </div>
                   </div>
+                  <div className="min-[375px]:hidden">
+                    <Label>Images</Label>
+                    <div className="mt-3 grid gap-5 grid-cols-3">
+                      {selectedProduct.images.map(image => (
+                        <img key={image} src={digital_ocean_url+image.url} alt={selectedProduct.name} className="h-16 w-16 object-cover" />
+                      ))}
+                    </div>
+                  </div>
+                  </>
                 )}
 
                 <div className="grid grid-cols-2 gap-4 text-sm text-muted-foreground">
