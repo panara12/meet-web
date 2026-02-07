@@ -1482,8 +1482,8 @@ const handlePaymentDialogClose = (open) => {
                   const hasQuantities = uniqueSizes.some(size => getProductQuantity(product._id, size) > 0);
                   
                   return (
-                    <Card key={product._id} className="flex flex-col">
-                      <div className="p-3 sm:p-4 border-b bg-muted/30">
+                    <Card key={product._id} className="flex flex-col overflow-hidden h-full">
+                      <div className="p-3 sm:p-4 border-b bg-muted/30 flex-shrink-0">
                         <h4 className="font-medium text-sm sm:text-base line-clamp-2 min-h-[2.5em] mb-2">{product.name}</h4>
                         <div className="flex items-center justify-between">
                           {/* <span className="font-semibold text-primary"><IndianRupeeIcon className='w-3 h-3 inline-block' />{product.costPrice}</span> */}
@@ -1493,70 +1493,72 @@ const handlePaymentDialogClose = (open) => {
                         </div>
                       </div>
 
-                      <ScrollArea className="flex-1 max-h-64">
-                        <div className="p-3 sm:p-4 space-y-2">
-                          <Label className="text-xs font-semibold text-muted-foreground uppercase">Sizes</Label>
-                          <div className="space-y-2">
-                            {uniqueSizes.map((size) => {
-                              const qty = getProductQuantity(product._id, size);
-                              return (
-                                <div key={size} className="flex items-center justify-between gap-2 p-2 rounded-md border bg-background hover:bg-muted/50 transition-colors">
-                                  <Badge variant="secondary" className="text-xs min-w-[2.5rem] justify-center">
-                                    {size}
-                                  </Badge>
-                                  <div className="flex items-center gap-1">
-                                    <Button
-                                      size="sm"
-                                      variant="outline"
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        handleProductQuantityChange(product._id, size, -1);
-                                      }}
-                                      className="h-7 w-7 p-0"
-                                      disabled={qty === 0}
-                                    >
-                                      <Minus className="h-3 w-3" />
-                                    </Button>
-                                    <span className="w-8 text-center text-sm font-medium">
-                                      {qty}
-                                    </span>
-                                    <Button
-                                      size="sm"
-                                      variant="outline"
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        handleProductQuantityChange(product._id, size, 1);
-                                      }}
-                                      className="h-7 w-7 p-0"
-                                    >
-                                      <Plus className="h-3 w-3" />
-                                    </Button>
+                      <ScrollArea className="flex-1 verflow-y-auto overscroll-contain max-h-64 min-h-0">
+                        <div className="flex-1 overflow-y-auto overscroll-contain max-h-64">
+                          <div className="p-3 sm:p-4 space-y-2">
+                            <Label className="text-xs font-semibold text-muted-foreground uppercase">Sizes</Label>
+                            <div className="space-y-2 pb-2"> {/* Added pb-2 for bottom padding */}
+                              {uniqueSizes.map((size) => {
+                                const qty = getProductQuantity(product._id, size);
+                                return (
+                                  <div key={size} className="flex items-center justify-between gap-2 p-2 rounded-md border bg-background hover:bg-muted/50 transition-colors">
+                                    <Badge variant="secondary" className="text-xs min-w-[2.5rem] justify-center">
+                                      {size}
+                                    </Badge>
+                                    <div className="flex items-center gap-1">
+                                      <Button
+                                        size="sm"
+                                        variant="outline"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          handleProductQuantityChange(product._id, size, -1);
+                                        }}
+                                        className="h-7 w-7 p-0"
+                                        disabled={qty === 0}
+                                      >
+                                        <Minus className="h-3 w-3" />
+                                      </Button>
+                                      <span className="w-8 text-center text-sm font-medium">
+                                        {qty}
+                                      </span>
+                                      <Button
+                                        size="sm"
+                                        variant="outline"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          handleProductQuantityChange(product._id, size, 1);
+                                        }}
+                                        className="h-7 w-7 p-0"
+                                      >
+                                        <Plus className="h-3 w-3" />
+                                      </Button>
+                                    </div>
                                   </div>
-                                </div>
-                              );
-                            })}
+                                );
+                              })}
+                            </div>
+                            
+                            <div className="space-y-1.5 pt-3 border-t">
+                              <Label className="text-xs font-semibold text-muted-foreground uppercase">Special Instructions</Label>
+                              <Textarea
+                                placeholder="Add special instructions..."
+                                value={productInstructions[product._id] || ""}
+                                onChange={(e) => {
+                                  setProductInstructions(prev => ({
+                                    ...prev,
+                                    [product._id]: e.target.value
+                                  }));
+                                }}
+                                onClick={(e) => e.stopPropagation()}
+                                className="text-xs sm:text-sm resize-none"
+                                rows={2}
+                              />
+                            </div>
                           </div>
-                          
-                          <div className="space-y-1.5 mt-3 pt-3 border-t">
-                            <Label className="text-xs font-semibold text-muted-foreground uppercase">Special Instructions</Label>
-                            <Textarea
-                              placeholder="Add special instructions..."
-                              value={productInstructions[product._id] || ""}
-                              onChange={(e) => {
-                                setProductInstructions(prev => ({
-                                  ...prev,
-                                  [product._id]: e.target.value
-                                }));
-                              }}
-                              onClick={(e) => e.stopPropagation()}
-                              className="text-xs sm:text-sm resize-none"
-                              rows={2}
-                            />
                           </div>
-                        </div>
                       </ScrollArea>
 
-                      <div className="p-3 sm:p-4 border-t space-y-2 bg-background">
+                      <div className="p-3 sm:p-4 border-t space-y-2 bg-background flex-shrink-0">
                         <Button
                           variant="default"
                           className="w-full text-xs sm:text-sm"
