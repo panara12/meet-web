@@ -34,7 +34,7 @@ function SalesmanRoutes({ limitsInfo }) {
     // Set up 5-minute interval
     intervalRef.current = setInterval(() => {
       const now = Date.now();
-      if (now - lastSentRef.current < 300000) return;
+      if (now - lastSentRef.current < 2400000) return;
 
       addUserLocation({
         latitude: location.latitude,
@@ -42,7 +42,7 @@ function SalesmanRoutes({ limitsInfo }) {
       });
 
       lastSentRef.current = now;
-    }, 300000);
+    }, 2400000);
 
     return () => {
       if (intervalRef.current) {
