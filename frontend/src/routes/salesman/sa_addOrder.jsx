@@ -837,13 +837,13 @@ const handleQuickAddToCart = (product) => {
     [product._id]: ""
   }));
 
-  if (updatedCount > 0 && addedCount > 0) {
-    toast.success(`${addedCount} new item${addedCount > 1 ? 's' : ''} added, ${updatedCount} item${updatedCount > 1 ? 's' : ''} updated!`);
-  } else if (updatedCount > 0) {
-    toast.success(`${updatedCount} item${updatedCount > 1 ? 's' : ''} updated in cart!`);
-  } else {
-    toast.success(`${addedCount} item${addedCount > 1 ? 's' : ''} added to cart!`);
-  }
+  // if (updatedCount > 0 && addedCount > 0) {
+  //   toast.success(`${addedCount} new item${addedCount > 1 ? 's' : ''} added, ${updatedCount} item${updatedCount > 1 ? 's' : ''} updated!`);
+  // } else if (updatedCount > 0) {
+  //   toast.success(`${updatedCount} item${updatedCount > 1 ? 's' : ''} updated in cart!`);
+  // } else {
+  //   toast.success(`${addedCount} item${addedCount > 1 ? 's' : ''} added to cart!`);
+  // }
 };
 
   const getTotalAmount = () => {
@@ -1562,8 +1562,7 @@ const handlePaymentDialogClose = (open) => {
                         <Button
                           variant="default"
                           className="w-full text-xs sm:text-sm"
-                          onClick={(e) => {
-                            e.stopPropagation();
+                          onClick={() => {
                             handleQuickAddToCart(product);
                           }}
                           disabled={!hasQuantities || !activeClientCart}
@@ -1575,8 +1574,7 @@ const handlePaymentDialogClose = (open) => {
                           <Button
                             variant="outline"
                             className="w-full text-xs sm:text-sm"
-                            onClick={(e) => {
-                              e.stopPropagation();
+                            onClick={() => {
                               handleProductSelect(product);
                             }}
                           >
@@ -1588,8 +1586,7 @@ const handlePaymentDialogClose = (open) => {
                             <Button
                             variant="outline"
                             className="w-full text-xs sm:text-sm"
-                            onClick={(e) => {
-                              e.stopPropagation();
+                            onClick={() => {
                               setSelectedProduct(product);
                               setShowPhotosDialog(true);
                             }}
