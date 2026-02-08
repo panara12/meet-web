@@ -16,6 +16,7 @@ import { useState } from 'react'
 import TenantRegistrationPage from './routes/tenant/addtenant'
 import RoleProtectedRoute from './routes/RoleProtectedRoute'
 import NotFound from './routes/NotFound'
+import FileSharing from './routes/filesharing/fileshare'
 
 
 function App() {
@@ -30,6 +31,7 @@ function App() {
           <Route path="/forgotpassword" element={<PasswordReset/>}></Route>
           <Route path="/resetpassword" element={<ResetPasswordPage/>}></Route>
           <Route path="/otpverification" element={<OTPVerification />}></Route>
+          <Route path='/sharing/*' element={<FileSharing />}></Route>
           <Route path="/login" element={<Login/>}></Route>
           <Route path="/" element={<Login/>}></Route>
             <Route element={<ProtectedRoute/>}>

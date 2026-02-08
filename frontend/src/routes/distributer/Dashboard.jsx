@@ -218,40 +218,25 @@ export default function Dashboard({ onNavigate }) {
     password: ''
   })
   const [isLoggingIn, setIsLoggingIn] = useState(false)
+  const [subAdminLoginError, setSubAdminLoginError] = useState('')
   const {data:listsubadmin} = useGetAllSubAdmins()
   console.log("list subadmin ",listsubadmin);
-  const { mutate: subAdminLogin, isPending: isSubAdminLoginPending ,isError: isSubAdminLoginError, error: subAdminLoginError} = useSubAdminLogin({
-    onSuccess: (response) => {
-      console.log("seccess")
-      toast.success('SubAdmin login successful!')
-      setShowSubAdminLogin(false)
-      setSubAdminCredentials({ username: '', password: '' })
-      setIsLoggingIn(false)
-      
-      // Make sure your login hook updates userInfo in Redux/Context
-      // with subadminusername field
-    },
-    onError: (error) => {
-      console.log("error",error)
-      toast.error(error?.response?.data?.message || 'Login failed. Please check your credentials.')
-      setIsLoggingIn(false)
-    }
-  })
+  const { mutate: subAdminLogin, isPending: isSubAdminLoginPending, isError: isSubAdminLoginError,} = useSubAdminLogin()
   
 
   useEffect(() => {
-    const shouldShowSubAdminLogin = 
-      limits?.data?.[0]?.isAdminMembers && 
-      !userInfo?.subadminusername
+  const shouldShowSubAdminLogin = 
+    limits?.data?.[0]?.isAdminMembers && 
+    !userInfo?.subadmin_username
 
-    if (shouldShowSubAdminLogin) {
-      const timer = setTimeout(() => {
-        setShowSubAdminLogin(true)
-      }, 500) // 500ms delay for better UX
-      
-      return () => clearTimeout(timer)
-    }
-  }, [limits, userInfo])
+  if (shouldShowSubAdminLogin) {
+    const timer = setTimeout(() => {
+      setShowSubAdminLogin(true)
+    }, 500)
+    
+    return () => clearTimeout(timer)
+  }
+}, [limits, userInfo])
   
   // Staff distribution by role
   // console.log(limits?.data[0].adminlimit)
@@ -278,16 +263,33 @@ export default function Dashboard({ onNavigate }) {
   const [showInbox, setShowInbox] = useState(false)
 
   // Handle SubAdmin Login Submit
-  const handleSubAdminLogin = () => {
-    if (!subAdminCredentials.username || !subAdminCredentials.password) {
-      toast.error('Please enter both username and password')
-      return
-    }
-
-    setIsLoggingIn(true)
-    subAdminLogin(subAdminCredentials)
+const handleSubAdminLogin = () => {
+  if (!subAdminCredentials.username || !subAdminCredentials.password) {
+    setSubAdminLoginError('Please enter both username and password') // CHANGED
+    return
   }
 
+  setIsLoggingIn(true)
+  setSubAdminLoginError('') // CHANGED - Clear previous errors
+  
+  subAdminLogin(subAdminCredentials, {
+    onSuccess: (response) => {
+      console.log("success", response)
+      setShowSubAdminLogin(false)
+      setSubAdminCredentials({ username: '', password: '' })
+      setIsLoggingIn(false)
+      setSubAdminLoginError('') // CHANGED
+      window.location.reload()
+    },
+    onError: (error) => {
+      console.log("error", error)
+      const errorMessage = error?.response?.data?.message || 'Login failed. Please check your credentials.'
+      setSubAdminLoginError(errorMessage) // CHANGED
+      setIsLoggingIn(false)
+      setSubAdminCredentials(prev => ({ ...prev, password: '' }))
+    }
+  })
+}
   // Optional: Handle Skip Login
   const handleSkipSubAdminLogin = () => {
     setShowSubAdminLogin(false)
@@ -843,7 +845,7 @@ export default function Dashboard({ onNavigate }) {
         <Dialog open={showSubAdminLogin} onOpenChange={(open) => {
           // Prevent closing without login
           if (!open && !userInfo?.subadminusername) {
-            toast.error('SubAdmin login is required to continue')
+            setSubAdminLoginError('SubAdmin login is required to continue') // CHANGED
             return
           }
           setShowSubAdminLogin(open)
@@ -869,10 +871,13 @@ export default function Dashboard({ onNavigate }) {
                   type="text"
                   placeholder="Enter your SubAdmin username"
                   value={subAdminCredentials.username}
-                  onChange={(e) => setSubAdminCredentials({
-                    ...subAdminCredentials, 
-                    username: e.target.value
-                  })}
+                  onChange={(e) => {
+                    setSubAdminCredentials({
+                      ...subAdminCredentials, 
+                      username: e.target.value
+                    })
+                    setSubAdminLoginError('') // ADDED - Clear error on input change
+                  }}
                   disabled={isLoggingIn}
                   onKeyPress={(e) => {
                     if (e.key === 'Enter') handleSubAdminLogin()
@@ -887,16 +892,29 @@ export default function Dashboard({ onNavigate }) {
                   type="password"
                   placeholder="Enter your password"
                   value={subAdminCredentials.password}
-                  onChange={(e) => setSubAdminCredentials({
-                    ...subAdminCredentials, 
-                    password: e.target.value
-                  })}
+                  onChange={(e) => {
+                    setSubAdminCredentials({
+                      ...subAdminCredentials, 
+                      password: e.target.value
+                    })
+                    setSubAdminLoginError('') // ADDED - Clear error on input change
+                  }}
                   disabled={isLoggingIn}
                   onKeyPress={(e) => {
                     if (e.key === 'Enter') handleSubAdminLogin()
                   }}
                 />
               </div>
+
+              {/* ADDED - Error display */}
+              {subAdminLoginError && (
+                <div className="bg-red-50 border border-red-200 rounded-md p-3">
+                  <p className="text-sm text-red-600 flex items-center gap-2">
+                    <AlertTriangle className="h-4 w-4" />
+                    {subAdminLoginError}
+                  </p>
+                </div>
+              )}
 
               <div className="flex sm:flex-row gap-3">
                 <Button 
@@ -917,25 +935,10 @@ export default function Dashboard({ onNavigate }) {
                   )}
                 </Button>
               </div>
-
-              {/* <div className="text-center pt-2">
-                <p className="text-sm text-gray-600">
-                  Forgot your credentials?{' '}
-                  <button 
-                    onClick={() => {
-                      setShowSubAdminLogin(false)
-                      setShowContactDialog(true)
-                    }}
-                    className="text-blue-600 hover:underline"
-                  >
-                    Contact Support
-                  </button>
-                </p>
-              </div> */}
             </div>
           </DialogContent>
         </Dialog>
-      )}
+        )}
       </div>
     </div>
   )

@@ -64,7 +64,7 @@ function SalesmanRoutes({ limitsInfo }) {
       { limitsInfo?.wantToUsePayment && 
         <Route path='/paymentupdate' element={<PaymentUpdate />} /> 
       }
-      <Route path='/*' element={<Navigate to="/dashboard" replace />} />
+      <Route path='/*' element={<Navigate to="/salesman/dashboard" replace />} />
     </Routes>
   );
 }

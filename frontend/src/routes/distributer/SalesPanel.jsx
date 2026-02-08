@@ -43,7 +43,10 @@ import {
   Download,
   Trash2,
   ImageIcon,
-  X
+  X,
+  Share2,
+  Copy, 
+  Check 
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -261,6 +264,10 @@ function SalesPanel() {
   const [showPreview, setShowPreview] = useState(false);
   const [selectedFile, setSelectedFile] = useState(null);
   const [preventDialogClose, setPreventDialogClose] = useState(false);
+  // share file
+  const [showShareDialog, setShowShareDialog] = useState(false);
+  const [selectedFileForShare, setSelectedFileForShare] = useState(null);
+  const [copiedLink, setCopiedLink] = useState(false);
   const userInfo = useSelector((state) => state.app.userInfo);
 
   const getTodayDate = () => {
@@ -706,6 +713,53 @@ function SalesPanel() {
     if (!member) return;
     toast.info(`Edit mode for ${member.firstName || ''} ${member.lastName || ''}`);
   };
+
+  const generateShareLink = (file) => {
+    if (!file || !selectedStaff || !userInfo) return '';
+    
+    const fileId = file.file_url;
+    console.log("file",file)
+    
+    const shareToken = `${fileId}`;
+    const baseUrl = window.location.origin;
+    
+    return `${baseUrl}/sharing/${shareToken}`;
+  };
+
+  // Handle share button click
+  const handleShareFile = (file) => {
+    setSelectedFileForShare(file);
+    setShowShareDialog(true);
+    setCopiedLink(false);
+  };
+
+  // Handle copy link
+  const handleCopyLink = async (file) => {
+    try {
+      const link = generateShareLink(file);
+      await navigator.clipboard.writeText(link);
+      setCopiedLink(true);
+      toast.success('Link copied to clipboard!');
+      
+      setTimeout(() => {
+        setCopiedLink(false);
+      }, 3000);
+    } catch (error) {
+      console.error('Failed to copy:', error);
+      toast.error('Failed to copy link');
+    }
+  };
+
+  // Handle WhatsApp share
+  const handleShareViaWhatsApp = (file) => {
+    const link = generateShareLink(file);
+    const message = `Check out this file: ${file.name}\n\n${link}`;
+    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
+    
+    window.open(whatsappUrl, '_blank');
+    toast.success('Opening WhatsApp...');
+  };
+
 
   // Loading state
   if (isLoading) {
@@ -1624,10 +1678,6 @@ function SalesPanel() {
                                           
                                           {/* File size and type */}
                                           <div className="flex items-center gap-2 mt-0.5">
-                                            <span className="text-xs text-muted-foreground">
-                                              {formatFileSize(file.size)}
-                                            </span>
-                                            <span className="text-xs text-muted-foreground">•</span>
                                             <span className="text-xs text-muted-foreground uppercase">
                                               {file.type.split('/')[1] || file.type}
                                             </span>
@@ -1791,7 +1841,7 @@ function SalesPanel() {
                                               {file.name}
                                             </p>
                                             <p className="text-xs text-muted-foreground mt-0.5">
-                                              {formatFileSize(file.size)} • {new Date(file.uploadDate).toLocaleDateString()}
+                                              {new Date(file.uploadDate).toLocaleDateString()}
                                             </p>
                                             {file.description && (
                                               <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
@@ -1814,6 +1864,15 @@ function SalesPanel() {
                                             className="h-8 w-8 sm:h-9 sm:w-9 p-0"
                                           >
                                             <Eye className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
+                                          </Button>
+                                          <Button
+                                            size="sm"
+                                            variant="outline"
+                                            onClick={() => handleShareFile(file)}
+                                            title="Share"
+                                            className="h-8 w-8 sm:h-9 sm:w-9 p-0"
+                                          >
+                                            <Share2 className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
                                           </Button>
                                           <Button
                                             size="sm"
@@ -1856,95 +1915,187 @@ function SalesPanel() {
           </DialogContent>
         </Dialog>
 
-        {/* Preview Modal */}
-              {showPreview && selectedFile && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-2 sm:p-4 z-[100]" onClick={(e) => {
-      // Only close if clicking the backdrop, not the content
-      if (e.target === e.currentTarget) {
-        closePreview();
-      }
-    }}>
-                  <div className="bg-white rounded-lg w-full max-w-4xl max-h-[95vh] sm:max-h-[90vh] overflow-hidden flex flex-col"
-                  onClick={(e) => e.stopPropagation()}>
-                    {/* Modal Header */}
-                    <div className="flex items-center justify-between p-3 sm:p-4 border-b border-gray-200 flex-shrink-0">
-                      <div className="flex items-center gap-2 flex-1 min-w-0">
-                        {selectedFile.type === 'pdf' ? (
-                          <FileText className="w-4 h-4 sm:w-5 sm:h-5 text-red-600 flex-shrink-0" />
-                        ) : (
-                          <ImageIcon className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600 flex-shrink-0" />
-                        )}
-                        <div className="min-w-0 flex-1">
-                          <h3 className="font-medium text-sm sm:text-base text-gray-900 truncate">{selectedFile.name}</h3>
-                          <p className="text-xs sm:text-sm text-gray-500 truncate">
-                            Uploaded by {selectedFile.uploadedBy.name}
-                          </p>
-                        </div>
-                      </div>
-                      <button
-                        onClick={(e)=>{
-                          e.stopPropagation();
-                          e.preventDefault();
-                          closePreview()}}
-                        className="p-1.5 sm:p-2 hover:bg-gray-100 rounded-lg transition-colors flex-shrink-0 ml-2"
-                      >
-                        <span className="text-gray-500 text-xl sm:text-2xl leading-none">×</span>
-                      </button>
-                    </div>
-                    
-                    {/* Modal Content */}
-                    <div className="flex-1 overflow-auto bg-gray-300">
-                      {selectedFile.type === 'pdf' ? (
-                        // PDF Preview
-                        <iframe
-                          src={digital_ocean_url+selectedFile.url}
-                          className="w-full h-full min-h-[400px] sm:min-h-[500px]"
-                          title={selectedFile.name}
-                        />
+        {/* Share Dialog */}
+        <Dialog open={showShareDialog} onOpenChange={setShowShareDialog}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Share2 className="h-5 w-5" />
+                Share File
+              </DialogTitle>
+              <DialogDescription>
+                Share "{selectedFileForShare?.name}" with others
+              </DialogDescription>
+            </DialogHeader>
+            
+            {selectedFileForShare && (
+              <div className="space-y-4">
+                {/* Share Link */}
+                <div className="space-y-2">
+                  <Label>Shareable Link</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      value={generateShareLink(selectedFileForShare)}
+                      readOnly
+                      className="text-xs sm:text-sm"
+                    />
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => handleCopyLink(selectedFileForShare)}
+                      className="flex-shrink-0"
+                    >
+                      {copiedLink ? (
+                        <Check className="h-4 w-4 text-green-600" />
                       ) : (
-                        // Image Preview
-                        <div className="p-2 sm:p-4 flex items-center justify-center min-h-[400px] sm:min-h-[500px]">
-                          <img
-                            src={digital_ocean_url+selectedFile.url}
-                            alt={selectedFile.name}
-                            className="max-w-full max-h-full object-contain rounded-lg shadow-lg"
-                            onError={(e) => {
-                              e.target.style.display = 'none';
-                              e.target.parentElement.innerHTML = `
-                                <div class="text-center p-4">
-                                  <div class="text-gray-400 mb-4">
-                                    <svg class="w-12 h-12 sm:w-16 sm:h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                    </svg>
-                                  </div>
-                                  <p class="text-sm sm:text-base text-gray-600 mb-4">Failed to load image preview</p>
-                                  <button onclick="window.open('${digital_ocean_url}${selectedFile.url}', '_blank')" class="px-3 py-2 sm:px-4 sm:py-2 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700">
-                                    Download to View
-                                  </button>
-                                </div>
-                              `;
-                            }}
-                          />
-                        </div>
+                        <Copy className="h-4 w-4" />
                       )}
-                    </div>
-        
-                    {/* Modal Footer */}
-                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0 p-3 sm:p-4 border-t border-gray-200 bg-white flex-shrink-0">
-                      <div className="text-xs sm:text-sm text-gray-500 text-center sm:text-left">
-                        {selectedFile.size} • {selectedFile.type.toUpperCase()}
-                      </div>
-                      <button
-                        onClick={() => handleDownload(selectedFile)}
-                        className="inline-flex items-center justify-center gap-2 px-3 py-2 sm:px-4 sm:py-2 text-sm bg-[#1E3986] text-white rounded-md hover:bg-[#162d73] transition-colors w-full sm:w-auto"
-                      >
-                        <Download className="w-4 h-4" />
-                        Download
-                      </button>
-                    </div>
+                    </Button>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Anyone with this link can view the file
+                  </p>
+                </div>
+
+                {/* Share Options */}
+                <div className="space-y-2">
+                  <Label>Share Via</Label>
+                  <div className="grid grid-cols-2 gap-2">
+                    <Button
+                      variant="outline"
+                      onClick={() => handleShareViaWhatsApp(selectedFileForShare)}
+                      className="flex items-center gap-2"
+                    >
+                      <MessageSquare className="h-4 w-4" />
+                      WhatsApp
+                    </Button>
+                    <Button
+                      variant="outline"
+                      onClick={() => handleCopyLink(selectedFileForShare)}
+                      className="flex items-center gap-2"
+                    >
+                      <Copy className="h-4 w-4" />
+                      Copy Link
+                    </Button>
                   </div>
                 </div>
-              )}
+
+                {/* File Info */}
+                <div className="p-3 bg-muted rounded-lg space-y-1">
+                  <p className="text-sm font-medium">{selectedFileForShare.name}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {selectedFileForShare.type.toUpperCase()}
+                  </p>
+                </div>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
+
+        {/* Preview Modal */}
+        {showPreview && selectedFile && (
+          <div 
+            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-2 sm:p-4 z-[1000]" 
+            onClick={(e) => {
+              if (e.target === e.currentTarget) {
+                closePreview();
+              }
+            }}
+          >
+            <div 
+              className="bg-white rounded-lg w-full max-w-4xl max-h-[95vh] sm:max-h-[90vh] overflow-hidden flex flex-col"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Modal Header */}
+              <div className="flex items-center justify-between p-3 sm:p-4 border-b border-gray-200 flex-shrink-0">
+                <div className="flex items-center gap-2 flex-1 min-w-0">
+                  {selectedFile.type === 'pdf' ? (
+                    <FileText className="w-4 h-4 sm:w-5 sm:h-5 text-red-600 flex-shrink-0" />
+                  ) : (
+                    <ImageIcon className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600 flex-shrink-0" />
+                  )}
+                  <div className="min-w-0 flex-1">
+                    <h3 
+                      className="font-medium text-sm sm:text-base text-gray-900"
+                      title={selectedFile.name}
+                    >
+                      {/* Mobile: 20 chars, Desktop: 50 chars - ADDED THIS */}
+                      <span className="sm:hidden">{selectedFile.name.length > 20 ? selectedFile.name.substring(0, 20) + '...' : selectedFile.name}</span>
+                      <span className="hidden sm:inline">{selectedFile.name.length > 50 ? selectedFile.name.substring(0, 50) + '...' : selectedFile.name}</span>
+                    </h3>
+                    <p className="text-xs sm:text-sm text-gray-500 truncate">
+                      Uploaded by {selectedFile.uploadedBy.name}
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    e.preventDefault();
+                    closePreview();
+                  }}
+                  className="p-1.5 sm:p-2 hover:bg-gray-100 rounded-lg transition-colors flex-shrink-0 ml-2"
+                >
+                  <X className="w-5 h-5 sm:w-6 sm:h-6 text-gray-500" /> {/* CHANGED: Use X icon instead of × */}
+                </button>
+              </div>
+              
+              {/* Modal Content */}
+              <div className="flex-1 overflow-auto bg-gray-50"> {/* CHANGED: bg-gray-300 to bg-gray-50 */}
+                {selectedFile.type === 'pdf' ? (
+                  // PDF Preview
+                  <iframe
+                    src={digital_ocean_url + selectedFile.url}
+                    className="w-full h-full min-h-[400px] sm:min-h-[500px]"
+                    title={selectedFile.name}
+                  />
+                ) : (
+                  // Image Preview - FIXED ERROR HANDLING
+                  <div className="p-2 sm:p-4 flex items-center justify-center min-h-[400px] sm:min-h-[500px]">
+                    <img
+                      src={digital_ocean_url + selectedFile.url}
+                      alt={selectedFile.name}
+                      className="max-w-full max-h-full object-contain rounded-lg shadow-lg"
+                      onError={(e) => {
+                        e.target.style.display = 'none';
+                        const parent = e.target.parentElement;
+                        if (parent) {
+                          parent.innerHTML = `
+                            <div class="text-center p-4">
+                              <div class="text-gray-400 mb-4">
+                                <svg class="w-12 h-12 sm:w-16 sm:h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                </svg>
+                              </div>
+                              <p class="text-sm sm:text-base text-gray-600 mb-4">Failed to load image preview</p>
+                              <button onclick="window.open('${digital_ocean_url}${selectedFile.url}', '_blank')" class="px-3 py-2 sm:px-4 sm:py-2 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700">
+                                Download to View
+                              </button>
+                            </div>
+                          `;
+                        }
+                      }}
+                    />
+                  </div>
+                )}
+              </div>
+
+              {/* Modal Footer */}
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0 p-3 sm:p-4 border-t border-gray-200 bg-white flex-shrink-0">
+                <div className="text-xs sm:text-sm text-gray-500 text-center sm:text-left">
+                  {selectedFile.type.toUpperCase()}
+                </div>
+                <button
+                  onClick={() => handleDownload(selectedFile)}
+                  className="inline-flex items-center justify-center gap-2 px-3 py-2 sm:px-4 sm:py-2 text-sm bg-[#1E3986] text-white rounded-md hover:bg-[#162d73] transition-colors w-full sm:w-auto"
+                >
+                  <Download className="w-4 h-4" />
+                  Download
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
