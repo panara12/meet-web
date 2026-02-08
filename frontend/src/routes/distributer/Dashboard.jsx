@@ -579,11 +579,6 @@ export default function Dashboard({ onNavigate }) {
                                     key={log._id} 
                                     className={`p-2 rounded-lg border bg-gray-50 border-gray-200`}
                                   >
-                                    <div className="flex items-center justify-between mb-1">
-                                      <span className="text-xs font-medium text-gray-700">
-                                        Login #{recentLogins.length - index}
-                                      </span>
-                                    </div>
                                     <div className="text-xs text-gray-600 space-y-0.5">
                                       <div className="flex items-center gap-1">
                                         <span className="font-medium">In:</span>

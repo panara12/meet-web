@@ -42,7 +42,8 @@ import {
   FileText,
   Download,
   Trash2,
-  ImageIcon
+  ImageIcon,
+  X
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -1499,48 +1500,55 @@ function SalesPanel() {
                   </TabsList>
 
                   <TabsContent value="upload" className="space-y-4">
-                    <div className="space-y-6">
+                    <div className="space-y-4 sm:space-y-6">
                       {/* Day Selection */}
-                      <div className="space-y-3">
-                        <Label className="text-base font-medium">Select Day</Label>
-                        <div className="grid grid-cols-7 gap-2">
+                      <div className="space-y-2 sm:space-y-3">
+                        <Label className="text-sm sm:text-base font-medium">Select Day</Label>
+                        <div className="grid grid-cols-3 sm:grid-cols-7 gap-1.5 sm:gap-2">
                           {Object.entries(dayNames).map(([day, dayName]) => (
                             <Button
                               key={day}
                               variant={selectedDay === day ? "default" : "outline"}
                               size="sm"
                               onClick={() => setSelectedDay(day)}
-                              className="text-xs"
+                              className="text-xs h-8 sm:h-9"
                             >
-                              {dayName.slice(0, 3)}
+                              {/* Mobile: First 3 letters, Desktop: Full name */}
+                              <span className="hidden sm:inline">{dayName.slice(0, 3)}</span>
+                              <span className="sm:hidden">{dayName.slice(0, 2)}</span>
                             </Button>
                           ))}
                         </div>
-                        <p className="text-sm text-muted-foreground">
+                        <p className="text-xs sm:text-sm text-muted-foreground">
                           Selected: <span className="font-medium">{dayNames[selectedDay]}</span>
                         </p>
                       </div>
 
                       {/* File Description */}
                       <div className="space-y-2">
-                        <Label htmlFor="description">File Description (Optional)</Label>
+                        <Label htmlFor="description" className="text-sm sm:text-base">
+                          File Description (Optional)
+                        </Label>
                         <Textarea
                           id="description"
                           placeholder="Enter a description for the files..."
                           value={fileDescription}
                           onChange={(e) => setFileDescription(e.target.value)}
                           rows={3}
+                          className="text-sm resize-none"
                         />
                       </div>
 
                       {/* File Upload */}
-                      <div className="space-y-4">
-                        <Label className="text-base font-medium">Upload Files</Label>
-                        <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-8">
+                      <div className="space-y-3 sm:space-y-4">
+                        <Label className="text-sm sm:text-base font-medium">Upload Files</Label>
+                        <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-4 sm:p-6 lg:p-8">
                           <div className="text-center">
-                            <Upload className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                            <h4 className="text-lg font-medium mb-2">Select Files to Upload</h4>
-                            <p className="text-sm text-muted-foreground mb-4">
+                            <Upload className="h-8 w-8 sm:h-10 sm:w-10 lg:h-12 lg:w-12 text-muted-foreground mx-auto mb-3 sm:mb-4" />
+                            <h4 className="text-base sm:text-lg font-medium mb-1 sm:mb-2">
+                              Select Files to Upload
+                            </h4>
+                            <p className="text-xs sm:text-sm text-muted-foreground mb-3 sm:mb-4 px-2">
                               Support for PDF and image files up to 10MB each
                             </p>
 
@@ -1559,23 +1567,86 @@ function SalesPanel() {
                                 onClick={() => document.getElementById('file-upload')?.click()}
                                 disabled={isUploading}
                                 variant="outline"
+                                className="text-sm"
                               >
                                 <FilePlus className="h-4 w-4 mr-2" />
                                 Select Files
                               </Button>
 
                               {selectedFiles.length > 0 && (
-                                <div className="mt-4 w-full">
-                                  <p className="text-sm font-medium mb-2">
-                                    Selected Files ({selectedFiles.length}):
-                                  </p>
-                                  <div className="space-y-1 max-h-32 overflow-y-auto">
+                                <div className="mt-3 sm:mt-4 w-full px-2 sm:px-0">
+                                  <div className="flex items-center justify-between mb-2">
+                                    <p className="text-xs sm:text-sm font-medium">
+                                      Selected Files ({selectedFiles.length})
+                                    </p>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => {
+                                        setSelectedFiles([]);
+                                        const fileInput = document.getElementById('file-upload');
+                                        if (fileInput) fileInput.value = "";
+                                      }}
+                                      className="text-xs h-6 px-2"
+                                    >
+                                      Clear All
+                                    </Button>
+                                  </div>
+                                  
+                                  <div className="space-y-1.5 max-h-32 sm:max-h-40 overflow-y-auto overflow-x-hidden pr-1">
                                     {selectedFiles.map((file, index) => (
-                                      <div key={index} className="flex items-center justify-between p-2 bg-muted rounded text-xs">
-                                        <span className="truncate flex-1">{file.name}</span>
-                                        <span className="text-muted-foreground ml-2">
-                                          {formatFileSize(file.size)}
-                                        </span>
+                                      <div 
+                                        key={index} 
+                                        className="group flex items-start gap-2 p-2 bg-muted hover:bg-muted/80 rounded-md transition-colors"
+                                      >
+                                        {/* File type icon */}
+                                        <div className="flex-shrink-0 mt-0.5">
+                                          {file.type.includes('pdf') ? (
+                                            <FileText className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-red-500" />
+                                          ) : (
+                                            <ImageIcon className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-blue-500" />
+                                          )}
+                                        </div>
+                                        
+                                        {/* File details */}
+                                        <div className="flex-1 min-w-0">
+                                          {/* File name */}
+                                          <div className="flex items-start gap-1.5">
+                                            <p 
+                                              className="text-xs flex-1 min-w-0 break-words sm:break-normal sm:truncate"
+                                              title={file.name}
+                                            >
+                                              {file.name}
+                                            </p>
+                                          </div>
+                                          
+                                          {/* File size and type */}
+                                          <div className="flex items-center gap-2 mt-0.5">
+                                            <span className="text-xs text-muted-foreground">
+                                              {formatFileSize(file.size)}
+                                            </span>
+                                            <span className="text-xs text-muted-foreground">•</span>
+                                            <span className="text-xs text-muted-foreground uppercase">
+                                              {file.type.split('/')[1] || file.type}
+                                            </span>
+                                          </div>
+                                        </div>
+                                        
+                                        {/* Remove button */}
+                                        <button
+                                          onClick={() => {
+                                            const newFiles = selectedFiles.filter((_, i) => i !== index);
+                                            setSelectedFiles(newFiles);
+                                            if (newFiles.length === 0) {
+                                              const fileInput = document.getElementById('file-upload');
+                                              if (fileInput) fileInput.value = "";
+                                            }
+                                          }}
+                                          className="flex-shrink-0 p-1 opacity-0 group-hover:opacity-100 hover:bg-destructive/10 rounded transition-all"
+                                          title="Remove file"
+                                        >
+                                          <X className="h-3 w-3 text-destructive" />
+                                        </button>
                                       </div>
                                     ))}
                                   </div>
@@ -1583,7 +1654,7 @@ function SalesPanel() {
                                   <Button
                                     onClick={handleUploadFiles}
                                     disabled={isUploading}
-                                    className="w-full mt-4"
+                                    className="w-full mt-3 sm:mt-4 text-sm"
                                   >
                                     {isUploading ? (
                                       <>
@@ -1608,19 +1679,23 @@ function SalesPanel() {
                         </div>
 
                         {/* File Type Info */}
-                        <div className="grid grid-cols-2 gap-4">
-                          <div className="flex items-center gap-2 p-3 border rounded-lg">
-                            <FileText className="h-5 w-5 text-red-500" />
-                            <div>
-                              <p className="font-medium text-sm">PDF Documents</p>
-                              <p className="text-xs text-muted-foreground">Reports, presentations, contracts</p>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                          <div className="flex items-center gap-2 sm:gap-3 p-2.5 sm:p-3 border rounded-lg">
+                            <FileText className="h-4 w-4 sm:h-5 sm:w-5 text-red-500 flex-shrink-0" />
+                            <div className="min-w-0">
+                              <p className="font-medium text-xs sm:text-sm">PDF Documents</p>
+                              <p className="text-xs text-muted-foreground truncate">
+                                Reports, presentations, contracts
+                              </p>
                             </div>
                           </div>
-                          <div className="flex items-center gap-2 p-3 border rounded-lg">
-                            <ImageIcon className="h-5 w-5 text-blue-500" />
-                            <div>
-                              <p className="font-medium text-sm">Images</p>
-                              <p className="text-xs text-muted-foreground">Photos, screenshots, diagrams</p>
+                          <div className="flex items-center gap-2 sm:gap-3 p-2.5 sm:p-3 border rounded-lg">
+                            <ImageIcon className="h-4 w-4 sm:h-5 sm:w-5 text-blue-500 flex-shrink-0" />
+                            <div className="min-w-0">
+                              <p className="font-medium text-xs sm:text-sm">Images</p>
+                              <p className="text-xs text-muted-foreground truncate">
+                                Photos, screenshots, diagrams
+                              </p>
                             </div>
                           </div>
                         </div>
@@ -1628,133 +1703,151 @@ function SalesPanel() {
                     </div>
                   </TabsContent>
 
+                    {/* Manage Files Tab */}
+                    <TabsContent value="manage" className="space-y-4">
+                      <div className="space-y-4">
+                        {selectedStaff && (() => {
+                          const staffFiles = getStaffFiles();
 
-                  <TabsContent value="manage" className="space-y-4">
-                    <div className="space-y-4">
-                      {selectedStaff && (() => {
-                        const staffFiles = getStaffFiles(); // Use _id instead of id
-                        console.log('Staff Files:', staffFiles);
+                          if (!staffFiles) {
+                            return (
+                              <div className="text-center py-8">
+                                <FolderOpen className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                                <h4 className="font-medium mb-2">No Files Uploaded</h4>
+                                <p className="text-sm text-muted-foreground">
+                                  Upload files in the Upload tab to get started
+                                </p>
+                              </div>
+                            );
+                          }
 
-                        if (!staffFiles) {
+                          const currentWeek = staffFiles.currentWeek || {};
+
                           return (
-                            <div className="text-center py-8">
-                              <FolderOpen className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                              <h4 className="font-medium mb-2">No Files Uploaded</h4>
-                              <p className="text-sm text-muted-foreground">
-                                Upload files in the Upload tab to get started
-                              </p>
-                            </div>
-                          );
-                        }
-
-                        const currentWeek = staffFiles.currentWeek || {};
-
-                        return (
-                          <div className="space-y-4">
-                            {/* Weekly Overview */}
-                            <div className="grid grid-cols-7 gap-2 h-12">
-                              {Object.entries(dayNames).map(([day, dayName]) => {
-                                const fileCount = currentWeek[day]?.length || 0;
-                                return (
-                                  <div key={day} className="text-center">
-                                    <Button
-                                      variant={selectedDay === day ? "default" : "outline"}
-                                      size="sm"
-                                      onClick={() => setSelectedDay(day)}
-                                      className="text-xs w-full max-[443px]:h-full"
-                                    >
-                                      <div className="flex max-[443px]:flex-col max-[443px]:space-y-2">
-                                        <div>{dayName.slice(0, 3)}</div>
-                                        <Badge variant="secondary" className="ml-1 h-4 px-1">
-                                          {fileCount}
-                                        </Badge>
-                                      </div>
-                                    </Button>
-                                  </div>
-                                );
-                              })}
-                            </div>
-
-                            {/* Files for Selected Day */}
-                            <div className="space-y-3">
-                              <div className="flex items-center justify-between">
-                                <h4 className="font-medium">{dayNames[selectedDay]} Files</h4>
-                                <Badge variant="secondary">
-                                  {currentWeek[selectedDay]?.length || 0} files
-                                </Badge>
+                            <div className="space-y-4">
+                              {/* Weekly Overview - Mobile Responsive */}
+                              <div className="grid grid-cols-3 sm:grid-cols-7 gap-1.5 sm:gap-2">
+                                {Object.entries(dayNames).map(([day, dayName]) => {
+                                  const fileCount = currentWeek[day]?.length || 0;
+                                  return (
+                                    <div key={day} className="text-center">
+                                      <Button
+                                        variant={selectedDay === day ? "default" : "outline"}
+                                        size="sm"
+                                        onClick={() => setSelectedDay(day)}
+                                        className="text-xs w-full h-auto py-2 px-1"
+                                      >
+                                        <div className="flex flex-col items-center gap-1">
+                                          {/* Mobile: 2 letters, Tablet+: 3 letters */}
+                                          <span className="sm:hidden">{dayName.slice(0, 2)}</span>
+                                          <span className="hidden sm:inline">{dayName.slice(0, 3)}</span>
+                                          <Badge 
+                                            variant="secondary" 
+                                            className="h-4 px-1 text-xs min-w-[1.25rem]"
+                                          >
+                                            {fileCount}
+                                          </Badge>
+                                        </div>
+                                      </Button>
+                                    </div>
+                                  );
+                                })}
                               </div>
 
-                              {!currentWeek[selectedDay] || currentWeek[selectedDay].length === 0 ? (
-                                <div className="text-center py-6 text-muted-foreground">
-                                  <Calendar className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                                  <p>No files for {dayNames[selectedDay]}</p>
+                              {/* Files for Selected Day */}
+                              <div className="space-y-3">
+                                <div className="flex items-center justify-between">
+                                  <h4 className="font-medium text-sm sm:text-base">
+                                    {dayNames[selectedDay]} Files
+                                  </h4>
+                                  <Badge variant="secondary" className="text-xs">
+                                    {currentWeek[selectedDay]?.length || 0} files
+                                  </Badge>
                                 </div>
-                              ) : (
-                                <div className="space-y-2">
-                                  {currentWeek[selectedDay].map((file) => (
-                                    <div key={file.id} className="flex items-center justify-between p-3 border rounded-lg">
-                                      <div className="flex items-center gap-3 flex-1 min-w-0">
-                                        {file.type === 'pdf' ? (
-                                          <FileText className="h-5 w-5 text-red-500 flex-shrink-0" />
-                                        ) : (
-                                          <ImageIcon className="h-5 w-5 text-blue-500 flex-shrink-0" />
-                                        )}
-                                        <div className="flex-1 min-w-0">
-                                          <p className="font-medium text-sm truncate">{file.name}</p>
-                                          <p className="text-xs text-muted-foreground">
-                                            {formatFileSize(file.size)} • {new Date(file.uploadDate).toLocaleDateString()}
-                                          </p>
-                                          {file.description && (
-                                            <p className="text-xs text-muted-foreground mt-1 truncate">
-                                              "{file.description}"
-                                            </p>
+
+                                {!currentWeek[selectedDay] || currentWeek[selectedDay].length === 0 ? (
+                                  <div className="text-center py-6 text-muted-foreground">
+                                    <Calendar className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                                    <p className="text-sm">No files for {dayNames[selectedDay]}</p>
+                                  </div>
+                                ) : (
+                                  <div className="space-y-2">
+                                    {currentWeek[selectedDay].map((file) => (
+                                      <div 
+                                        key={file.id} 
+                                        className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 p-3 border rounded-lg"
+                                      >
+                                        {/* File Info */}
+                                        <div className="flex items-start gap-2 sm:gap-3 flex-1 min-w-0">
+                                          {file.type === 'pdf' ? (
+                                            <FileText className="h-5 w-5 text-red-500 flex-shrink-0 mt-0.5" />
+                                          ) : (
+                                            <ImageIcon className="h-5 w-5 text-blue-500 flex-shrink-0 mt-0.5" />
                                           )}
-                                          <p className="text-xs text-muted-foreground">
-                                            Uploaded by: {file.uploadedBy?.distributer_name}
-                                          </p>
+                                          <div className="flex-1 min-w-0">
+                                            <p className="font-medium text-xs sm:text-sm break-words">
+                                              {file.name}
+                                            </p>
+                                            <p className="text-xs text-muted-foreground mt-0.5">
+                                              {formatFileSize(file.size)} • {new Date(file.uploadDate).toLocaleDateString()}
+                                            </p>
+                                            {file.description && (
+                                              <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
+                                                "{file.description}"
+                                              </p>
+                                            )}
+                                            <p className="text-xs text-muted-foreground mt-0.5">
+                                              Uploaded by: {file.uploadedBy?.distributer_name}
+                                            </p>
+                                          </div>
+                                        </div>
+
+                                        {/* Action Buttons */}
+                                        <div className="flex gap-1.5 sm:gap-2 flex-shrink-0 justify-end sm:justify-start">
+                                          <Button
+                                            size="sm"
+                                            variant="outline"
+                                            onClick={() => handlePreview(file)}
+                                            title="Preview"
+                                            className="h-8 w-8 sm:h-9 sm:w-9 p-0"
+                                          >
+                                            <Eye className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
+                                          </Button>
+                                          <Button
+                                            size="sm"
+                                            variant="outline"
+                                            onClick={() => handleDownload(file)}
+                                            title="Download"
+                                            className="h-8 w-8 sm:h-9 sm:w-9 p-0"
+                                          >
+                                            <Download className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
+                                          </Button>
+                                          <Button
+                                            size="sm"
+                                            variant="destructive"
+                                            onClick={() => handleFileDelete(file.id, file.name)}
+                                            disabled={deletingFileId === file.id}
+                                            title="Delete"
+                                            className="h-8 w-8 sm:h-9 sm:w-9 p-0"
+                                          >
+                                            {deletingFileId === file.id ? (
+                                              <RefreshCw className="h-3 w-3 sm:h-3.5 sm:w-3.5 animate-spin" />
+                                            ) : (
+                                              <Trash2 className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
+                                            )}
+                                          </Button>
                                         </div>
                                       </div>
-                                      <div className="flex gap-2 flex-shrink-0">
-                                        <Button
-                                          size="sm"
-                                          variant="outline"
-                                          onClick={() => handlePreview(file)}
-                                          title="Preview"
-                                        >
-                                          <Eye className="h-3 w-3" />
-                                        </Button>
-                                        <Button
-                                          size="sm"
-                                          variant="outline"
-                                          onClick={() => handleDownload(file)}
-                                          title="Download"
-                                        >
-                                          <Download className="h-3 w-3" />
-                                        </Button>
-                                        <Button
-                                          size="sm"
-                                          variant="destructive"
-                                          onClick={() => handleFileDelete(file.id, file.name)}
-                                          disabled={deletingFileId === file.id}
-                                          title="Delete"
-                                        >
-                                          {deletingFileId === file.id ? (
-                                            <RefreshCw className="h-3 w-3 animate-spin" />
-                                          ) : (
-                                            <Trash2 className="h-3 w-3" />
-                                          )}
-                                        </Button>
-                                      </div>
-                                    </div>
-                                  ))}
-                                </div>
-                              )}
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
                             </div>
-                          </div>
-                        );
-                      })()}
-                    </div>
-                  </TabsContent>
+                          );
+                        })()}
+                      </div>
+                </TabsContent>
+
                 </Tabs>
               </ScrollArea>
             )}
