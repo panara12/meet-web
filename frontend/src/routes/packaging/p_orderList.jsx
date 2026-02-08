@@ -171,12 +171,14 @@ export function OrderList({
                       <div className="flex-1 min-w-0">
                         <div className="flex items-start justify-between gap-2 mb-1">
                           <h3 className="text-sm sm:text-base md:text-lg font-semibold text-foreground truncate">
-                            {t('Order')} #{order.order_id}
+                            #{order.order_id} {t('Order')}
                           </h3>
                           <div className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
                             {getStatusIcon(order.status)}
-                            <span className="text-muted-foreground text-[10px] sm:text-xs whitespace-nowrap">
-                              {order.date}
+                            <span className="text-muted-foreground text-[10px] sm:text-xs whitespace-nowrap" title={order.date}>
+                              {
+                                (order.date.split('T'))[0]
+                              }
                             </span>
                             {isExpanded ? (
                               <ChevronUp className="w-4 h-4 sm:w-5 sm:h-5 text-muted-foreground" />
@@ -192,11 +194,10 @@ export function OrderList({
                               <ShoppingBag className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
                               <span>{order?.totalItems} {t('Items')}</span>
                             </div>
-                            <span>•</span>
-                            <div className="flex items-center gap-1">
+                            {/* <div className="flex items-center gap-1">
                               <IndianRupeeIcon className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
                               <span>{order?.totalAmount}</span>
-                            </div>
+                            </div> */}
                             {selectedItemsInOrder > 0 && (
                               <>
                                 <span>•</span>

@@ -28,6 +28,23 @@ const menuItemsWithoutPayment = [
   // { title: "Settings", icon: Settings, path: "/salesman/settings" },
 ];
 
+const menuItemsWithoutPhotos = [
+  { title: "Dashboard", icon: LayoutDashboard, path: "/salesman/dashboard" },
+  { title: "Add Order", icon: ShoppingCart, path: "/salesman/addorder" },
+  { title: "Add Client", icon: UserPlus, path: "/salesman/addclient" },
+  { title: "Payment Update", icon: CreditCard, path: "/salesman/paymentupdate" },
+  // { title: "Daily Files", icon: FileText, path: "/salesman/dailyfiles" },
+  // { title: "Settings", icon: Settings, path: "/salesman/settings" },
+];
+
+const menuItemsWithoutPhotosAndPayment = [
+  { title: "Dashboard", icon: LayoutDashboard, path: "/salesman/dashboard" },
+  { title: "Add Order", icon: ShoppingCart, path: "/salesman/addorder" },
+  { title: "Add Client", icon: UserPlus, path: "/salesman/addclient" },
+  // { title: "Daily Files", icon: FileText, path: "/salesman/dailyfiles" },
+  // { title: "Payment Update", icon: CreditCard, path: "/salesman/paymentupdate" },
+]
+
 export default function Sidebar({sidebarOpen,setSidebarOpen}) {
   const navigate = useNavigate();
   const location = useLocation();
@@ -62,7 +79,7 @@ export default function Sidebar({sidebarOpen,setSidebarOpen}) {
 
         {/* Navigation Menu */}
         <nav className="p-4">
-          {limitsInfo?.wantToUsePayment && menuItems.map((item) => {
+          { limitsInfo?.wantToUsePayment && limitsInfo?.wantToUsePhotos && menuItems.map((item) => {
             const Icon = item.icon;
             const isActive = location.pathname === item.path;
 
@@ -84,7 +101,51 @@ export default function Sidebar({sidebarOpen,setSidebarOpen}) {
               </button>
             );
           })}
-          {!limitsInfo?.wantToUsePayment && menuItemsWithoutPayment.map((item) => {
+          {!limitsInfo?.wantToUsePayment && limitsInfo?.wantToUsePhotos && menuItemsWithoutPayment.map((item) => {
+            const Icon = item.icon;
+            const isActive = location.pathname === item.path;
+
+            return (
+              <button
+                key={item.path}
+                onClick={() => {
+                  navigate(item.path);
+                  setSidebarOpen(false);
+                }}
+                className={`w-full flex items-center space-x-3 px-4 py-3 mb-1 text-left rounded-lg transition-colors ${
+                  isActive
+                    ? "bg-white text-[#1E3986]"
+                    : "text-blue-100 hover:bg-white/10 hover:text-white"
+                }`}
+              >
+                <Icon className="w-4 h-4" />
+                <span className="text-sm">{item.title}</span>
+              </button>
+            );
+          })}
+          {!limitsInfo?.wantToUsePhotos && limitsInfo?.wantToUsePayment && menuItemsWithoutPhotos.map((item) => {
+            const Icon = item.icon;
+            const isActive = location.pathname === item.path;
+
+            return (
+              <button
+                key={item.path}
+                onClick={() => {
+                  navigate(item.path);
+                  setSidebarOpen(false);
+                }}
+                className={`w-full flex items-center space-x-3 px-4 py-3 mb-1 text-left rounded-lg transition-colors ${
+                  isActive
+                    ? "bg-white text-[#1E3986]"
+                    : "text-blue-100 hover:bg-white/10 hover:text-white"
+                }`}
+              >
+                <Icon className="w-4 h-4" />
+                <span className="text-sm">{item.title}</span>
+              </button>
+            );
+          })}
+          {!limitsInfo?.wantToUsePhotos && !limitsInfo?.wantToUsePayment && menuItemsWithoutPhotosAndPayment.map((item) => {
             const Icon = item.icon;
             const isActive = location.pathname === item.path;
 

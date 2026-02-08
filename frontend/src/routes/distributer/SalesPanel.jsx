@@ -955,7 +955,10 @@ function SalesPanel() {
                         <MapPin className="h-3 w-3" />
                         Location
                       </Button>
-                      <Button
+                    </>
+                  )}
+                  {(member?.role?.toLowerCase() === "sales-man" || member?.role?.toLowerCase() === "salesman")&&(limits?.data[0]?.wantToUsePhotos) &&
+                    <Button
                         variant="outline"
                         size="sm"
                         className="flex items-center gap-1"
@@ -969,8 +972,7 @@ function SalesPanel() {
                           </Badge>
                         )}
                       </Button>
-                    </>
-                  )}
+                    }
                 </div>
               </CardContent>
             </Card>

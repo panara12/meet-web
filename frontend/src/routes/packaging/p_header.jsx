@@ -10,7 +10,7 @@ export function Header({ title, onBack, onLogout,userInfo }) {
       {onBack && (
         <button
           onClick={onBack}
-          className="p-1.5 sm:p-2 rounded-full hover:bg-accent active:bg-accent/80 transition-colors duration-200 flex-shrink-0 touch-manipulation"
+          className="p-1.5 ml-5 sm:ml-0 sm:p-2 rounded-full hover:bg-accent active:bg-accent/80 transition-colors duration-200 flex-shrink-0 touch-manipulation"
           aria-label="Go back"
         >
           <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5 text-foreground" />

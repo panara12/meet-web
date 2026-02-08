@@ -57,7 +57,10 @@ function SalesmanRoutes({ limitsInfo }) {
       <Route path='/dashboard' element={<Dashboard />} />
       <Route path='/addorder' element={<AddOrder />} />
       <Route path='/addclient' element={<AddClient />} />
-      <Route path='/dailyfiles' element={<DailyFiles />} />
+      {
+        limitsInfo?.wantToUsePhotos && 
+        <Route path='/dailyfiles' element={<DailyFiles />} />
+      }
       { limitsInfo?.wantToUsePayment && 
         <Route path='/paymentupdate' element={<PaymentUpdate />} /> 
       }
