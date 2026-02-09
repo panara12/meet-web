@@ -570,20 +570,37 @@ function SalesPanel() {
     };
   
     // Handle file preview
-    const handlePreview = (file) => {
-      setSelectedFile(file);
-      setShowPreview(true);
-    };
-  
-    // Close preview
-    const closePreview = (e) => {
-      if (e) {
-        e.stopPropagation();
-        e.preventDefault();
+const handlePreview = (file) => {
+  setSelectedFile(file);
+  setShowPreview(true);
+  setShowFilesDialog(false); // Close the files dialog
+};
+
+// Close preview
+const closePreview = (e) => {
+  if (e) {
+    e.stopPropagation();
+    e.preventDefault();
+  }
+  setShowPreview(false);
+  setSelectedFile(null);
+  // Optionally reopen the files dialog
+  // setShowFilesDialog(true);
+};
+
+// Update the Preview Modal z-index to be higher
+{showPreview && selectedFile && (
+  <div 
+    className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-2 sm:p-4 z-[9999]" // Changed from z-[1000] to z-[9999]
+    onClick={(e) => {
+      if (e.target === e.currentTarget) {
+        closePreview();
       }
-      setShowPreview(false);
-      setSelectedFile(null);
-    };
+    }}
+  >
+    {/* Rest of the preview modal code stays the same */}
+  </div>
+)}
 
   const formatDate = (dateString) => {
     if (!dateString) return "Unknown";

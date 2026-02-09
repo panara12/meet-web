@@ -216,23 +216,13 @@ router.post(
   multerErrorHandler,
   async (req, res) => {
     manualLog('entered in update products');
-    // manualLog(req.body)
     try {
-      console.log(req.body)
+      console.log(req.body);
       const { id } = req.params;
-      let imageDocs = [] 
+      let imageDocs = [];
       const req_product_data = req.body;
 
-      // Handle tags array
-      // if (typeof req_product_data.tags === 'string') {
-      //   req_product_data.tags = req_product_data.tags
-      //     .split(',')
-      //     .map((t) => t.trim())
-      //     .filter((t) => t);
-      // } else if (!Array.isArray(req_product_data.tags)) {
-      //   req_product_data.tags = [];
-      // }
-
+      // Parse SKUs
       if (typeof req_product_data.skus === 'string') {
         try {
           req_product_data.skus = JSON.parse(req_product_data.skus);
@@ -255,67 +245,92 @@ router.post(
 
       const Product = req.db.model('Product');
       const product_data = await Product.findById(id);
-      if (!product_data) return res.status(404).json({ message: 'Product not found' });
+      if (!product_data) {
+        return res.status(404).json({ message: 'Product not found' });
+      }
 
       const tenent_username = req.tenent.D_dbname;
 
-      // Normalize images from body
-      const updatedPublicIds = Array.isArray(req_product_data.images)
-        ? req_product_data.images
-        : req_product_data.images
-        ? [req_product_data.images]
-        : [];
-
-      // Find removed image public_ids
-      // const removedImgs = product_data.images.filter(
-      //   (img) => !updatedPublicIds.includes(img.url)
-      // );
-      // const removedPublicIds = removedImgs.map((img) => img.url);
-
-      // // Delete them from Cloudinary in parallel
-      // await cloudinary_delete(removedPublicIds);
-
-      if(req.files && Object.keys(req.files).length > 0){
-        const folderPath = `${tenent_username}/products`;
-        console.log('file data',req.files);
-
-        // Frontend should send them as `existingImages` (array of URLs or JSON string)
-        let existingImages = [];
-
-        if (req.body.existingImages) {
-          if (typeof req.body.existingImages === "string") {
-            try {
-              existingImages = JSON.parse(req.body.existingImages);
-            } catch {
-              // fallback if backend gets single string instead of JSON
-              existingImages = [req.body.existingImages];
-            }
-          } else if (Array.isArray(req.body.existingImages)) {
-            existingImages = req.body.existingImages;
+      // ========== IMAGE HANDLING ==========
+      
+      // Parse existing images sent from frontend
+      let existingImages = [];
+      if (req.body.existingImages) {
+        if (typeof req.body.existingImages === "string") {
+          try {
+            existingImages = JSON.parse(req.body.existingImages);
+          } catch {
+            existingImages = [req.body.existingImages];
           }
+        } else if (Array.isArray(req.body.existingImages)) {
+          existingImages = req.body.existingImages;
         }
+      }
 
-        // Convert existing image URLs into correct format
-        const retainedImages = existingImages.map((url) =>
-          typeof url === "string" ? { url } : url
+      console.log("📸 Existing images from frontend:", existingImages);
+      console.log("🗄️ Current product images in DB:", product_data.images);
+
+      // Normalize existing images to array of URLs (strings)
+      const retainedImageUrls = existingImages.map((img) => 
+        typeof img === "string" ? img : img.url
+      );
+
+      console.log("✅ Retained image URLs:", retainedImageUrls);
+
+      // Find images that were removed (existed in DB but not in retained list)
+      const removedImages = product_data.images.filter(
+        (img) => !retainedImageUrls.includes(img.url)
+      );
+
+      console.log("🗑️ Images to remove:", removedImages);
+
+      // Delete removed images from Digital Ocean
+      if (removedImages.length > 0) {
+        const deletePromises = removedImages.map(async (img) => {
+          try {
+            // Extract the file path from the full URL
+            // Example URL: https://your-space.digitaloceanspaces.com/tenant/products/image.jpg
+            // We need: tenant/products/image.jpg
+            const urlParts = img.url.split('.com/');
+            const filePath = urlParts[1]; // This gets the path after .com/
+            
+            console.log(`🗑️ Deleting file: ${filePath}`);
+            await deleteFileFromDO(filePath); // You need to implement this function
+            console.log(`✅ Deleted: ${filePath}`);
+          } catch (error) {
+            console.error(`❌ Error deleting ${img.url}:`, error);
+          }
+        });
+
+        await Promise.all(deletePromises);
+      }
+
+      // Convert retained URLs back to proper format
+      const retainedImages = retainedImageUrls.map((url) => ({ url }));
+
+      // Upload new images if any
+      if (req.files && req.files.length > 0) {
+        const folderPath = `${tenent_username}/products`;
+        console.log('📤 Uploading new files:', req.files.length);
+
+        const res_DO = await Promise.all(
+          req.files.map(async (file) => {
+            const response = await uploadFileToDO(file.path, folderPath, file.mimetype);
+            console.log("✅ File uploaded:", response);
+            return response;
+          })
         );
 
-
-        //file upload to the digital ocean 
-          const res_DO = 
-          await Promise.all(req.files.map(async (file) => {
-            const response = await uploadFileToDO(file.path, folderPath,file.mimetype);
-            console.log("route response file upload", response);
-            return response;
-          }));
-
-          console.log("digital ocean response", res_DO);
-          imageDocs = res_DO.map(url => ({ url }));
-          req_product_data.images = [...retainedImages, ...imageDocs];
+        console.log("📸 Digital Ocean upload responses:", res_DO);
+        imageDocs = res_DO.map((url) => ({ url }));
       }
-          
 
-      // Handle SKU updates (take directly from body)
+      // Combine retained images + newly uploaded images
+      req_product_data.images = [...retainedImages, ...imageDocs];
+
+      console.log("🖼️ Final images array:", req_product_data.images);
+
+      // Handle SKU updates
       if (req_product_data.skus && Array.isArray(req_product_data.skus)) {
         req_product_data.skus = req_product_data.skus;
       }
@@ -327,15 +342,18 @@ router.post(
         { new: true }
       );
 
-      manualLog(`Product updated: ${updated_product}`);
+      manualLog(`Product updated: ${updated_product._id}`);
       res.status(200).json({
         message: 'Product updated successfully',
         product: updated_product,
       });
     } catch (error) {
-      console.log('Error in update products', error);
-      manualLog(`Error in update products :: `,error);
-      res.status(500).json({ message: 'There was an error updating the product' });
+      console.error('❌ Error in update products:', error);
+      manualLog(`Error in update products:`, error);
+      res.status(500).json({ 
+        message: 'There was an error updating the product',
+        error: error.message 
+      });
     }
   }
 );

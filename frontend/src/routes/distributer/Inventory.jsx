@@ -628,13 +628,13 @@ function Inventory() {
   return (
     <div className="w-full">
       <div className="ml-10 lg:hidden">
-        <h1 className="text-xl">Inventory Management</h1>
+        <h1 className="text-xl">Catalogue Management</h1>
       </div>
       <div className="space-y-6">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-xl max-[1024px]:hidden">Inventory Management</h1>
+            <h1 className="text-xl max-[1024px]:hidden">Catalogue Management</h1>
             {/* <p className="text-muted-foreground">
               Manage your product catalog with Amazon-style inventory tracking
             </p> */}
@@ -651,7 +651,7 @@ function Inventory() {
               <DialogHeader>
                 <DialogTitle>Add New Category</DialogTitle>
                 <DialogDescription>
-                  Create a new category in your inventory
+                  Create a new category in your Catalogue
                 </DialogDescription>
               </DialogHeader>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -733,7 +733,7 @@ function Inventory() {
               <DialogHeader>
                 <DialogTitle>Add New Product</DialogTitle>
                 <DialogDescription>
-                  Create a new product in your inventory
+                  Create a new product in your Catalogue
                 </DialogDescription>
               </DialogHeader>
 

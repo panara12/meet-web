@@ -338,12 +338,12 @@ const handleSubAdminLogin = () => {
     },
     {
       title: "Add Product",
-      description: "Add new inventory item",
+      description: "Add new Catalogue item",
       icon: PackagePlus,
-      action: () => onNavigate && onNavigate('inventory'),
+      action: () => onNavigate && onNavigate('catalogue'),
       color: "bg-green-500 hover:bg-green-600",
       textColor: "text-white",
-      to:"/distributer/inventory"
+      to:"/distributer/catalogue"
     },
     {
       title: "Add Company",

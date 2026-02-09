@@ -1523,7 +1523,7 @@ const handlePaymentDialogClose = (open) => {
       {/* Product Catalog */}
       <Card>
         <CardHeader>
-          <CardTitle>Product Catalog</CardTitle>
+          <CardTitle>Product Catalogue</CardTitle>
           <CardDescription>
             {productListPending ? "Loading products..." : `Select size and quantity, then add to cart or view full details (Page ${currentPage} of ${totalPages})`}
           </CardDescription>

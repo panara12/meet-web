@@ -46,7 +46,7 @@ function LayoutWrapper({ children,limitsInfo }) {
       { id: "clients", label: "Client List", icon: Users, path: "/distributer/clients" },
       { id: "sales", label: "Staff Panel", icon: UserCheck, path: "/distributer/sales" },
       { id: "staff", label: "Staff Account", icon: UsersRound, path: "/distributer/staff" },
-      { id: "inventory", label: "Inventory", icon: Warehouse, path: "/distributer/inventory" },
+      { id: "inventory", label: "Catalogue", icon: Warehouse, path: "/distributer/catalogue" },
       { id: "company", label: "Company", icon: Building2, path: "/distributer/company" },
       { id: "packaging", label: "Packaging", icon: Package, path: "/distributer/packaging" },
       { id: "payments", label: "Payment Confirmations", icon: CreditCard, path: "/distributer/payments" },
@@ -58,7 +58,7 @@ function LayoutWrapper({ children,limitsInfo }) {
       { id: "clients", label: "Client List", icon: Users, path: "/distributer/clients" },
       { id: "sales", label: "Staff Panel", icon: UserCheck, path: "/distributer/sales" },
       { id: "staff", label: "Staff Account", icon: UsersRound, path: "/distributer/staff" },
-      { id: "inventory", label: "Inventory", icon: Warehouse, path: "/distributer/inventory" },
+      { id: "inventory", label: "Catalogue", icon: Warehouse, path: "/distributer/catalogue" },
       { id: "company", label: "Company", icon: Building2, path: "/distributer/company" },
       { id: "packaging", label: "Packaging", icon: Package, path: "/distributer/packaging" },
       { id: "settings", label: "Settings", icon: Settings, path: "/distributer/settings" }
@@ -115,7 +115,7 @@ export default function Distributer_router() {
                   <Route path="/clients" element={<ClientList />} />
                   <Route path="/sales" element={<SalesPanel />} />
                   <Route path="/staff" element={<StaffAccount />} />
-                  <Route path="/inventory" element={<Inventory />} />
+                  <Route path="/catalogue" element={<Inventory />} />
                   <Route path="/company" element={<Company />} />
                   <Route path="/packaging" element={<Packaging />} />
                   {

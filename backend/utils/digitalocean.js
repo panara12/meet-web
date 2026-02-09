@@ -35,5 +35,21 @@ async function uploadFileToDO(filePath, folderName,mimetype = "application/octet
 }
 
 
+// Add this function to your Digital Ocean utilities file
+const deleteFileFromDO = async (filePath) => {
+  try {
+    const params = {
+      Bucket: process.env.DO_SPACE_NAME, // Your bucket name
+      Key: filePath, // The file path in the bucket
+    };
 
-module.exports = { uploadFileToDO };
+    await s3.deleteObject(params).promise();
+    console.log(`✅ Successfully deleted: ${filePath}`);
+    return true;
+  } catch (error) {
+    console.error(`❌ Error deleting file from DO: ${filePath}`, error);
+    throw error;
+  }
+};
+
+module.exports = { uploadFileToDO, deleteFileFromDO };
