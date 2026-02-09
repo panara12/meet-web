@@ -21,6 +21,7 @@ const sessionLoader = require("./utils/sessionlodder");
 const Location = require("./routes/location");
 const email = require("./routes/email");
 const payment = require("./routes/payment");
+const updateLimits = require("./crons/updateLimits")
 
 const app = express();
 app.set('trust proxy', 1);
@@ -56,6 +57,7 @@ async function connectDB() {
     });
 
     console.log("✅ MongoDB connected successfully");
+    updateLimits(mongoose.connection);
 
     const tenent_list = await getTenentList();
     tenentCache.tenent = tenent_list;
