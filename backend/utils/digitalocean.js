@@ -19,7 +19,7 @@ const s3 = new S3Client({
 // ✅ Function to upload one file directly (for programmatic uploads)
 async function uploadFileToDO(filePath, folderName,mimetype = "application/octet-stream") {
   const fileName = `${uuid()}`;
-  const key = `producation/${folderName}/${fileName}`;
+  const key = `${process.env.DO_ENV}/${folderName}/${fileName}`;
 
   const input = {
     ACL: 'public-read',

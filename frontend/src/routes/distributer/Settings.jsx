@@ -126,11 +126,6 @@ export function SettingsPanel() {
       return
     }
 
-    if (addSubAdminFormData.password.length < 6) {
-      toast.error('Password must be at least 6 characters long')
-      return
-    }
-
     addsubadmin(addSubAdminFormData, {
       onSuccess: () => {
         toast.success('SubAdmin added successfully!')
