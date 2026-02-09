@@ -7,17 +7,31 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview --host 0.0.0.0 --port 4173",
+    "prepare": "husky"
   },
   "dependencies": {
+    "@radix-ui/react-tabs": "^1.1.13",
+    "@react-google-maps/api": "^2.20.8",
+    "@reduxjs/toolkit": "^2.8.2",
+    "@tanstack/react-query": "^5.85.3",
     "axios": "^1.11.0",
-    "dotenv": "^17.2.0",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "dayjs": "^1.11.18",
+    "dotenv": "^17.2.1",
     "framer-motion": "^12.23.12",
     "lucide-react": "^0.525.0",
+    "motion": "^12.23.12",
+    "next-themes": "^0.4.6",
+    "radix-ui": "^1.4.3",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-leaflet": "^5.0.0",
+    "react-redux": "^9.2.0",
     "react-router-dom": "^7.6.3",
+    "sonner": "^2.0.7",
+    "tailwind-merge": "^3.3.1",
     "tailwind-scrollbar-hide": "^4.0.0"
   },
   "devDependencies": {
@@ -31,7 +45,10 @@
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-react-refresh": "^0.4.20",
     "globals": "^16.2.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.2.6",
     "postcss": "^8.5.6",
+    "prettier": "^3.6.2",
     "tailwindcss": "^3.4.17",
     "vite": "^7.0.0"
   }

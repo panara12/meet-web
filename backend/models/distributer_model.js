@@ -21,11 +21,6 @@ const distributerSchema = mongoose.Schema({
         unique: true,
         match: [/\S+@\S+\.\S+/, 'Please use a valid email address']
     },
-    distributer_password : {
-        type : String,
-        required:[true,'Password id is required'],
-        minlength:[6,'password must be atleast 6 characters']
-    },
     distributer_firms:{
         type : [String]
     },
@@ -36,18 +31,16 @@ const distributerSchema = mongoose.Schema({
         type : String,
         required:[true,'please enter username']
     },
-    distributer_plan:{
-        type : String,
-        required:[true,'please enter the plan name'],
-        enum:['bronze','silver','gold','platinum']
+    user_tenant:{
+        type:String,
+        required:[true,"please enter user tenant name"]
     },
     user_role:{
         type:String,
-        enum:['distributer','seller','salesman'],
+        enum:['admin'],
         required: true,
-        lowercase: true, // optional: ensures value is stored in lowercase
         trim: true,
-        default:"distributer"
+        default:"admin"
     }
 },{  timestamps: true  });
 

@@ -1,51 +1,94 @@
 const express = require('express')
-const Seller = require('../models/seller_model');
 const bcrypt = require('bcrypt');
-const seller_session_checker = require('../middleware/seller_session');
-const distributer_session_checker = require('../middleware/distributer_session')
+const user_session_checker = require('../middleware/user_session');
+const Tenent_user_master = require("../models/tenent_user_model");
 const router = express.Router()
 const tenent_checker = require('../middleware/tenent_middleware');
 const manualLog = require('../utils/manuallogger');
 
 router.use(tenent_checker);
 
-router.post('/addseller',distributer_session_checker,async(req,res)=>{
+router.post('/addseller',user_session_checker("add_seller"),async(req,res)=>{
     manualLog('entered in add new seller route')
     try {
-        const {seller_name,seller_email,seller_password,seller_mobile,seller_address,seller_area,seller_city,seller_username,user_role} = req.body
+        const {name,email,phone,address,contactPerson,status,priority,paymentTerms,gstNumber,creditLimit,notes,userRole,username} = req.body
         //hash round and convert normal password to hasspassword
+        const password = "seller123"
         const saltRounds = 10;
-        const hashedPassword = await bcrypt.hash(seller_password, saltRounds);
-        const Seller = req.db.model("Seller");
-        const new_seller = new Seller({seller_name,seller_email,seller_password:hashedPassword,seller_mobile,seller_address,seller_area,seller_city,seller_username,user_role})
+        const hashedPassword = await bcrypt.hash(password, saltRounds);
+        const SellerModel = req.db.model("Seller");
+
+        const new_seller = new SellerModel({
+            name,
+            email,
+            phone,
+            address,
+            contactPerson,
+            username,
+            password: hashedPassword,
+            status:status || 'Active',
+            priority:priority || "Medium",
+            paymentTerms,
+            gstNumber,
+            creditLimit,
+            notes,
+            userRole,
+            createdBy: req.session.user.master_user_id
+        })
         await new_seller.save();
-        manualLog(`seller registred successfully :: ${new_seller._id}`)
+        await Tenent_user_master.create({
+            user_email:email,
+            tenant_user_id:new_seller._id,
+            user_password:hashedPassword,
+            user_username:username,
+            user_mobile:phone,
+            user_tenant:req.session.user.tenant,
+            user_role:"seller"
+        });
+        manualLog(`seller registred successfully :: ${new_seller}`)
         res.status(200).json({
             message:"new seller added",
             seller:{new_seller}
         })
     } catch (error) {
         if(error.name == 'ValidationError'){
+            const validationErrors = Object.values(error.errors).map(err => err.message);
             console.log(error)
-            const error_message = Object.values(error.errors).map(err => err.message);
-            manualLog(`there is a validation error in seller registration :: ${err.message}`)
-            res.status(400).json({message:error_message})
+            manualLog(`there is a validation error in seller registration :: ${error}`)
+            res.status(400).json({message:"something broke",error:validationErrors})
         }else{
         console.log('failed to add new seller')
-        manualLog(`there is error in seller registration :: ${JSON.stringify(error)}`)
-        res.status(500).json({message:"new seller not added"})  
+        manualLog(`there is error in seller registration :: ${error}`)
+        res.status(500).json({message:"new seller not added",error})  
         }  
     }
 })
 
-router.post('/updateseller/:id',async(req,res)=>{
+router.post('/updateseller/:id',user_session_checker("edit_seller"),async(req,res)=>{
     manualLog('entered in update seller route')
     try {
         const {id} = req.params;
-        const user_data = req.body;
-        const Seller = req.db.model("Seller");
-        const updated_seller = await Seller.findOneAndUpdate({_id:id},{$set:user_data},{new:true})
-        manualLog(`seller updated successfully :: ${updated_seller._id}`)
+        const {name,email,phone,address,contactPerson,status,priority,paymentTerms,gstNumber,creditLimit,notes,userRole} = req.body;
+        
+        const user_data = {
+            name,
+            email,
+            phone,
+            address,
+            contactPerson,
+            status,
+            priority,
+            paymentTerms,
+            gstNumber,
+            creditLimit,
+            notes,
+            userRole,
+            createdBy: req.session.user.master_user_id
+        };
+
+        const SellerModel = req.db.model("Seller");
+        const updated_seller = await SellerModel.findOneAndUpdate({_id:id},{$set:user_data},{new:true})
+        manualLog(`seller updated successfully :: ${updated_seller}`)
         res.status(200).json({
             message:"seller updated",
             seller:{updated_seller}
@@ -54,65 +97,147 @@ router.post('/updateseller/:id',async(req,res)=>{
         if(error.name == 'ValidationError'){
             console.log(error)
             const error_message = Object.values(error.errors).map(err => err.message);
-            manualLog(`there is a validation error in seller update :: ${err.message}`)
+            manualLog(`there is a validation error in seller update :: ${error_message}`)
             res.status(400).json({message:error_message})
         }else{
             console.log('failed to update seller')
-            manualLog(`there is error in update seller :: ${JSON.stringify(error)}`)
+            manualLog(`there is error in update seller :: ${error}`)
             res.status(500).json({message:"seller not updated"})    
         }
     }
 })
 
-router.get('/allseller',distributer_session_checker,async(req,res)=>{
-    manualLog('entered in get all seller route')
-    try {
-        const Seller = req.db.model("Seller");
-        const seller_data = await Seller.find();
-        manualLog(`get all seller  successfully`)
+router.post("/updatesellerorders/:id",user_session_checker("udpate_seller_orders"),async(req,res)=>{
+    manualLog('entered in update order details')
+    try{
+        const {id} = req.params
+        const SellerModel = req.db.model("Seller");
+        const updated_seller = await SellerModel.findOneAndUpdate({_id:id},{$set:req.body},{new:true})
+        manualLog(`seller updated successfully :: ${updated_seller}`)
         res.status(200).json({
-            message:"got all the sellers",
-            seller:{seller_data}
+            message:"seller updated",
+            seller:{updated_seller}
         })
-    } catch (error) {
-        console.log("seller data not fetched");
-        manualLog(`there is error in get all seller :: ${JSON.stringify(error)}`)
-        res.status(500).json({message:"seller data is not fetched"})
+    }catch(error){
+        console.log('failed to update order seller')
+        manualLog(`there is error in update order seller :: ${error}`)
+        res.status(500).json({message:"seller order not updated"})  
     }
 })
 
-router.get('/getseller/:id',seller_session_checker,async(req,res)=>{
+router.get('/allseller', user_session_checker("get_all_seller"), async (req, res) => {
+     manualLog('entered in all seller route')
+    try {
+        const Seller = req.db.model('Seller'); // or 'Company' based on your model name
+        
+        // Extract query parameters
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 10;
+        const search = req.query.search || '';
+        const status = req.query.status;
+        const priority = req.query.priority;
+        const sortField = req.query.sortField || 'name';
+        const sortDirection = req.query.sortDirection === 'desc' ? -1 : 1;
+
+        // Build filter object
+        const filter = {};
+        
+        // Search filter (search in multiple fields)
+        if (search) {
+            filter.$or = [
+                { name: { $regex: search, $options: 'i' } },
+                { email: { $regex: search, $options: 'i' } },
+                { contactPerson: { $regex: search, $options: 'i' } },
+                { industry: { $regex: search, $options: 'i' } }
+            ];
+        }
+
+        // Status filter
+        if (status) {
+            filter.status = status;
+        }
+
+        // Priority filter
+        if (priority) {
+            filter.priority = priority;
+        }
+
+        // Calculate skip value for pagination
+        const skip = (page - 1) * limit;
+
+        // Build sort object
+        const sort = {};
+        sort[sortField] = sortDirection;
+
+        // Get total count for pagination
+        const totalRecords = await Seller.countDocuments(filter);
+        const totalPages = Math.ceil(totalRecords / limit);
+
+        // Fetch paginated and filtered data
+        const seller_data = await Seller.find(filter)
+            .sort(sort)
+            .skip(skip)
+            .limit(limit)
+            .lean(); // Use lean() for better performance
+        manualLog("get all sellers successfully",seller_data)
+
+        res.status(200).json({
+            message: "Get all sellers successfully",
+            seller: {
+                data: seller_data,
+                pagination: {
+                    currentPage: page,
+                    totalPages: totalPages,
+                    totalRecords: totalRecords,
+                    limit: limit,
+                    hasNextPage: page < totalPages,
+                    hasPrevPage: page > 1
+                }
+            }
+        });
+        
+    } catch (error) {
+        console.log("Error in seller getall route:", error);
+        manualLog(`error in seller getall :: ${error}`);
+        res.status(500).json({ 
+            message: "Error in getall seller",
+            error: error.message 
+        });
+    }
+});
+
+router.get('/getseller/:id',user_session_checker("get_by_id_seller"),async(req,res)=>{
     manualLog('entered in get seller by id route')
     try {
         const {id} = req.params;
-        const Seller = req.db.model("Seller");
-        const seller_data = await Seller.findOne({_id:id});
-        manualLog(`get seller by id successfully :: ${seller_data._id}`)
+        const SellerModel = req.db.model("Seller");
+        const seller_data = await SellerModel.findOne({_id:id});
+        manualLog(`get seller by id successfully :: ${seller_data}`)
         res.status(200).json({
             message:"",
             seller:{seller_data}
         })
     } catch (error) {
         console.log("seller data not found");
-        manualLog(`there is error in get seller by id :: ${JSON.stringify(error)}`)
+        manualLog(`there is error in get seller by id :: ${error}`)
         res.status(500).json({message:"seller data is not found"})
     }
 })
 
-router.delete('/deleteseller/:id',distributer_session_checker,async(req,res)=>{
+router.delete('/deleteseller/:id',user_session_checker("delete_seller"),async(req,res)=>{
     manualLog('entered in delete seller route')
     try {
         const {id} = req.params;
-        const Seller = req.db.model("Seller");
-        const seller_data = await Seller.findOneAndDelete({_id:id});
-        manualLog(`seller deleted successfully :: ${seller_data._id}`)
+        const SellerModel = req.db.model("Seller");
+        const seller_data = await SellerModel.findOneAndDelete({_id:id});
+        manualLog(`seller deleted successfully :: ${seller_data}`)
         res.status(200).json({
             message:"seller deleted",
             seller:{seller_data}
         })
     } catch (error) {
         console.log("seller data not deleted");
-        manualLog(`there is error in delete seller by id :: ${JSON.stringify(error)}`)
+        manualLog(`there is error in delete seller by id :: ${error}`)
         res.status(500).json({message:"seller data is not deleted"})
     }
 })

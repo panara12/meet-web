@@ -1,8 +1,22 @@
+import axios from 'axios';
+
 // Development - Backend URL
-// const uri = "http://localhost:4000"
+const apiHelper = axios.create({
+    baseURL:"https://api.voidvortextech.com",
+    withCredentials:true,
+    headers: {
+        'Content-Type': 'application/json',
+    },
+})
+
+
 
 // Production - Backend URL
-const uri = "https://meet-web-pydw.onrender.com"
+// const uri = "https://meet-web-pydw.onrender.com"
+// const apiHelper = axios.create({
+//     baseURL:"https://meet-web-pydw.onrender.com",
+//     withCredentials:true
+// })
 
 // Email API Endpoint: ${uri}/email/emailTo
-export default uri
+export default apiHelper

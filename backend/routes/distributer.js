@@ -1,24 +1,74 @@
 const express = require('express');
 const bcrypt = require('bcrypt');
-const distributer_session_checker = require('../middleware/distributer_session');
+const user_session_checker = require('../middleware/user_session');
+const Tenent_user_master = require('../models/tenent_user_model');
 const router = express.Router();
-const tenent_checker = require('../middleware/tenent_middleware');
 const manualLog = require('../utils/manuallogger');
-
-router.use(tenent_checker);
 
 router.post('/adddistributer',async (req,res)=>{
     manualLog('entered distributer registration route')
     try {
-    const {distributer_name,distributer_mobile,distributer_email,distributer_password,distributer_firms,distributer_city,distributer_username,distributer_plan,user_role} = req.body
-    console.log(req.body)
+    const {distributer_name,
+        distributer_mobile,
+        distributer_email,
+        distributer_password,
+        distributer_firms,
+        distributer_city,
+        distributer_username,
+        user_tenant,
+        user_role} = req.body
+    // console.log(req.body)
     const saltRounds = 10;
     const hashedPassword = await bcrypt.hash(distributer_password, saltRounds);
+    //the distributer table 
+    console.log("Distributer model export: ", req.db.model("Distributer"));
     const Distributer = req.db.model("Distributer");
-    const new_user = new Distributer({distributer_name,distributer_mobile,distributer_email,distributer_password:hashedPassword,distributer_firms,distributer_city,distributer_username,distributer_plan,user_role});
+    const new_user = new Distributer({distributer_name,
+        distributer_mobile,
+        distributer_email,
+        distributer_firms,
+        distributer_city,
+        distributer_username,
+        user_tenant,
+        user_role});
     await new_user.save();
+
+    //main tenent master
+    await Tenent_user_master.create({
+        user_email:distributer_email,
+        tenant_user_id:new_user._id,
+        user_username:distributer_username,
+        user_password:hashedPassword,
+        user_mobile:distributer_mobile,
+        user_role:"admin",
+        user_tenant:user_tenant});
     manualLog(`new distributer added :: ${new_user._id}`)
 
+    const User = req.db.model("User");
+    await User.create({
+        employeeId:"dist-001",
+        firstName:distributer_name,
+        email:distributer_email,
+        phone:distributer_mobile,
+        address:distributer_city,
+        role:"admin",
+        department:"admin",
+        username:distributer_username,
+        password:hashedPassword
+    });
+
+    const Limits = req.db.model("Limits");
+    await Limits.create({
+        adminlimit:1,
+        salemanlimit:2,
+        packagelimit:1,
+        billinglimit:1,
+        liveLocationlimit:35,
+        totalLiveLocationlimit:35,
+        routeLocationlimit:35,
+        totalRouteLocationlimit:35
+    });
+    manualLog("distributer registered successfully",new_user)
     res.status(200).json({
         message:"user registerd",
         Distributer:{new_user}
@@ -31,7 +81,7 @@ router.post('/adddistributer',async (req,res)=>{
             res.status(400).json({message:error_message})
         }else{
             console.log("resistration error");
-            manualLog(`there is an error in new distributer adding error :: ${JSON.stringify(error)}`);
+            manualLog(`there is an error in new distributer adding error :: ${error}`);
             res.status(500).json({message:'regisstration error'})  
         }
     }
@@ -39,26 +89,25 @@ router.post('/adddistributer',async (req,res)=>{
 })
 
 
-router.get('/distributerdata/:id',async(req,res)=>{
+router.get('/distributerdata',user_session_checker("get_distributer_data"),async(req,res)=>{
     manualLog('entered in get distributer by id')
     try {
-        const {id} = req.params
         const Distributer = req.db.model("Distributer");
-        const user_data = await Distributer.findOne({_id:id});
-        console.log(user_data);
-        manualLog(`distributer get by id ::${user_data._id}`)
+        const user_data = await Distributer.findOne({_id:req.session.user.tenant_user_id});
+        console.log(req.session.user.tenant_user_id,user_data);
+        manualLog(`distributer get by id ::${user_data}`)
         res.status(200).json({
             message:"got the user data",
-            Distributer:{user_data}
+            user_data:user_data
         })
     } catch (error) {
         console.log("user data not getting error");
-        manualLog(`there is error in getting distributer by id :: ${JSON.stringify(error)}`)
-        res.status(500).json({message:'somehow user does not get'})  
+        manualLog(`there is error in getting distributer by id :: ${error}`)
+        res.status(500).json({message:'somehow user does not get',error})  
     }
 })
 
-router.post('/distributerupdate/:id',distributer_session_checker,async(req,res)=>{
+router.post('/distributerupdate/:id',user_session_checker("get_by_id_distributer"),async(req,res)=>{
     manualLog(`entered in distributer update route`)
     try {
         const {id} = req.params;
@@ -72,7 +121,7 @@ router.post('/distributerupdate/:id',distributer_session_checker,async(req,res)=
         })
     } catch (error) {
         console.log("user data is not updated");
-        manualLog(`there is error in updating distributer :: ${JSON.stringify(error)}`)
+        manualLog(`there is error in updating distributer :: ${error}`)
         res.status(500).json({message:'data is not updated'})
     }
 })

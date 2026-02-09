@@ -19,20 +19,28 @@ const gettenentDb = async (dbName)=>{
     }
 
     //get new connection for each tenent 
-    const mongoose_uri =  process.env.DYNAMIC_MONGOOSE_URL_FIRST+dbName+process.env.DYNAMIC_MONGOOSE_URL_LAST;
+    const mongoose_uri =  process.env.MONGODB_URL+dbName;
 
     // console.log("modanna"+mongoose_uri);
     try {
         const conn = await mongoose.createConnection(mongoose_uri);
+        // console.log(conn);
 
         //getting assecc for all the models used in connection
         conn.model('Distributer',require('./models/distributer_model'));
         conn.model('Order',require('./models/order_model'));
-        conn.model('Salesman',require('./models/salesman_model'));
+        conn.model('User',require('./models/user_model'));
         conn.model('Product',require('./models/product_model'));
         conn.model('Seller',require('./models/seller_model'));
         conn.model('Company',require('./models/company_model'));
         conn.model('Location',require('./models/location_model'));
+        conn.model('ProductCategory',require('./models/product_category_model'));
+        conn.model('Payment',require('./models/payment_model'));
+        conn.model('Salesman_notes',require('./models/salesman_notes'));
+        conn.model('Limits',require('./models/limits_model'));
+        conn.model("Cart",require('./models/cart_model'));
+        conn.model("File",require('./models/file_model'));
+        conn.model("Subadmin",require('./models/subadmin_model'));
         connectionCache[dbName] = conn;
         return conn;
 

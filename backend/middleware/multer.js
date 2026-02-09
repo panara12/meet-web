@@ -9,7 +9,7 @@ if (!fs.existsSync(uploadPath)) {
 }
 
 //allowed img types
-const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp','application/pdf'];
 
 const fileFilter = (req,file,cb)=>{
     console.log("file type",file.mimetype);
@@ -27,6 +27,7 @@ const storage = multer.diskStorage({
         cb(null,uploadPath)
     },
     filename:(req,file,cb)=>{
+       console.log("original name",file);
         const uniqueName = `${Date.now()}-${file.originalname}`;
         cb(null,uniqueName)
     }
@@ -35,7 +36,7 @@ const storage = multer.diskStorage({
 const upload = multer({
     storage,
     limits: {
-        fileSize: 3 * 1024 * 1024, // 3MB
+        fileSize: 10 * 1024 * 1024, // 3MB
     },
     fileFilter,
 });
@@ -49,7 +50,7 @@ const multerErrorHandler = (err, req, res, next) => {
     if (err.code === 'LIMIT_FILE_TYPE') {
       return res.status(400).json({ error: 'Only JPG, JPEG, PNG, and WEBP files are allowed' });
     }
-    return res.status(500).json({ error: 'File upload error', details: err.message });
+    return res.status(500).json({ error: 'File upload error', details: err, reqdata: req.files });
   }
   next();
 };

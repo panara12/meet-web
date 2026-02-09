@@ -1,30 +1,86 @@
 const mongoose = require('mongoose');
-const product_model = require('./product_model');
+
+const item = {
+    id:{
+        type:String,
+        required:true
+    },
+    product_data:{
+        type: mongoose.Schema.Types.ObjectId,
+        ref:"Product"
+    },
+    quantity:{
+        type:Number,
+        required:[true,"please enter product quantity"]
+    },
+    size:{
+        type:String,
+        required:[true,"please enter product sizes"]
+    },
+    price:{
+        type:Number,
+        required:[true,"please enter product price"]
+    },
+    subtotal:{
+        type:Number,    
+        default:null
+    },
+    instructions:{
+        type:String,
+        default:""
+    },
+    color:{
+        type:String,
+        default:"default"
+    },
+    sentToBilling:{
+        type:Boolean,
+        default:false
+    },
+    billingDate:{
+        type:Date,
+        default:null
+    },
+    cartoonCount:{
+        type:Number,
+        default:0
+    }
+}
 
 const orderSchema = mongoose.Schema({
-    order_party_name:{
-        type:String
+    order_id:{
+        type:String,
+        required:[true,"please enter the order id"]
     },
-    order_date:{
-        type:Date
+    order_seller:{
+        type:mongoose.Schema.Types.ObjectId,
+        ref:"Seller"
     },
     order_salesman:{
-        type: mongoose.Schema.Types.ObjectId, 
-        ref: 'salesman_model',
-        required: true
+        type:mongoose.Schema.Types.ObjectId,
+        ref:"User"
     },
-    order_items:[{
-        product_details:{type:mongoose.Schema.Types.ObjectId,ref:'product_model'},
-        product_size:{type:String,required: true},
-        product_color:{type:String,required: true},
-        product_quantity: { type: Number, required: true }
-    }],
-    order_total_amount:{
-        type:String
+    status:{
+        type:String,
+        enum:['pending','processing','completed']
     },
     order_firm:{
-        type:String
-    }
+        type:String,
+        default:null
+    },
+    date:{
+        type:Date,
+        default:Date.now
+    },
+    totalItems:{
+        type:Number,
+        default:0
+    },
+    totalAmount:{
+        type:Number,
+        default:0
+    },
+    items:[item]
 },{  timestamps: true  })
 
 

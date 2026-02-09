@@ -8,7 +8,9 @@ const tenent_middleware = require("./middleware/tenent_middleware");
 const getTenentList = require("./utils/tenentgeter");
 const seller = require("./routes/seller");
 const product = require("./routes/product");
+const product_category = require("./routes/product_category");
 const auth = require("./routes/auth");
+const get_me = require("./routes/get_me");
 const user_routes = require("./routes/user_routes");
 const salesman_notes = require("./routes/salesman_notes_routes");
 const order = require("./routes/order");
@@ -21,12 +23,17 @@ const sessionLoader = require("./utils/sessionlodder");
 const Location = require("./routes/location");
 const email = require("./routes/email");
 const payment = require("./routes/payment");
+const limits = require("./routes/limit");
+const cart = require("./routes/cart");
+const sendScheduleEmails  = require("./routes/vvtmails");
+const files = require("./routes/files");
+const subadmin = require("./routes/subadmin");
 const updateLimits = require("./crons/updateLimits")
 
 const app = express();
 app.set('trust proxy', 1);
 // ====== CORS ======
-const allowedOrigins = ["https://oms.voidvortextech.com"];
+const allowedOrigins = ["https://oms.voidvortextech.com","https://voidvortextech.com","https://www.voidvortextech.com"];
 
 app.use(
   cors({
@@ -82,14 +89,21 @@ app.use(sessionLoader);
 app.use("/tenent", tenent);
 app.use("/company", tenent_middleware, company);
 app.use("/auth", auth);
+app.use("/getme",tenent_middleware,get_me);
 app.use("/distributer", tenent_middleware, distributer);
 app.use("/seller", tenent_middleware, seller);
 app.use("/order", tenent_middleware, order);
+app.use("/cart",tenent_middleware, cart);
 app.use("/user", tenent_middleware, user_routes);
 app.use("/product", tenent_middleware, product);
+app.use("/product-category", tenent_middleware, product_category);
 app.use("/location", tenent_middleware, Location);
 app.use("/payment", tenent_middleware, payment);
 app.use("/saleman-notes", tenent_middleware, salesman_notes);
+app.use('/limit/', tenent_middleware, limits);
+app.use('/api', sendScheduleEmails);
+app.use('/files', tenent_middleware, files);
+app.use("/subadmin", tenent_middleware, subadmin);
 app.use("/email", email);
 
 // ====== Test Route ======
