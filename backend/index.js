@@ -28,6 +28,7 @@ const cart = require("./routes/cart");
 const sendScheduleEmails  = require("./routes/vvtmails");
 const files = require("./routes/files");
 const subadmin = require("./routes/subadmin");
+const updateLimits = require("./crons/updateLimits")
 
 const app = express();
 app.set('trust proxy', 1);
@@ -63,6 +64,7 @@ async function connectDB() {
     });
 
     console.log("✅ MongoDB connected successfully");
+    updateLimits(mongoose.connection);
 
     const tenent_list = await getTenentList();
     tenentCache.tenent = tenent_list;
