@@ -30,64 +30,95 @@ router.post('/addpayment',user_session_checker("add_payment"),async(req,res)=>{
     }
 })
 
-router.get('/getallpayments',user_session_checker("view_payments"),async(req,res)=>{
-    manualLog("entered in get all payments method")
+router.get('/getallpayments', user_session_checker("view_payments"), async (req, res) => {
+    manualLog("entered in get all payments method");
     try {
-        const Payment = req.db.model("Payment")
+        const Payment = req.db.model("Payment");
+        
         // Extract query parameters
         const page = parseInt(req.query.page) || 1;
         const limit = parseInt(req.query.limit) || 10;
         const search = req.query.search || '';
         const status = req.query.status;
-        const priority = req.query.priority;
-        const sortField = req.query.sortField || 'name';
+        let sortField = req.query.sortField || 'createdAt';
         const sortDirection = req.query.sortDirection === 'desc' ? -1 : 1;
-
+        
         // Build filter object
         const filter = {};
         
-        // Search filter (search in multiple fields)
+        // Search filter
         if (search) {
+            const isNumber = !isNaN(parseFloat(search));
+            
             filter.$or = [
                 { payment_client: { $regex: search, $options: 'i' } },
-                { payment_salesman: { $regex: search, $options: 'i' } },
-                { payment_amount: { $regex: search, $options: 'i' } }
+                { payment_salesman: { $regex: search, $options: 'i' } }
             ];
+            
+            if (isNumber) {
+                filter.$or.push({ payment_amount: parseFloat(search) });
+            }
         }
-
-        // Status filter
-        if (status) {
-            filter.status = status;
-        }
-
-        // Priority filter
-        if (priority) {
-            filter.priority = priority;
-        }
-
-        // Calculate skip value for pagination
-        const skip = (page - 1) * limit;
 
         // Build sort object
         const sort = {};
+        if(sortField == "amount"){
+            sortField = "payment_amount"
+        }
+        console.log("sort feilds",sortField)
         sort[sortField] = sortDirection;
+        console.log("sort array",sort);
 
-        // Get total count for pagination
-        const totalRecords = await Payment.countDocuments(filter);
+        // Fetch all payments that match the search filter
+        let allPayments = await Payment.find(filter)
+            .populate('payment_client')
+            .populate('payment_salesman')
+            .lean();
+
+        // Add latest status and filter by status if needed
+        allPayments = allPayments.map(payment => {
+            const latestStatus = payment.status && payment.status.length > 0
+                ? payment.status[payment.status.length - 1]
+                : { status: 'pending', date: payment.createdAt };
+            
+            return {
+                ...payment,
+                currentStatus: latestStatus.status,
+                latestStatusDetails: latestStatus
+            };
+        });
+
+        // Filter by status if provided
+        if (status) {
+            allPayments = allPayments.filter(p => p.currentStatus === status);
+        }
+
+        // Sort the results
+        allPayments.sort((a, b) => {
+            const aValue = a[sortField];
+            const bValue = b[sortField];
+            
+            if (aValue < bValue) return -1 * sortDirection;
+            if (aValue > bValue) return 1 * sortDirection;
+            return 0;
+        });
+
+        // Calculate pagination
+        const totalRecords = allPayments.length;
         const totalPages = Math.ceil(totalRecords / limit);
+        const skip = (page - 1) * limit;
+        
+        // Paginate results
+        const payments = allPayments.slice(skip, skip + limit);
 
-        const payments = await Payment.find(filter).sort(sort)
-            .skip(skip)
-            .limit(limit)
-            .lean().populate('payment_client').populate('payment_salesman')
-
-        manualLog("payments fetched successfully",payments)
+        manualLog("payments fetched successfully");
+        
         res.status(200).send({
-            message:"payments fetched successfully",
-            success:true,
-            payments:{
+            message: "payments fetched successfully",
+            success: true,
+            payments: {
                 data: payments,
-                pagination:{
+                pagination: {
                     currentPage: page,
                     totalPages: totalPages,
                     totalRecords: totalRecords,
@@ -96,13 +127,17 @@ router.get('/getallpayments',user_session_checker("view_payments"),async(req,res
                     hasPrevPage: page > 1
                 }
             }
-        })
+        });
+        
     } catch (error) {
-        manualLog("something broke in payment get all",error)
-        console.log(error,"something broke in the get all payments");
-        res.status(500).send({message:"something went wronge",error});
+        manualLog("something broke in payment get all", error);
+        console.log(error, "something broke in the get all payments");
+        res.status(500).send({ 
+            message: "something went wrong", 
+            error: error.message 
+        });
     }
-})
+});
 
 router.post('/updatepaymentstatus/:id',user_session_checker("update_payment_status"),async(req,res)=>{
     manualLog("entered in update payment status method")
