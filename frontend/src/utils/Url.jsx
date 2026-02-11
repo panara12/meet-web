@@ -2,7 +2,7 @@ import axios from 'axios';
 
 // Development - Backend URL
 const apiHelper = axios.create({
-    baseURL:"https://betaapi.voidvortextech.com",
+    baseURL:"https://api.voidvortextech.com",
     withCredentials:true,
     headers: {
         'Content-Type': 'application/json',
