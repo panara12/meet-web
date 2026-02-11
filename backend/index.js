@@ -33,7 +33,7 @@ const updateLimits = require("./crons/updateLimits")
 const app = express();
 app.set('trust proxy', 1);
 // ====== CORS ======
-const allowedOrigins = ["https://oms.voidvortextech.com","https://voidvortextech.com","https://www.voidvortextech.com"];
+const allowedOrigins = ["https://betaoms.voidvortextech.com","https://voidvortextech.com","https://www.voidvortextech.com"];
 
 app.use(
   cors({
