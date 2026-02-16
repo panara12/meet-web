@@ -7,7 +7,7 @@ export function useDeleteUser() {
   return useMutation({
     mutationFn: userServices.deleteUser,
     onSuccess: (res) => {
-        console.log(res);
+        // console.log(res);
         queryClient.invalidateQueries(['GetAllUser']);
     }
   });

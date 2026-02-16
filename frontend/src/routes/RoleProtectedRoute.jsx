@@ -4,7 +4,7 @@ import { useGetLoggedUser } from "../hooks/auth/getLoggedUser";
 
 const RoleProtectedRoute = ({ allowedRoles }) => {
   const {data:userloggged} = useGetLoggedUser()
-  console.log("User logged data in RoleProtectedRoute:", userloggged);
+  // console.log("User logged data in RoleProtectedRoute:", userloggged);
   const userInfo = useSelector((state) => state.app.userInfo);
 
   if (!userloggged?.user && !userInfo) {

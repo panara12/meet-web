@@ -97,7 +97,7 @@ function ClientList() {
 
 
   useEffect(() => {
-    console.log("Seller List Updated", getSellerList);
+    // console.log("Seller List Updated", getSellerList);
     if (getSellerList?.seller) {
       setClients(getSellerList.seller.data || []);
       setTotalPages(getSellerList.seller.pagination?.totalPages || 1);
@@ -213,7 +213,7 @@ function ClientList() {
   }, [formData, clients, resetForm]);
 
   const handleEditClient = useCallback(() => {
-    console.log("called upate function")
+    // console.log("called upate function")
     if (!editingClient || !formData.name.trim() || !formData.email.trim()) {
       toast.error("Please fill in required fields (Name and Email)");
       return;
@@ -243,7 +243,7 @@ function ClientList() {
             creditLimit: formData.creditLimit ? parseInt(formData.creditLimit) : undefined,
             gstNumber: formData.gstNumber.trim() || undefined
           }
-    console.log(editingClient._id);
+    // console.log(editingClient._id);
     updateSeller(updatedClients)
     toast.success("Client updated successfully");
   }, [editingClient, formData, clients, resetForm]);
@@ -255,7 +255,7 @@ function ClientList() {
 
   const openEditDialog = useCallback((client) => {
     setEditingClient(client);
-    console.log(client);
+    // console.log(client);
     setFormData({
       name: client.name,
       email: client.email,

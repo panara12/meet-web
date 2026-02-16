@@ -38,7 +38,7 @@ const userServices = {
         return res.data;
     },
     updateUser:(payload) => {
-        console.log("update payload",payload);
+        // console.log("update payload",payload);
         const res  = apiHelper.post('/user/updateuser/'+payload.id,payload,{
         headers: { "Content-Type": "multipart/form-data" }})
         return res;

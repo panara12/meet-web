@@ -7,7 +7,7 @@ const subadminServices = {
     },
     addSubadmin: (payload) => apiHelper.post('/subadmin/addsubadmin',payload),
     editSubadmin: (payload) =>{
-        console.log("payload",payload)
+        // console.log("payload",payload)
         apiHelper.post('/subadmin/editsubadmin/'+payload.id,payload)},
     deleteSubadmin: async(id) =>{ 
         const res  = await  apiHelper.delete('/subadmin/deletesubadmin/'+id)

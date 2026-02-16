@@ -7,7 +7,7 @@ export function useDeleteFile() {
   return useMutation({
     mutationFn: fileServices.deleteFile,
     onSuccess: (res) => {
-        console.log(res);
+        // console.log(res);
         queryClient.invalidateQueries(['GetAllFiles']); 
     }
   });

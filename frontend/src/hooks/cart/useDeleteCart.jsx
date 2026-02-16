@@ -7,7 +7,7 @@ export function useDeleteCart() {
   return useMutation({
     mutationFn: cartServices.deleteCart,
     onSuccess: (res) => {
-        console.log(res);
+        // console.log(res);
         queryClient.invalidateQueries(['GetAllCarts']); 
     }
   });

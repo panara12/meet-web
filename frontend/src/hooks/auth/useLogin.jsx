@@ -13,7 +13,7 @@ export function useLogin() {
     mutationFn: authServices.login,
     onSuccess: (res) => {
       dispatch(setUserInfo(res.data.user));
-      console.log("login success", res);
+      // console.log("login success", res);
       navigate('/loading', {
         state: {
           userRole: res.data.user.user_role,
@@ -23,7 +23,7 @@ export function useLogin() {
       });
     },
     onError: (err) => {
-      console.log("error in login hook", err);
+      // console.log("error in login hook", err);
       if (err.response?.status === 401) {
         dispatch(setUserInfo(null));
         navigate("/login");

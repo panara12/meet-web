@@ -53,7 +53,7 @@ function LogoutDialog({ children }) {
   const [isOpen, setIsOpen] = useState(false);
 
   const handleLogout = () => {
-    console.log('Logging out...');
+    // console.log('Logging out...');
     setIsOpen(false);
   };
 

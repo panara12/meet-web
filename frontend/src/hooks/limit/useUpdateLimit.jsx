@@ -7,7 +7,7 @@ export function useUpdateLimit() {
   return useMutation({
     mutationFn: limitServices.UpdateLimits,
     onSuccess: (res) => {
-        console.log(res);
+        // console.log(res);
         queryClient.invalidateQueries(['GetAllLimits']); 
     }
   });

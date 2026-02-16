@@ -82,7 +82,7 @@ export default function ForgotPasswordPage() {
     if (!canResetPassword) return;
       dispatch(setResetEmail(email));
     const res = await sendForgotPasswordEmail({email})
-    console.log(res);
+    // console.log(res);
     if(res.success){
       navigate('/otpverification')
     }

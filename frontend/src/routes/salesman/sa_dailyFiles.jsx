@@ -116,8 +116,8 @@ export default function DailyFiles() {
   const userInfo = useSelector((state) => state.app.userInfo);
   const userId = userInfo?.tenant_user_id;
 
-  console.log('👤 Current User ID:', userId);
-  console.log('📅 Current Day:', activeDay);
+  // console.log('👤 Current User ID:', userId);
+  // console.log('📅 Current Day:', activeDay);
 
   // Fetch files for current week
   const { 
@@ -134,8 +134,8 @@ export default function DailyFiles() {
   // Transform backend files to day-wise format
   useEffect(() => {
     if (filesData?.data?.files) {
-      console.log('📁 Received files for current week:', filesData.data.files.length);
-      console.log('📅 Week Range from API:', filesData.data.weekRange);
+      // console.log('📁 Received files for current week:', filesData.data.files.length);
+      // console.log('📅 Week Range from API:', filesData.data.weekRange);
       
       const organizedFiles = {
         sunday: [],
@@ -176,7 +176,7 @@ export default function DailyFiles() {
       });
 
       setFilesByDay(organizedFiles);
-      console.log('📊 Files organized by day:', organizedFiles);
+      // console.log('📊 Files organized by day:', organizedFiles);
     }
   }, [filesData]);
 
@@ -240,7 +240,7 @@ export default function DailyFiles() {
     if (!file) return '';
     
     const fileId = file.url.split("digitaloceanspaces.com/")[1];
-    console.log("file", fileId);
+    // console.log("file", fileId);
     
     const shareToken = `${fileId}`;
     const baseUrl = window.location.origin;

@@ -7,7 +7,7 @@ export function useDeleteOrder() {
   return useMutation({
     mutationFn: orderServices.deleteOrders,
     onSuccess: (res) => {
-        console.log(res);
+        // console.log(res);
         queryClient.invalidateQueries(['getAllOrders']); 
     }
   });

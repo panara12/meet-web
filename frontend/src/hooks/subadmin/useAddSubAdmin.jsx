@@ -7,7 +7,7 @@ export function useAddSubAdmin() {
   return useMutation({
     mutationFn: subadminServices.addSubadmin,
     onSuccess: (res) => {
-        console.log(res);
+        // console.log(res);
         queryClient.invalidateQueries(['GetAllSubAdmins']); 
     }
   });

@@ -2,7 +2,7 @@ import { Badge } from '../distributer/ui/badge';
 import { User, Calendar, ShoppingBag } from 'lucide-react';
 
 export function ClientList({ clients, onClientSelect, language }) {
-  console.log("client lsit",clients)
+  // console.log("client lsit",clients)
   return (
     <div
       className="flex-1 overflow-y-auto p-2 sm:p-4 md:p-6"

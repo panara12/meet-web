@@ -102,7 +102,7 @@ export function StaffProvider({ children }) {
   const { mutate: deleteUser, isPending: isDeleteUserPending, isError: isDeleteUserError, error: deleteUserError } = useDeleteUser()
   const { mutate: updateLimit, isPending: isUpdateLimitPending, isError: isUpdateLimitError, error: updateLimitError } = useUpdateLimit({
     onSuccess:(res)=>{
-      console.log('responiser kjdbfka akjsb',res)
+      // console.log('responiser kjdbfka akjsb',res)
       dispatch(setLimitsInfo(res.data));
     }
   })
@@ -112,7 +112,7 @@ export function StaffProvider({ children }) {
   // Load users from API
   useEffect(() => {
     if (getAllUser?.user?.data) {
-      console.log('Loaded users:', getAllUser.user.data)
+      // console.log('Loaded users:', getAllUser.user.data)
       dispatch(setUserAllList(getAllUser.user.data))
       setStaff(getAllUser.user.data)
       
@@ -127,7 +127,7 @@ export function StaffProvider({ children }) {
   // Load limits from API
   useEffect(() => {
     if (getLimits?.data) {
-      console.log('Loaded limits:', getLimits.data)
+      // console.log('Loaded limits:', getLimits.data)
       setLimits(getLimits.data)
     }
   }, [getLimits])
@@ -218,12 +218,12 @@ export function StaffProvider({ children }) {
         reject(new Error("Monthly location request limit reached for all users"))
         return
       }
-      console.log("Fetching location for user:", userId)
+      // console.log("Fetching location for user:", userId)
       getLocationById(
         { userId },
         {
           onSuccess: (response) => {
-            console.log("Location fetched successfully:", response)
+            // console.log("Location fetched successfully:", response)
             
             // Extract coordinates from response
             if (response?.data?.location?.coordinates?.coordinates) {
@@ -255,7 +255,7 @@ export function StaffProvider({ children }) {
   const decrementLocationRequest = () => {
     
     
-    console.log("Decrementing location request count",limits)
+    // console.log("Decrementing location request count",limits)
     if (!limits) {
       console.error("Limits not available")
       return false
@@ -277,7 +277,7 @@ export function StaffProvider({ children }) {
       ...limits,
       locationRequestsUsed: newUsedCount
     })
-    console.log("updated limits",limits)
+    // console.log("updated limits",limits)
 
     return true
   }
@@ -285,7 +285,7 @@ export function StaffProvider({ children }) {
   // ADD THIS FUNCTION AFTER decrementLocationRequest:
 
 const decrementPathRequest = () => {
-  console.log("📉 Decrementing path request count", limits)
+  // console.log("📉 Decrementing path request count", limits)
   
   if (!limits) {
     console.error("Limits not available")
@@ -311,7 +311,7 @@ const decrementPathRequest = () => {
     }]
   })
   
-  console.log("✅ Path request count updated:", newUsedCount)
+  // console.log("✅ Path request count updated:", newUsedCount)
   return true
 }
 
@@ -394,13 +394,13 @@ const decrementPathRequest = () => {
       return
     }
 
-    console.log("📍 Fetching path points for:", userId, date)
+    // console.log("📍 Fetching path points for:", userId, date)
     
     getPathPoints(
       { userId, date },
       {
         onSuccess: (response) => {
-          console.log("✅ Path points fetched:", response)
+          // console.log("✅ Path points fetched:", response)
           
           if (response?.data?.locations && Array.isArray(response.data.locations)) {
             // Transform API format to component format

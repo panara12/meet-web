@@ -7,7 +7,7 @@ export function useAddNotes() {
   return useMutation({
     mutationFn: salesmanService.addNotes,
     onSuccess: (res) => {
-        console.log(res);
+        // console.log(res);
         queryClient.invalidateQueries(['SalesmanNotes']); // or your actual query key
     }
   });

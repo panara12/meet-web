@@ -7,7 +7,7 @@ export function useUpdateSubAdmin() {
   return useMutation({
     mutationFn: subadminServices.editSubadmin,
     onSuccess: (res) => {
-        console.log(res);
+        // console.log(res);
         queryClient.invalidateQueries(['GetAllSubAdmins']); 
     }
   });

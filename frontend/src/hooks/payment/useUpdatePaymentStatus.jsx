@@ -7,7 +7,7 @@ export function useUpdatePaymentStatus() {
   return useMutation({
     mutationFn: paymentServices.UpdatePaymentStatus,
     onSuccess: (res) => {
-        console.log(res);
+        // console.log(res);
         queryClient.invalidateQueries(['GetAllPayment']); 
     }
   });
