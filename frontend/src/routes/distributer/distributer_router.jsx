@@ -80,7 +80,7 @@ function LayoutWrapper({ children,limitsInfo }) {
   const handleLogout = () => {
     
     logout();
-    console.log("Logout clicked")
+    // console.log("Logout clicked")
     // Clear any stored tokens/data
     localStorage.removeItem('token') // adjust based on your auth implementation
     // Redirect to login page

@@ -7,7 +7,7 @@ export function useDeleteSeller() {
   return useMutation({
     mutationFn: sellerServices.deleteSeller,
     onSuccess: (res) => {
-        console.log(res);
+        // console.log(res);
         queryClient.invalidateQueries(['GetAllSeller']);
     }
   });

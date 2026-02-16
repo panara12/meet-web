@@ -7,7 +7,7 @@ export function useAddFile() {
   return useMutation({
     mutationFn: fileServices.addFile,
     onSuccess: (res) => {
-        console.log(res);
+        // console.log(res);
         queryClient.invalidateQueries(['GetAllFiles']); 
     }
   });

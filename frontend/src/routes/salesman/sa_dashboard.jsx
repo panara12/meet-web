@@ -58,7 +58,7 @@ export default function Dashboard() {
   const {mutate:deleteNotes,isPending:isDeleteNotePending,isError:isDeleteNoteError,error:deleteNoteError} = useDeleteNote();
 
   useEffect(()=>{
-    console.log(getAllNotes);
+    // console.log(getAllNotes);
     if (getAllNotes && Array.isArray(getAllNotes.notes)) {
       setQuickNotes(getAllNotes.notes);
       if(quickNotes.length == 9){
@@ -108,7 +108,7 @@ export default function Dashboard() {
 
   const handleUpdateNote = () => {
     if (editingNote && editingNote.title.trim() && editingNote.content.trim()) {
-      console.log(editingNote)
+      // console.log(editingNote)
         editNotes(editingNote)
       setEditingNote(null);
     }

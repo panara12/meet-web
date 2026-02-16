@@ -7,7 +7,7 @@ export function useUpdateCompany() {
   return useMutation({
     mutationFn: companyServices.UpdateCompany,
     onSuccess: (res) => {
-        console.log(res);
+        // console.log(res);
         queryClient.invalidateQueries(['GetAllCompany']); 
     }
   });

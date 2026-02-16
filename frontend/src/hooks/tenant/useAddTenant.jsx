@@ -7,7 +7,7 @@ export function useAddTenant() {
   return useMutation({
     mutationFn: tenantServices.addTenant,
     onSuccess: (res) => {
-        console.log(res);
+        // console.log(res);
         queryClient.invalidateQueries(['GetAllTenant']); 
     }
   });

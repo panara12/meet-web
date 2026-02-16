@@ -314,9 +314,9 @@ function StaffAccount() {
   }, [deleteStaff])
 
   const openEditDialog = useCallback((member) => {
-    console.log("Editing staff member:", member);
-    console.log("Documents check:", member.documents);
-    console.log("Length:", member.documents?.length);
+    // console.log("Editing staff member:", member);
+    // console.log("Documents check:", member.documents);
+    // console.log("Length:", member.documents?.length);
     setEditingStaff(member)
     setFormData({
       firstName: member.firstName,
@@ -662,7 +662,7 @@ function StaffAccount() {
                         </TableRow>
                       ) : (
                       staff.map((member) => (
-                        console.log("Rendering member:", member),
+                        // console.log("Rendering member:", member),
                           <TableRow key={member._id}>
                             <TableCell>
                               <div className="flex items-center gap-3">
@@ -859,7 +859,7 @@ function StaffAccount() {
                                                   <p className="text-sm text-muted-foreground">{selectedStaff.panNumber}</p>
                                                 </div>
                                               )}
-                                              {console.log('stadf',selectedStaff)}
+                                              {/* {console.log('stadf',selectedStaff)} */}
                                               {selectedStaff.drivingLicenseNumber && (
                                                 <div className="p-3 border rounded-lg">
                                                   <div className="flex items-center gap-2 mb-2">

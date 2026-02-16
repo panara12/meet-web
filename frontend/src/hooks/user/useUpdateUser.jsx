@@ -7,7 +7,7 @@ export function useUpdateUser() {
   return useMutation({
     mutationFn: userServices.updateUser,
     onSuccess: (res) => {
-        console.log(res);
+        // console.log(res);
         queryClient.invalidateQueries(['GetAllUser']); 
     }
   });

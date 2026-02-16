@@ -7,7 +7,7 @@ export function useAddCategory() {
   return useMutation({
     mutationFn: categoryServices.addCategory,
     onSuccess: (res) => {
-        console.log(res);
+        // console.log(res);
         queryClient.invalidateQueries(['AllCategories']); 
     }
   });

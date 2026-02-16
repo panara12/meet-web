@@ -75,7 +75,7 @@ const GoogleMapViewWithTracking = ({ latitude, longitude, staffName, address, on
   // Use the common Google Maps loader
   const { isLoaded, loadError } = useGoogleMaps();
 
-  console.log("Map coords:", latitude, longitude);
+  // console.log("Map coords:", latitude, longitude);
 
   // Null/undefined checks
   if (!latitude || !longitude || isNaN(latitude) || isNaN(longitude)) {
@@ -99,7 +99,7 @@ const GoogleMapViewWithTracking = ({ latitude, longitude, staffName, address, on
 
   // Called when map is loaded
   const onLoad = useCallback((map) => {
-    console.log("✅ Map loaded successfully!");
+    // console.log("✅ Map loaded successfully!");
     setMap(map);
     setMapLoaded(true);
 
@@ -237,7 +237,7 @@ function SalesPanel() {
     totalPages,
     totalRecords,
   } = useStaff();
-  console.log("SalesPanel render: isLoading =", isLoading, ", staff count =", staff.length);
+  // console.log("SalesPanel render: isLoading =", isLoading, ", staff count =", staff.length);
 
   const {
     fetchStaffFiles,     // ✅ NEW: Call this to LOAD files
@@ -332,26 +332,26 @@ function SalesPanel() {
   }, []);
 
   const handleMapLoad = useCallback(() => {
-    console.log("🎯 handleMapLoad called!");
-    console.log("Current isMapLoaded state:", isMapLoaded);
+    // console.log("🎯 handleMapLoad called!");
+    // console.log("Current isMapLoaded state:", isMapLoaded);
 
     if (!isMapLoaded) {
-      console.log("✅ Setting isMapLoaded to true");
+      // console.log("✅ Setting isMapLoaded to true");
       setIsMapLoaded(true);
 
-      console.log("📉 Attempting to decrement location request count...");
+      // console.log("📉 Attempting to decrement location request count...");
 
       const success = decrementLocationRequest();
 
       if (success) {
-        console.log("✅ Location request count decremented successfully!");
+        // console.log("✅ Location request count decremented successfully!");
         toast.success("Request count updated");
       } else {
         console.error("❌ Failed to decrement location request count");
         toast.error("Failed to update request count");
       }
     } else {
-      console.log("⚠️ Map already loaded, skipping decrement");
+      // console.log("⚠️ Map already loaded, skipping decrement");
     }
   }, [isMapLoaded, decrementLocationRequest]);
 
@@ -406,7 +406,7 @@ function SalesPanel() {
     setIsUploading(true);
 
     try {
-      console.log('🚀 Starting upload for', selectedFiles.length, 'files');
+      // console.log('🚀 Starting upload for', selectedFiles.length, 'files');
 
       const success = await uploadFile(
         selectedStaff._id,
@@ -436,7 +436,7 @@ function SalesPanel() {
   };
 
   const handleDailyFiles = (member) => {
-    console.log('🎯 Opening files dialog for:', member._id);
+    // console.log('🎯 Opening files dialog for:', member._id);
     setSelectedStaff(member);
     setShowFilesDialog(true);
 
@@ -460,7 +460,7 @@ function SalesPanel() {
       return;
     }
 
-    console.log("🌍 Fetching location for staff:", selectedStaff._id);
+    // console.log("🌍 Fetching location for staff:", selectedStaff._id);
 
     setIsUpdatingLocation(true);
     setFetchedLocation(null);
@@ -470,7 +470,7 @@ function SalesPanel() {
       const locationData = await fetchStaffLocation(selectedStaff._id);
 
       if (locationData) {
-        console.log("✅ Location data received:", locationData);
+        // console.log("✅ Location data received:", locationData);
         setFetchedLocation(locationData);
         toast.success("Location fetched successfully");
       } else {
@@ -512,7 +512,7 @@ function SalesPanel() {
       return;
     }
 
-    console.log("🗺️ Fetching path for date:", selectedDate);
+    // console.log("🗺️ Fetching path for date:", selectedDate);
 
     setIsLoadingPath(true);
     setPathPoints([]);
@@ -521,12 +521,12 @@ function SalesPanel() {
       const coordinates = await fetchPathPoints(selectedStaff._id, selectedDate);
 
       if (coordinates && coordinates.length > 0) {
-        console.log("✅ Loaded", coordinates.length, "points");
+        // console.log("✅ Loaded", coordinates.length, "points");
         setPathPoints(coordinates);
 
         const success = decrementPathRequest();
         if (success) {
-          console.log("✅ Path request count decremented");
+          // console.log("✅ Path request count decremented");
           toast.success(`Path loaded with ${coordinates.length} points`);
         } else {
           console.error("❌ Failed to decrement path request count");
@@ -735,7 +735,7 @@ const closePreview = (e) => {
     if (!file || !selectedStaff || !userInfo) return '';
     
     const fileId = file.file_url;
-    console.log("file",file)
+    // console.log("file",file)
     
     const shareToken = `${fileId}`;
     const baseUrl = window.location.origin;
@@ -828,7 +828,7 @@ const closePreview = (e) => {
                 {(staff || []).filter(s => s?.status?.toLowerCase() === "active").length} Active
               </Badge>
             </div>
-            {console.log("limits info",limits)}
+            {/* {console.log("limits info",limits)} */}
             {
               limits?.data[0]?.wantToUseLocation && 
               <div className="flex space-x-5">
@@ -1548,7 +1548,7 @@ const closePreview = (e) => {
             setShowFilesDialog(open);
             // ✅ FETCH FILES when dialog opens
             if (open && selectedStaff?._id) {
-              console.log('🎯 Dialog opened, fetching files for:', selectedStaff._id);
+              // console.log('🎯 Dialog opened, fetching files for:', selectedStaff._id);
               fetchStaffFiles(selectedStaff._id);
             }
           }

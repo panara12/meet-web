@@ -23,15 +23,15 @@ const clientServices = {
     },
     addSeller: (payload) => apiHelper.post('/seller/addseller', payload),
     updateSeller: async (payload) => {
-        console.log("update method", payload);
+        // console.log("update method", payload);
         const res = await apiHelper.post('/seller/updateseller/' + payload.id, payload);
-        console.log("response data", res);
+        // console.log("response data", res);
         return res;
     },
     updateOrderSeller: async (payload) => {
-        console.log("update order seller method", payload);
+        // console.log("update order seller method", payload);
         const res = await apiHelper.post('/seller/updatesellerorders/' + payload.id, payload);
-        console.log("seller response data", res);
+        // console.log("seller response data", res);
         return res;
     },
     deleteSeller: async (payload) => {

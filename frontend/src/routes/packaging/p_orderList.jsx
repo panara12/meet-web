@@ -36,7 +36,7 @@ export function OrderList({
   const { t } = useTranslation(language);
   const [expandedOrders, setExpandedOrders] = useState(new Set());
   const [showCartoonDialog, setShowCartoonDialog] = useState(false);
-  console.log("orders",orders)
+  // console.log("orders",orders)
 
   const getStatusIcon = (status) => {
     switch (status) {
@@ -81,26 +81,26 @@ export function OrderList({
   };
 
   const handleQuantityUpdate = (order, itemId, newQuantity) => {
-    console.log("handle quentity update called")
+    // console.log("handle quentity update called")
     const item = order.items.find(item => item.id === itemId);
     if (item?.sentToBilling || newQuantity < 1) return;
     
     const updatedItems = order.items.map(item => 
       item.id === itemId ? { ...item, quantity: newQuantity,subtotal: item.product_data.price * newQuantity } : item
     );
-    console.log("updated items",updatedItems)
+    // console.log("updated items",updatedItems)
     
     onUpdateQuantity(order._id, updatedItems);
     toast.success(t('Quantity updated successfully'));
   };
 
   const handleQuantityChange = (order, itemId, delta) => {
-    console.log("handle quentity changed called")
+    // console.log("handle quentity changed called")
     const item = order.items.find(item => item.id === itemId);
     if (!item || item.sentToBilling) return;
     
     const newQuantity = Math.max(1, item.quantity + delta);
-    console.log("new quantity",newQuantity)
+    // console.log("new quantity",newQuantity)
     handleQuantityUpdate(order, itemId, newQuantity);
   };
 
@@ -288,7 +288,7 @@ export function OrderList({
                                             onClick={(e) => {
                                               e.preventDefault();
                                               e.stopPropagation();
-                                              console.log('Minus clicked for item:', item.id);
+                                              // console.log('Minus clicked for item:', item.id);
                                               handleQuantityChange(order, item.id, -1);
                                             }}
                                             disabled={item.quantity <= 1}
@@ -315,7 +315,7 @@ export function OrderList({
                                             onClick={(e) => {
                                               e.preventDefault();
                                               e.stopPropagation();
-                                              console.log('Plus clicked for item:', item.id);
+                                              // console.log('Plus clicked for item:', item.id);
                                               handleQuantityChange(order, item.id, 1);
                                             }}
                                             disabled={item.quantity >= 999}
@@ -386,7 +386,7 @@ export function OrderList({
         </div>
 
         {/* Fixed Bottom Bar for Send to Billing */}
-        {console.log("selected",totalSelectedItems)}
+        {/* {console.log("selected",totalSelectedItems)} */}
         {totalSelectedItems > 0 && (
           <div className="p-3 sm:p-4 md:p-5 bg-card border-t border-border shadow-lg shrink-0">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3 sm:mb-4">

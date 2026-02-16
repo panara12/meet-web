@@ -25,7 +25,7 @@ export default function AddClient() {
     onSuccess: (res) => {
     setSuccessMessage(res.data.message);
     
-        console.log("Seller added successfully:", formData);
+        // console.log("Seller added successfully:", formData);
         setTimeout(() => {
           setSuccessMessage("");
         }, 3000);

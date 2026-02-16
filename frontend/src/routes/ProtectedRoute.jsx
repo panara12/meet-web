@@ -11,7 +11,7 @@ export default function ProtectedRoute() {
   const dispatch = useDispatch();
   const userInfo = useSelector((state) => state.app.userInfo);
   if(userInfo){
-    console.log("user info from store",userInfo);
+    // console.log("user info from store",userInfo);
   } 
   useEffect(() => {
     if (loggedUser) {
@@ -27,7 +27,7 @@ export default function ProtectedRoute() {
 
   // ✅ Only redirect to login if we're SURE there's no user
   if (!userInfo && !loggedUser) {
-    console.log("no logged user found so go to login",isError,Error,loggedUser, isLoading);
+    // console.log("no logged user found so go to login",isError,Error,loggedUser, isLoading);
     return <Navigate to="/login" replace />;
   }
 

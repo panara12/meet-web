@@ -24,7 +24,7 @@ const productServices = {
         return res.data;
     },
     updateProduct : async (payload)=> {
-        console.log("Payload in service:", payload);
+        // console.log("Payload in service:", payload);
         const res = await apiHelper.post('/product/updateproduct/'+payload.id,payload.formDataToSend,{
         headers: { "Content-Type": "multipart/form-data" }
     })

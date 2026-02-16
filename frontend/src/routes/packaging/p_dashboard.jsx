@@ -157,17 +157,17 @@ export default function Dashboard() {
 
   const handleUpdateQuantity = (orderId, updatedItems) => {
     if (!appState.selectedClient) return;
-    console.log("handle update quantity called",orderId,updatedItems)
+    // console.log("handle update quantity called",orderId,updatedItems)
 
     const totalItems = updatedItems.reduce((sum, item) => sum + parseInt(item.quantity || 0), 0);
     const totalAmount = updatedItems.reduce(
       (sum, item) => { 
-        console.log("item subtotal",sum,item)
+        // console.log("item subtotal",sum,item)
         return sum + Number(parseFloat(item.subtotal || 0));
       },
       0
     );
-    console.log("total items",totalItems)
+    // console.log("total items",totalItems)
 
     // Update orders array
     const updatedOrders = orders.map(order =>
@@ -265,7 +265,7 @@ export default function Dashboard() {
         (sum, item) => sum + parseFloat(item.subtotal || 0),
         0
       );
-      console.log("order details  uapdate",order,"items",updatedItems,"status",newStatus,"totalItems",totalItems,"totalAmount",totalAmount)
+      // console.log("order details  uapdate",order,"items",updatedItems,"status",newStatus,"totalItems",totalItems,"totalAmount",totalAmount)
       updateOrder({...order,
         items: updatedItems,
         status: newStatus,
@@ -470,7 +470,7 @@ export default function Dashboard() {
                 <div className="flex items-center gap-2">
                   <Clipboard className="w-5 h-5 text-primary" />
                   <h2 className="font-semibold text-base">Clipboard</h2>
-                  {console.log("get all client order",getAllOrdersWithClients())}
+                  {/* {console.log("get all client order",getAllOrdersWithClients())} */}
                   {/* {getAllOrdersWithClients().length > 0 && (
                     <span className="ml-auto text-xs px-2 py-0.5 bg-primary/10 text-primary rounded-full font-medium">
                       {getAllOrdersWithClients().length}

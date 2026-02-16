@@ -7,7 +7,7 @@ export function useDeleteSubAdmin() {
   return useMutation({
     mutationFn: subadminServices.deleteSubadmin,
     onSuccess: (res) => {
-        console.log(res);
+        // console.log(res);
         queryClient.invalidateQueries(['GetAllSubAdmins']); 
     }
   });

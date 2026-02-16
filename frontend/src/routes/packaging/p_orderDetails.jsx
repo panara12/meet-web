@@ -40,14 +40,14 @@ export function OrderDetails({ order, onUpdateOrder, onUpdateQuantity, language 
   const handleQuantityUpdate = (itemId, newQuantity) => {
     const item = order.items.find(item => item.id === itemId);
     if (item?.sentToBilling || newQuantity < 1) return;
-    console.log(`Updating quantity for item ${itemId} to ${newQuantity}`);
+    // console.log(`Updating quantity for item ${itemId} to ${newQuantity}`);
 
     const updatedItems = order.items.map(item =>
       item.id === itemId ? { ...item, quantity: newQuantity } : item
     );
 
     if (onUpdateQuantity) {
-      console.log("called update ")
+      // console.log("called update ")
       onUpdateQuantity(order._id, updatedItems);
       toast.success(t('Quantity updated successfully'));
     }
@@ -56,7 +56,7 @@ export function OrderDetails({ order, onUpdateOrder, onUpdateQuantity, language 
   const handleQuantityChange = (itemId, delta) => {
     const item = order.items.find(item => item.id === itemId);
     if (!item || item.sentToBilling) return;
-    console.log(`Changing quantity for item ${itemId} by ${delta}`);
+    // console.log(`Changing quantity for item ${itemId} by ${delta}`);
     handleQuantityUpdate(itemId, Math.max(1, Number(item.quantity) + delta));
   };
 
@@ -273,7 +273,7 @@ export function OrderDetails({ order, onUpdateOrder, onUpdateQuantity, language 
                             onClick={(e) => {
                               e.preventDefault();
                               e.stopPropagation();
-                              console.log('Minus clicked for item:', item.id);
+                              // console.log('Minus clicked for item:', item.id);
                               handleQuantityChange(item.id, -1);
                             }}
                             disabled={item.quantity <= 1}
@@ -295,7 +295,7 @@ export function OrderDetails({ order, onUpdateOrder, onUpdateQuantity, language 
                             onClick={(e) => {
                               e.preventDefault();
                               e.stopPropagation();
-                              console.log('Plus clicked for item:', item.id);
+                              // console.log('Plus clicked for item:', item.id);
                               handleQuantityChange(item.id, 1);
                             }}
                             disabled={item.quantity >= 999}

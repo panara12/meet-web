@@ -55,11 +55,11 @@ export function LoadingPage() {
 
     return () => clearInterval(interval);
   }, [userRole, authLoading, navigate]);
-  console.log("user role in loading page",userData);
+  // console.log("user role in loading page",userData);
   // ✅ If no user after auth check completes, go to login
   useEffect(() => {
     if (!userData && !loggedUser) {
-      console.log("no user role found, redirect to login in loading");
+      // console.log("no user role found, redirect to login in loading");
       navigate("/login", { replace: true });
     }
   }, [authLoading, loggedUser, navigate]);

@@ -72,10 +72,10 @@ function SalesmanRoutes({ limitsInfo }) {
 // Wrapped with Permission Guard
 function Salesman_router() {
   const limitsInfo = useSelector((state) => state.app.limits);
-  console.log("limitsInfo in salesman router",limitsInfo);
+  // console.log("limitsInfo in salesman router",limitsInfo);
 
   if(!limitsInfo?.wantToUseLocation){
-    console.log("location permission required for salesman")
+    // console.log("location permission required for salesman")
     return <SalesmanRoutes limitsInfo={limitsInfo} />
   }
 

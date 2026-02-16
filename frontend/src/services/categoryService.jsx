@@ -7,7 +7,7 @@ const categoryServices = {
         return res.data;
     },
     updateCategory : async (payload)=> {
-        console.log("Payload in service:", payload);
+        // console.log("Payload in service:", payload);
         const res = await apiHelper.post('/product-category/updatecategory/'+payload.id,payload.formDataToSend)
         return res.data;
     },

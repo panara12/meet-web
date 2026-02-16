@@ -63,7 +63,7 @@ export function ClipboardPanel({ allOrders }) {
 
   const pendingOrders = filterPendingOrders(allOrders);
   const mergedClientOrders = groupOrdersByClient(pendingOrders);
-  console.log("mergedClientOrders",mergedClientOrders)
+  // console.log("mergedClientOrders",mergedClientOrders)
 
   // Clear selections if clients no longer have pending orders
   useEffect(() => {

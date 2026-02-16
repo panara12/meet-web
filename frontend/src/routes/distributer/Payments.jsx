@@ -210,7 +210,7 @@ function Payments() {
   const [sortOrder, setSortOrder] = useState("desc")
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const dblimits = useSelector((state) => state.app.limits);
-  console.log("db limits",dblimits);
+  // console.log("db limits",dblimits);
   const [currentPage, setCurrentPage] = useState(1);
   const [limit, setLimit] = useState(10);
   const [totalPages, setTotalPages] = useState(1);
@@ -242,11 +242,11 @@ function Payments() {
   const {mutate: updatePaymentStatus,isLoading:isUpdatePaymentLoading,isError:isUpdatePaymentError,error:updatePaymentError} = useUpdatePaymentStatus()
 
   const userInfo = useSelector(state => state.app.userInfo) 
-  console.log("userInfo in payment page",userInfo)
+  // console.log("userInfo in payment page",userInfo)
 
   // ✅ Use data directly from React Query
   const paymentRequests = getAllPayment?.payments?.data || []
-  console.log("paymentRequests data",getAllPayment?.payments?.data)
+  // console.log("paymentRequests data",getAllPayment?.payments?.data)
   
 
   // ✅ Show loading state
@@ -270,7 +270,7 @@ function Payments() {
         notes:notes || `Status changed to ${newStatus}`
       }
     }
-    console.log("payload",payload)
+    // console.log("payload",payload)
     const statusMessages = {
       approved: "Payment request approved successfully!",
       rejected: "Payment request rejected",
@@ -742,7 +742,7 @@ function Payments() {
                         <Badge className={`text-xs flex items-center gap-1 w-fit ${getStatusColor(request.status[request.status.length - 1].status)}`}>
                           {getStatusIcon(request.status[request.status.length - 1].status)}
                           {request.status[request.status.length - 1].status}
-                          {console.log("request.status",getStatusColor(request.status[request.status.length - 1].status))}
+                          {/* {console.log("request.status",getStatusColor(request.status[request.status.length - 1].status))} */}
                         </Badge>
                       </TableCell>
                       <TableCell className="hidden lg:table-cell">

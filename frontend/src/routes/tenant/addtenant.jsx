@@ -212,7 +212,7 @@ export default function TenantRegistrationPage() {
       wantToUseLocation: limitsData.wantToUseLocation
     };
 
-    console.log('Payload to submit:', JSON.stringify(payload, null, 2));
+    // console.log('Payload to submit:', JSON.stringify(payload, null, 2));
 
     try {
       addtenant(payload);

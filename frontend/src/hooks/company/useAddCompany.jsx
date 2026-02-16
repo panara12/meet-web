@@ -7,7 +7,7 @@ export function useAddCompany() {
   return useMutation({
     mutationFn: companyServices.AddCompany,
     onSuccess: (res) => {
-        console.log(res);
+        // console.log(res);
         queryClient.invalidateQueries(['GetAllCompany']); 
     }
   });

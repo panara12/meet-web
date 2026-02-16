@@ -26,7 +26,7 @@ export function useGeolocation() {
         return result.state;
       }
     } catch (error) {
-      console.log("Permission API not supported");
+      // console.log("Permission API not supported");
     }
     return "prompt";
   };

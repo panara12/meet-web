@@ -7,7 +7,7 @@ export function useDeleteCategory() {
   return useMutation({
     mutationFn: categoryServices.deleteCategory,
     onSuccess: (res) => {
-        console.log(res);
+        // console.log(res);
         queryClient.invalidateQueries(['AllCategories']); 
     }
   });

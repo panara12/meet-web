@@ -12,7 +12,7 @@ const salesmanServices = {
     },
     addNotes: (payload) => apiHelper.post('/saleman-notes/addnotes',payload),
     editNotes: (payload) =>{
-        console.log("payload",payload)
+        // console.log("payload",payload)
         apiHelper.post('/saleman-notes/updatenotes/'+payload._id,payload)},
     deleteNotes: async(id) =>{ 
         const res  = await  apiHelper.delete('/saleman-notes/deletenotes/'+id)

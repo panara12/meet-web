@@ -82,7 +82,7 @@ function Inventory() {
 
   const { companies, incrementProductsCount, decrementProductsCount } = useCompany()
   const limitsInfo = useSelector((state) => state.app.limits);
-  console.log("companies in inventory:", useSelector((state) => state.app))
+  // console.log("companies in inventory:", useSelector((state) => state.app))
 
   const [viewMode, setViewMode] = useState("table")
   const [commonColors, setCommonColors] = useState("")
@@ -105,7 +105,7 @@ function Inventory() {
 
   // Get categories from context
   const categories = useInventory().categories || []
-  console.log("categories in inventory:", useInventory())
+  // console.log("categories in inventory:", useInventory())
 
   // Form states
   const [formData, setFormData] = useState({
@@ -335,7 +335,7 @@ function Inventory() {
         masterPack: formData.masterPack || '',
       }
 
-      console.log('adding product', productData)
+      // console.log('adding product', productData)
 
       addProduct(productData)
       incrementProductsCount(formData.companyId)
@@ -456,7 +456,7 @@ function Inventory() {
 
   const handleDeleteProduct = async () => {
     if (!selectedProduct) return
-    console.log('deleting product',selectedProduct)
+    // console.log('deleting product',selectedProduct)
 
     setIsSubmitting(true)
     try {
@@ -1305,7 +1305,7 @@ function Inventory() {
                         <div className="space-y-3">
                           <Label className="text-responsive-sm">Uploaded Photos ({formData.images.length}/5)</Label>
                           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
-                            {console.log(formData.images)}
+                            {/* {console.log(formData.images)} */}
                             {formData.images.map((image, index) => (
                               <div key={index} className="relative group aspect-square">
                                 <img
@@ -1826,7 +1826,7 @@ function Inventory() {
                     </div>
                   </div>
                 )}
-                {console.log(selectedProduct.images)}
+                {/* {console.log(selectedProduct.images)} */}
                 {selectedProduct.images.length > 0 && (
                   <>
                   <div className="max-[375px]:hidden">

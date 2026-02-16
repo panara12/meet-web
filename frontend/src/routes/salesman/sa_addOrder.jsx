@@ -716,10 +716,10 @@ const handleQuickAddToCart = (product) => {
   
   sizesWithQty.forEach(([size, qty]) => {
     const matchingSku = product.skus?.find(sku => sku.size === size);
-    console.log("matchingSku", matchingSku,product.costPrice);
+    // console.log("matchingSku", matchingSku,product.costPrice);
     const price = (matchingSku && matchingSku.costPrice) || product.costPrice;
     const productColor = product.color || (product.skus?.[0]?.color || "Default");
-    console.log("price", price, "color", productColor)
+    // console.log("price", price, "color", productColor)
     // Generate consistent ID
     const itemId = generateCartItemId(product._id, productColor, size);
     
@@ -747,7 +747,7 @@ const handleQuickAddToCart = (product) => {
         instructions: productInstr,
         subtotal: price * qty
       };
-      console.log("Adding cart item", cartItem);
+      // console.log("Adding cart item", cartItem);
       updatedCart.push(cartItem);
       addedCount++;
     }
@@ -757,7 +757,7 @@ const handleQuickAddToCart = (product) => {
     ...clientCarts,
     [activeClientCart]: updatedCart
   };
-  console.log("updatedClientCarts", updatedClientCarts);
+  // console.log("updatedClientCarts", updatedClientCarts);
   setClientCarts(updatedClientCarts);
 
   // Backend update logic remains the same
@@ -1001,7 +1001,7 @@ const handleQuickAddToCart = (product) => {
 
   // Get client from selectedClient (still available after order creation)
   const client = clientsdata.find(c => c._id === selectedClient);
-  console.log("selected client for payment",comapletedOrder);
+  // console.log("selected client for payment",comapletedOrder);
   if (!client) {
     toast.error("Client information not found");
     return;
@@ -1073,8 +1073,8 @@ ${paymentData.note ? `• Note: ${paymentData.note}` : ''}
 
 const handleSkipPayment = () => {
   const client = clientsdata.find(c => c._id === selectedClient);
-  console.log("compaletd order info",comapletedOrder);
-  console.log("order products info",orderProdcuts);
+  // console.log("compaletd order info",comapletedOrder);
+  // console.log("order products info",orderProdcuts);
   
   if (client) {
     // Send WhatsApp without payment details

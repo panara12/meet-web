@@ -7,7 +7,7 @@ export function useDeleteCompany() {
   return useMutation({
     mutationFn: companyServices.deleteCompany,
     onSuccess: (res) => {
-        console.log(res);
+        // console.log(res);
         queryClient.invalidateQueries(['GetAllCompany']); 
     }
   });

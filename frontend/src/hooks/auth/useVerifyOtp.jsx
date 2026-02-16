@@ -10,7 +10,7 @@ function UseVerifyOtp() {
     onSuccess: (res) => {
       // ✅ If you're using axios, the useful data is usually in res.data
       const safeData = res?.data || {};
-      console.log(res)
+      // console.log(res)
       // Navigate WITHOUT attaching full response object
       if(!res.data.success){
         return navigate('/login',{state : {result: res.data.message}})

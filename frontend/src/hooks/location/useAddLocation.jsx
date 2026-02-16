@@ -7,7 +7,7 @@ export function useAddLocation() {
   return useMutation({
     mutationFn: locationServices.AddLocation,
     onSuccess: (res) => {
-        console.log(res);
+        // console.log(res);
         queryClient.invalidateQueries(['SalesmanLocation']); 
     }
   });

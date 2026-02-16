@@ -48,7 +48,7 @@ import { useAddSubAdmin } from "../../hooks/subadmin/useAddSubAdmin"
 export function SettingsPanel() {
   const userInfo = useSelector((state) => state.app.userInfo);
   const limitsInfo = useSelector((state) => state.app.limits);
-  console.log("setting",userInfo)
+  // console.log("setting",userInfo)
   const { settings, updateSystemSettings, updateNotificationSettings, updateBackupSettings, resetToDefaults, exportSettings, importSettings } = useSettings()
   const { staff } = useStaff()
   const { data:getDistributerById,isPending:isGetDistributerByIdPending} = useGetDistributerById()
@@ -66,7 +66,7 @@ export function SettingsPanel() {
     password: ''
   })
 
-  console.log("Distributer data fetched: ", getDistributerById);
+  // console.log("Distributer data fetched: ", getDistributerById);
 
   const handleSystemSave = () => {
     toast.success('System settings saved successfully!')
@@ -283,7 +283,7 @@ export function SettingsPanel() {
                 </Button> */}
               </CardContent>
             </Card>
-            {console.log(limitsInfo)}
+            {/* {console.log(limitsInfo)} */}
             {
               limitsInfo?.isAdminMembers && 
                 <Card>
@@ -924,7 +924,7 @@ function SubAdminCard({ subadmin, onUpdate, onDelete, isUpdating, isDeleting }) 
     username: subadmin.username,
     password: ''
   })
-  console.log('SubAdminCard render:', subadmin)
+  // console.log('SubAdminCard render:', subadmin)
 
   const handleUpdateSubAdmin = () => {
     if (!editFormData.name || !editFormData.username) {

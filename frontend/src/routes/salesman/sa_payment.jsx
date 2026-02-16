@@ -43,12 +43,12 @@ export default function PaymentUpdate() {
   const [seller, setSeller] = useState([]);
 
   useEffect(() => {
-    console.log("seller data",getSellerList)
+    // console.log("seller data",getSellerList)
     if (getSellerList?.seller?.data) {
       setSeller(getSellerList.seller.data);
     }
   }, [getSellerList]);
-  console.log("seller list",seller)
+  // console.log("seller list",seller)
   
 
   const showToast = (message, type = 'success') => {
@@ -86,7 +86,7 @@ export default function PaymentUpdate() {
     }
 
     const client = seller.find(c => c._id === selectedClient);
-    console.log("client filterred",client)
+    // console.log("client filterred",client)
     const payload = {
       payment_client:client._id,
       payment_salesman:salesmanById?.data.user._id,
@@ -99,7 +99,7 @@ export default function PaymentUpdate() {
         adminId:null,
         notes:paymentNote}
     }
-    console.log(payload);
+    // console.log(payload);
     addPayment(payload)
     const paymentId = generatePaymentId();
     

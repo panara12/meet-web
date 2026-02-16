@@ -25,7 +25,7 @@ const FileSharing = () => {
   const [error, setError] = useState(null);
   const [imageLoadError, setImageLoadError] = useState(false);
 
-  console.log('Location:', location);
+  // console.log('Location:', location);
 
   useEffect(() => {
     if (location.pathname) {
@@ -88,19 +88,19 @@ const FileSharing = () => {
   };
 
   const handleImageLoad = () => {
-    console.log('Image loaded successfully');
+    // console.log('Image loaded successfully');
     setFileType('image');
     setImageLoadError(false);
   };
 
   const handleImageError = () => {
-    console.log('Image failed to load, trying PDF');
+    // console.log('Image failed to load, trying PDF');
     setImageLoadError(true);
     setFileType('pdf');
   };
 
   const handleIframeError = () => {
-    console.log('PDF failed to load');
+    // console.log('PDF failed to load');
     if (imageLoadError) {
       setFileType('unknown');
     }

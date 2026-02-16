@@ -7,7 +7,7 @@ export function useUpdateProduct() {
   return useMutation({
     mutationFn: productServices.updateProduct,
     onSuccess: (res) => {
-        console.log(res);
+        // console.log(res);
         queryClient.invalidateQueries(['AllProducts']); 
     }
   });
