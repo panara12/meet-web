@@ -1561,7 +1561,7 @@ const handlePaymentDialogClose = (open) => {
                         <div className="flex items-center justify-between">
                           {/* <span className="font-semibold text-primary"><IndianRupeeIcon className='w-3 h-3 inline-block' />{product.costPrice}</span> */}
                           <div className="flex items-center gap-1">
-                            <Badge variant="outline" className="text-xs">{product.categoryDetails.name || product.category}</Badge>
+                            <Badge variant="outline" className="text-xs">{product?.categoryDetails?.name || product.category}</Badge>
                           </div>
                         </div>
                       </div>
@@ -2009,7 +2009,7 @@ const handlePaymentDialogClose = (open) => {
                         Category
                       </p>
                       <Badge variant="outline" className="text-xs sm:text-sm">
-                        {selectedProduct.category}
+                        {selectedProduct?.categoryDetails?.name || selectedProduct.category}
                       </Badge>
                     </div>
                     <div>
