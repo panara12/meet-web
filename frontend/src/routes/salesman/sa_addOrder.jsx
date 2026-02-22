@@ -1489,9 +1489,8 @@ const handlePaymentDialogClose = (open) => {
                   <SelectValue placeholder="Filter by category" />
                 </SelectTrigger>
                 <SelectContent className="bg-white">
-                  <SelectItem value="all-categories">All Categories</SelectItem>
                   {categories.map((category) => (
-                    <SelectItem key={category._id} value={category.name}>
+                    <SelectItem key={category._id} value={category._id}>
                       {category.name}
                     </SelectItem>
                   ))}
