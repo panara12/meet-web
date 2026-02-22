@@ -42,8 +42,9 @@ const productSchema = new mongoose.Schema(
 
     // Category – can be null (was required before)
     category: {
-      type: String,
-      required: [true, 'Brand name is required'],
+      type: mongoose.Schema.Types.ObjectId,
+      ref:"ProductCategory",
+      required: [true, 'Category name is required'],
     },
 
     // Brand name – string and required

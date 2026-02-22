@@ -91,7 +91,7 @@ router.get('/getallcompany', user_session_checker("get_all_company"), async (req
         // Build sort object
         const sort = {};
         sort[sortField] = sortDirection;
-
+        console.log("filter",filter)
         // Get total count for pagination
         const Company = req.db.model('Company');
         const totalRecords = await Company.countDocuments(filter);

@@ -59,6 +59,7 @@ export function InventoryProvider({ children }) {
   });
 
   const { data: categoriesAll } = useGetAllCategory();
+  
 
   // Update products and categories when data changes
   useEffect(() => {
@@ -129,7 +130,7 @@ export function InventoryProvider({ children }) {
   };
 
   const updateCategory = ({ id, categoryData }) => {
-    updateCategoryFn({ id, categoryData });
+    updateCategoryFn({ id:id, formDataToSend:categoryData });
     return true;
   };
 

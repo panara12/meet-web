@@ -402,38 +402,51 @@ router.get(
 
       const matchStage = {};
 
-      // Status filter
       if (status) matchStage.status = status;
-
-      // Category filter
-      if (category) matchStage.category = category;
-
+      if (category) matchStage.category = new mongoose.Types.ObjectId(category);
       if (companyId) {
         matchStage.companyId = new mongoose.Types.ObjectId(companyId);
       }
 
       const pipeline = [
+        // Populate Company
         {
           $lookup: {
-            from: 'companies', // 🔥 MUST be MongoDB collection name
+            from: 'companies',
             localField: 'companyId',
             foreignField: '_id',
             as: 'company'
           }
         },
-        { $unwind: '$company' }
+        { $unwind: '$company' },
+
+        // Populate ProductCategory
+        {
+          $lookup: {
+            from: 'productcategories', // MongoDB collection name (usually lowercase + plural)
+            localField: 'category',    // field in Product that references ProductCategory
+            foreignField: '_id',       // field in ProductCategory
+            as: 'categoryDetails'
+          }
+        },
+        {
+          $unwind: {
+            path: '$categoryDetails',
+            preserveNullAndEmptyArrays: true // keeps products even if category is missing
+          }
+        }
       ];
 
-      // 🔍 SEARCH (Product + Company)
+      // Search (Product + Company + Category)
       if (search) {
         pipeline.push({
           $match: {
             $or: [
               { name: { $regex: search, $options: 'i' } },
-              { category: { $regex: search, $options: 'i' } },
               { sku: { $regex: search, $options: 'i' } },
               { description: { $regex: search, $options: 'i' } },
-              { 'company.name': { $regex: search, $options: 'i' } }
+              { 'company.name': { $regex: search, $options: 'i' } },
+              { 'categoryDetails.name': { $regex: search, $options: 'i' } } // search by category name
             ]
           }
         });
@@ -448,7 +461,7 @@ router.get(
 
       const productData = await Product.aggregate(pipeline);
 
-      // Count query
+      // Count pipeline (remove skip, limit, sort)
       const countPipeline = pipeline.filter(stage =>
         !stage.$skip && !stage.$limit && !stage.$sort
       );
@@ -459,7 +472,8 @@ router.get(
       ]))[0]?.count || 0;
 
       const totalPages = Math.ceil(totalRecords / limit);
-      manualLog("get all products successfully",productData)
+
+      manualLog("get all products successfully", productData)
       res.status(200).json({
         message: 'got all the product',
         product: productData,
@@ -474,7 +488,7 @@ router.get(
 
     } catch (error) {
       console.error('error in get all product', error);
-      manualLog("error in get all products",error)
+      manualLog("error in get all products", error)
       res.status(500).json({
         message: 'error in get all product',
         error: error.message
