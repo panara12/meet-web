@@ -1470,7 +1470,6 @@ const handlePaymentDialogClose = (open) => {
                     <SelectValue placeholder="Filter by company" />
                   </SelectTrigger>
                   <SelectContent className="bg-white">
-                    <SelectItem value="all-companies">All Companies</SelectItem>
                     {companies.map((company) => (
                       <SelectItem key={company._id} value={company._id}>
                         {company.name}
@@ -1562,7 +1561,7 @@ const handlePaymentDialogClose = (open) => {
                         <div className="flex items-center justify-between">
                           {/* <span className="font-semibold text-primary"><IndianRupeeIcon className='w-3 h-3 inline-block' />{product.costPrice}</span> */}
                           <div className="flex items-center gap-1">
-                            <Badge variant="outline" className="text-xs">{product.category}</Badge>
+                            <Badge variant="outline" className="text-xs">{product.categoryDetails.name || product.category}</Badge>
                           </div>
                         </div>
                       </div>
