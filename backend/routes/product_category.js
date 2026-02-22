@@ -38,8 +38,8 @@ router.post('/updatecategory/:id', user_session_checker('update_category'), asyn
     const ProductCategory = req.db.model('ProductCategory');
 
     const newCategory = await ProductCategory.findOneAndUpdate({_id:id}, data_to_update, {new: true});
-    manualLog("category udapted successfully",newCategory)
-    res.send(200).json({
+    manualLog(`category udapted successfully :: ${newCategory}`)
+    res.status(200).send({
       message: 'Product category updated successfully',
       category: newCategory,
     });
@@ -47,6 +47,71 @@ router.post('/updatecategory/:id', user_session_checker('update_category'), asyn
     console.log('Error in update category:', error);
     manualLog(`error in update category :: ${JSON.stringify(error)}`);
     res.status(500).json({ message: 'Error updating product category', error });
+  }
+});
+
+//get all category with pagination
+router.get('/getallcategorywithpages', user_session_checker('get_all_category'), async (req, res) => {
+  manualLog("entered in get all category")
+  try {
+    const ProductCategory = req.db.model('ProductCategory');
+
+    // Pagination params
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+
+    // Search
+    const searchTerm = req.query.search || '';
+    const searchQuery = searchTerm
+      ? { name: { $regex: searchTerm, $options: 'i' } }
+      : {};
+
+    // Sort
+    const sortField = req.query.sortField || 'createdAt';
+    const sortDirection = req.query.sortDirection === 'asc' ? 1 : -1;
+    const sortQuery = { [sortField]: sortDirection };
+
+    const totalRecords = await ProductCategory.countDocuments(searchQuery);
+    const totalPages = Math.ceil(totalRecords / limit);
+
+    const category = await ProductCategory.find(searchQuery)
+      .sort(sortQuery)
+      .skip(skip)
+      .limit(limit);
+
+    if (category.length === 0) {
+      return res.send({
+        message: "no category found",
+        category: [],
+        pagination: {
+          currentPage: page,
+          totalPages,
+          totalRecords,
+          limit
+        }
+      });
+    }
+
+    manualLog("get all the category successfully", category);
+    res.send({
+      message: "all category fetched",
+      category,
+      pagination: {
+        currentPage: page,
+        totalPages,
+        totalRecords,
+        limit
+      }
+    });
+
+  } catch (error) {
+    manualLog("some error accured in get category", error);
+    console.log("some error accured in get all category ", error);
+    res.send({
+      message: "some error accurred in get all category",
+      error: error
+    });
   }
 });
 
@@ -83,7 +148,7 @@ router.delete('/deletecategory/:id', user_session_checker('delete_category'), as
 
     await ProductCategory.findOneAndDelete({_id:id});
     manualLog("deleted category by id successfully")
-    res.send(200).json({
+    res.status(200).send({
       message: 'Product category deleted successfully',
       id: id,
     });
