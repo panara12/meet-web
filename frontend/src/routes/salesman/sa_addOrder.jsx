@@ -1470,7 +1470,6 @@ const handlePaymentDialogClose = (open) => {
                     <SelectValue placeholder="Filter by company" />
                   </SelectTrigger>
                   <SelectContent className="bg-white">
-                    <SelectItem value="all-companies">All Companies</SelectItem>
                     {companies.map((company) => (
                       <SelectItem key={company._id} value={company._id}>
                         {company.name}
@@ -1489,9 +1488,8 @@ const handlePaymentDialogClose = (open) => {
                   <SelectValue placeholder="Filter by category" />
                 </SelectTrigger>
                 <SelectContent className="bg-white">
-                  <SelectItem value="all-categories">All Categories</SelectItem>
                   {categories.map((category) => (
-                    <SelectItem key={category._id} value={category.name}>
+                    <SelectItem key={category._id} value={category._id}>
                       {category.name}
                     </SelectItem>
                   ))}
@@ -1563,7 +1561,7 @@ const handlePaymentDialogClose = (open) => {
                         <div className="flex items-center justify-between">
                           {/* <span className="font-semibold text-primary"><IndianRupeeIcon className='w-3 h-3 inline-block' />{product.costPrice}</span> */}
                           <div className="flex items-center gap-1">
-                            <Badge variant="outline" className="text-xs">{product.category}</Badge>
+                            <Badge variant="outline" className="text-xs">{product?.categoryDetails?.name || product.category}</Badge>
                           </div>
                         </div>
                       </div>
@@ -2011,7 +2009,7 @@ const handlePaymentDialogClose = (open) => {
                         Category
                       </p>
                       <Badge variant="outline" className="text-xs sm:text-sm">
-                        {selectedProduct.category}
+                        {selectedProduct?.categoryDetails?.name || selectedProduct.category}
                       </Badge>
                     </div>
                     <div>
