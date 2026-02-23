@@ -18,7 +18,7 @@ import ErrorMessage from '../../component/ui/errorMessage';
 import { useAddNotes } from '../../hooks/salesman/useAddNotes';
 import { useEditNotes } from '../../hooks/salesman/useEditNotes';
 import { useDeleteNote } from '../../hooks/salesman/useDeleteNote';
-import { div } from 'framer-motion/client';
+import { showSuccess, showError } from '../../utils/toast'
 
 
 // Modal Component
@@ -103,19 +103,34 @@ export default function Dashboard() {
 
   const handleAddNote = () => {
       addNotes(newNote);
+      if(addNoteError){
+        showError("Something went wronge")
+      }else{
+        showSuccess("Add note successfully")
+      }
       setIsAddingNote(false);
   };
 
   const handleUpdateNote = () => {
     if (editingNote && editingNote.title.trim() && editingNote.content.trim()) {
       // console.log(editingNote)
-        editNotes(editingNote)
+      editNotes(editingNote)
+      if(editNoteError){
+        showError("Something went wronge")
+      }else{
+        showSuccess("Note edited successfully")
+      }
       setEditingNote(null);
     }
   };
 
   const handleDeleteNote = (id) => {
     deleteNotes(id)
+    if(deleteNoteError){
+      showError("something went wronge");
+    }else{
+      showSuccess("Note deleted successfully")
+    }
   };
 
   

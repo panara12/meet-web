@@ -30,7 +30,7 @@ import {
 } from "lucide-react"
 import { useCompany } from "./CompanyContext"
 import { useInventory } from "./InventoryContext"
-import { toast } from "sonner"
+import { showSuccess, showError } from '../../utils/toast'
 
 const industries = [
   "Technology",
@@ -156,18 +156,18 @@ function Company() {
 
   const handleAddCompany = async () => {
     if (!formData.name.trim() || !formData.industry) {
-      toast.error("Please fill in required fields")
+      showError("Please fill in required fields")
       return
     }
 
     setIsSubmitting(true)
     try {
       const companyId = addCompany(formData)
-      toast.success(`${formData.name} added successfully`)
+      showSuccess(`${formData.name} added successfully`)
       resetForm()
       setShowAddDialog(false)
     } catch (error) {
-      toast.error("Failed to add company")
+      showError("Failed to add company")
     } finally {
       setIsSubmitting(false)
     }
@@ -175,19 +175,19 @@ function Company() {
 
   const handleEditCompany = async () => {
     if (!selectedCompany || !formData.name.trim()) {
-      toast.error("Please fill in required fields")
+      showError("Please fill in required fields")
       return
     }
 
     setIsSubmitting(true)
     try {
       updateCompany(selectedCompany._id, formData)
-      toast.success(`${formData.name} updated successfully`)
+      showSuccess(`${formData.name} updated successfully`)
       setShowEditDialog(false)
       setSelectedCompany(null)
       resetForm()
     } catch (error) {
-      toast.error("Failed to update company")
+      showError("Failed to update company")
     } finally {
       setIsSubmitting(false)
       setShowActionsDialog(false)
@@ -205,11 +205,12 @@ function Company() {
       // Delete the company
       deleteCompany(selectedCompany._id)
       
-      toast.success(`${selectedCompany.name} and ${deletedProductsCount} associated products deleted`)
+      showSuccess(`${selectedCompany.name} and ${deletedProductsCount} associated products deleted`)
       setShowDeleteDialog(false)
       setSelectedCompany(null)
+      setShowActionsDialog(false)
     } catch (error) {
-      toast.error("Failed to delete company")
+      showError("Failed to delete company")
     } finally {
       setIsSubmitting(false)
     }
@@ -217,7 +218,7 @@ function Company() {
 
   const handleAddProduct = async () => {
     if (!selectedCompany || !productFormData.name.trim() || !productFormData.category) {
-      toast.error("Please fill in required fields")
+      showError("Please fill in required fields")
       return
     }
 
@@ -250,11 +251,11 @@ function Company() {
       }
 
       addProduct(productData)
-      toast.success(`Product "${productFormData.name}" added to ${selectedCompany.name}`)
+      showSuccess(`Product "${productFormData.name}" added to ${selectedCompany.name}`)
       resetProductForm()
       setShowAddProductDialog(false)
     } catch (error) {
-      toast.error("Failed to add product")
+      showError("Failed to add product")
     } finally {
       setIsSubmitting(false)
     }

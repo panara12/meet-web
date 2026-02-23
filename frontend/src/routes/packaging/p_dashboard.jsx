@@ -4,11 +4,11 @@ import { ClientList } from './p_clientList';
 import { OrderList } from './p_orderList';
 import { OrderDetails } from './p_orderDetails';
 import { ClipboardPanel } from './p_clipBoardPanel';
-import { Toaster } from '../distributer/ui/sonner';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../distributer/ui/tabs';
 import { mockClients, mockOrders } from './mockData';
 import { useTranslation } from './translations';
 import { toast } from 'sonner';
+import { showSuccess, showError } from '../../utils/toast'
 import { Clipboard, Package } from 'lucide-react';
 import { useGetAllOrders } from '../../hooks/order/useGetAllOrder';
 import { useUpdateOrder } from '../../hooks/order/useUpdateOrder';
@@ -271,13 +271,17 @@ export default function Dashboard() {
         status: newStatus,
         totalItems,
         totalAmount: totalAmount.toFixed(2)})
-      
-      if(newStatus=="completed"){
-        updateSellerOrder({
-          id:order.order_seller._id,
-          pendingOrders:order.order_seller.pendingOrders - 1
-        });
-      }
+        if(newStatus=="completed"){
+          updateSellerOrder({
+            id:order.order_seller._id,
+            pendingOrders:order.order_seller.pendingOrders - 1
+          });
+        }
+        if(updateOrderError){
+          showError("Order not updated")
+        }else{
+          showSuccess("Order Updated")
+        }
 
       return {
         ...order,
@@ -295,7 +299,7 @@ export default function Dashboard() {
       globalSelectedItems: new Map()
     });
 
-    toast.success(
+    showSuccess(
       `${totalItemsSent} Items sent to billing department with ${cartoonCount} cartoons on ${billingDate}`
     );
   };
@@ -316,6 +320,7 @@ export default function Dashboard() {
       globalSelectedItems: new Map()
     });
       logout();
+    showSuccess("Logout successfully")
   };
 
   const { t } = useTranslation(appState.language);
@@ -522,14 +527,6 @@ export default function Dashboard() {
           </div>
         </div>
       </div>
-
-      {/* Toast Notifications */}
-      <Toaster 
-        position="top-center" 
-        richColors 
-        closeButton 
-        className="sm:bottom-0 sm:right-0"
-      />
     </div>
   );
 }

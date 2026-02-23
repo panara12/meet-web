@@ -32,13 +32,14 @@ import { FileManagementProvider } from "./FileManagementContext.jsx"
 import { SettingsProvider } from "./SettingsContext.jsx"
 import { useLogout } from "../../hooks/auth/useLogOut.jsx"
 import { useSelector } from "react-redux"
+import { showSuccess, showError } from '../../utils/toast.jsx'
 
 let navigationItems =[]
 
 function LayoutWrapper({ children,limitsInfo }) {
   const location = useLocation()
   const navigate = useNavigate()
-  const {mutate:logout} = useLogout();
+  const {mutate:logout,isPending:islogoutPending,isError:islogoutError,error:logoutError} = useLogout();
 
   if(limitsInfo?.wantToUsePayment){
       navigationItems =  [
@@ -85,6 +86,11 @@ function LayoutWrapper({ children,limitsInfo }) {
     localStorage.removeItem('token') // adjust based on your auth implementation
     // Redirect to login page
     window.location.href = '/login' // or use navigate('/login') if login is in the same router
+    if(logoutError){
+      showError("something went wronge")
+    }else{
+      showSuccess("logout successfully")
+    }
   }
 
   return (

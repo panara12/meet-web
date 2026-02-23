@@ -3,6 +3,7 @@ import { Eye, Download, FileText, Image, Calendar, Loader2, AlertCircle, Refresh
 import { useGetWeekFiles } from '../../hooks/file/useGetWeekFiles';
 import { useSelector } from 'react-redux';
 import { toast } from 'sonner';
+import { showSuccess, showError } from '../../utils/toast'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "../distributer/ui/dialog";
 import { Button } from '../distributer/ui/button';
 import { Label } from './addOrder/label';
@@ -186,7 +187,6 @@ export default function DailyFiles() {
   // Handle file download
   const handleDownload = async (file) => {
     try {
-      toast.info('Starting download...');
       
       const response = await fetch(file.url);
       if (!response.ok) throw new Error('Failed to fetch file');
@@ -202,10 +202,10 @@ export default function DailyFiles() {
       document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
       
-      toast.success('Download started!');
+      showSuccess('Download started!');
     } catch (error) {
       console.error('Download error:', error);
-      toast.error('Failed to download file');
+      showError('Failed to download file');
     }
   };
 
@@ -261,14 +261,14 @@ export default function DailyFiles() {
       const link = generateShareLink(file);
       await navigator.clipboard.writeText(link);
       setCopiedLink(true);
-      toast.success('Link copied to clipboard!');
+      showSuccess('Link copied to clipboard!');
       
       setTimeout(() => {
         setCopiedLink(false);
       }, 3000);
     } catch (error) {
       console.error('Failed to copy:', error);
-      toast.error('Failed to copy link');
+      showError('Failed to copy link');
     }
   };
 
@@ -279,7 +279,7 @@ export default function DailyFiles() {
     const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
     
     window.open(whatsappUrl, '_blank');
-    toast.success('Opening WhatsApp...');
+    showSuccess('Opening WhatsApp...');
   };
 
   // Get current day info

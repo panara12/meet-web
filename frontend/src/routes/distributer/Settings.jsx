@@ -11,6 +11,7 @@ import { Badge } from "./ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "./ui/table"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "./ui/dialog"
 import { toast } from "sonner"
+import { showSuccess, showError } from '../../utils/toast'
 import { useSettings } from "./SettingsContext"
 import { useStaff } from "./StaffContext"
 import { 
@@ -122,18 +123,18 @@ export function SettingsPanel() {
 
   const handleAddSubAdmin = () => {
     if (!addSubAdminFormData.name || !addSubAdminFormData.username || !addSubAdminFormData.password) {
-      toast.error('All fields are required')
+      showError('All fields are required')
       return
     }
 
     addsubadmin(addSubAdminFormData, {
       onSuccess: () => {
-        toast.success('SubAdmin added successfully!')
+        showSuccess('SubAdmin added successfully!')
         setShowAddSubAdminDialog(false)
         setAddSubAdminFormData({ name: '', username: '', password: '' })
       },
       onError: (error) => {
-        toast.error(error?.response?.data?.message || 'Failed to add SubAdmin')
+        showError(error?.response?.data?.message || 'Failed to add SubAdmin')
       }
     })
   }
@@ -928,7 +929,7 @@ function SubAdminCard({ subadmin, onUpdate, onDelete, isUpdating, isDeleting }) 
 
   const handleUpdateSubAdmin = () => {
     if (!editFormData.name || !editFormData.username) {
-      toast.error('Name and username are required')
+      showError('Name and username are required')
       return
     }
 
@@ -945,12 +946,12 @@ function SubAdminCard({ subadmin, onUpdate, onDelete, isUpdating, isDeleting }) 
 
     onUpdate(updateData, {
       onSuccess: () => {
-        toast.success('SubAdmin updated successfully!')
+        showSuccess('SubAdmin updated successfully!')
         setShowEditDialog(false)
         setEditFormData({ name: '', username: '', password: '' })
       },
       onError: (error) => {
-        toast.error(error?.response?.data?.message || 'Failed to update SubAdmin')
+        showError(error?.response?.data?.message || 'Failed to update SubAdmin')
       }
     })
   }
@@ -958,11 +959,11 @@ function SubAdminCard({ subadmin, onUpdate, onDelete, isUpdating, isDeleting }) 
   const handleDeleteSubAdmin = () => {
     onDelete(subadmin._id, {
       onSuccess: () => {
-        toast.success('SubAdmin deleted successfully!')
+        showSuccess('SubAdmin deleted successfully!')
         setShowDeleteDialog(false)
       },
       onError: (error) => {
-        toast.error(error?.response?.data?.message || 'Failed to delete SubAdmin')
+        showError(error?.response?.data?.message || 'Failed to delete SubAdmin')
       }
     })
   }

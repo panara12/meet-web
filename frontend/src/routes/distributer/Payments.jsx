@@ -10,7 +10,7 @@ import { Textarea } from "./ui/textarea"
 import { Label } from "./ui/label"
 import { Input } from "./ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select"
-import { toast } from "sonner"
+import { showSuccess, showError } from '../../utils/toast'
 import {
   CreditCard,
   Check,
@@ -277,7 +277,11 @@ function Payments() {
       pending: "Payment request returned to pending status"
     }
     updatePaymentStatus(payload)
-    toast.success(statusMessages[newStatus])
+    if(updatePaymentError){
+      showError("something went wronge")
+    }else{
+      showSuccess(statusMessages[newStatus])
+    }    
     setShowDetailsDialog(false)
     setAdminNotes("")
   }

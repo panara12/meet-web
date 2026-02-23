@@ -11,7 +11,7 @@ import { Textarea } from "./ui/textarea"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs"
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "./ui/alert-dialog"
 import { Search, Plus, Eye, Edit, Trash2, Mail, Phone, MapPin, Building2, Calendar, IndianRupeeIcon, Package, ArrowUpDown, Star, Clock, TrendingUp, FileText, Users, Loader2, ChevronLeft, ChevronRight, User } from "lucide-react"
-import { toast } from "sonner"
+import { showSuccess, showError } from '../../utils/toast'
 import { useGetAllSeller } from "../../hooks/seller/useGetAllSeller"
 import { useUpdateSeller } from "../../hooks/seller/useUpdateSeller"
 import { useDeleteSeller } from "../../hooks/seller/useDeleteSeller"
@@ -174,12 +174,12 @@ function ClientList() {
 
   const handleAddClient = useCallback(() => {
     if (!formData.name.trim() || !formData.email.trim()) {
-      toast.error("Please fill in required fields (Name and Email)");
+      showError("Please fill in required fields (Name and Email)");
       return;
     }
 
     if (clients.some(client => client.email.toLowerCase() === formData.email.toLowerCase())) {
-      toast.error("A client with this email already exists");
+      showError("A client with this email already exists");
       return;
     }
 
@@ -209,13 +209,13 @@ function ClientList() {
     //   resetForm();
     // }
     setIsAddDialogOpen(false);
-    toast.success("Client added successfully");
+    showSuccess("Client added successfully");
   }, [formData, clients, resetForm]);
 
   const handleEditClient = useCallback(() => {
     // console.log("called upate function")
     if (!editingClient || !formData.name.trim() || !formData.email.trim()) {
-      toast.error("Please fill in required fields (Name and Email)");
+      showError("Please fill in required fields (Name and Email)");
       return;
     }
 
@@ -223,7 +223,7 @@ function ClientList() {
       client._id !== editingClient._id &&
       client.email.toLowerCase() === formData.email.toLowerCase()
     )) {
-      toast.error("A client with this email already exists");
+      showError("A client with this email already exists");
       return;
     }
 
@@ -245,12 +245,13 @@ function ClientList() {
           }
     // console.log(editingClient._id);
     updateSeller(updatedClients)
-    toast.success("Client updated successfully");
+    setIsEditDialogOpen(false)
+    showSuccess("Client updated successfully");
   }, [editingClient, formData, clients, resetForm]);
 
   const handleDeleteClient = useCallback((clientId) => {
     deleteSellerList({id:clientId});
-    toast.success("Client deleted successfully");
+    showSuccess("Client deleted successfully");
   }, []);
 
   const openEditDialog = useCallback((client) => {
