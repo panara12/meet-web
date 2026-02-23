@@ -1383,7 +1383,7 @@ function Inventory() {
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="otherDetails">Other details</Label>
+                      <Label htmlFor="otherDetails">CESS</Label>
                       <Input
                         id="otherDetails"
                         value={categoryFormData.other}
@@ -1600,7 +1600,7 @@ function Inventory() {
                     <TableHead>LGST</TableHead>
                     <TableHead>SGST</TableHead>
                     <TableHead>CGST</TableHead>
-                    <TableHead>Other</TableHead>
+                    <TableHead>CESS</TableHead>
                     <TableHead className="text-center">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
