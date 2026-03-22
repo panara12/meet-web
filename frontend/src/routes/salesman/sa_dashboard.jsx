@@ -67,7 +67,7 @@ export default function Dashboard() {
         setCanAddNotes(true);
       }
     }
-  },[getAllNotes])
+  },[getAllNotes,editNotes])
 
   const [newNote, setNewNote] = useState({
     type: 'note',
@@ -153,6 +153,13 @@ export default function Dashboard() {
     return <option value={value}>{children}</option>;
   };
 
+  const date = new Date();
+
+  const todayMonth = date.toLocaleDateString("en-US", {
+    month: "long",
+    year: "numeric"
+  });
+
   return (
     <div className="p-4 lg:p-6">
       {/* Header Section */}
@@ -180,9 +187,10 @@ export default function Dashboard() {
       </div>
 
       {/* Current Period */}
+
       <div className="flex items-center gap-2 mb-6 text-sm text-gray-600">
         <Calendar className="w-4 h-4" />
-        <span>Current Period: September 2025</span>
+        <span>Current Period: {todayMonth}</span>
       </div>
 
       {/* Stats Cards */}
