@@ -12,7 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs"
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "./ui/alert-dialog"
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar"
 import { Search, Plus, Eye, Edit, Trash2, Mail, Phone, MapPin, Calendar, Shield, Clock, Users, TrendingUp, UserCheck, Briefcase, Activity, Filter, Upload, FileText, CreditCard, Car, IndianRupeeIcon,ChevronLeft, ChevronRight, RefreshCw } from "lucide-react"
-import { toast } from "sonner"
+import { showSuccess, showError } from '../../utils/toast'
 
 import { StaffProvider,useStaff } from "./StaffContext"
 
@@ -168,12 +168,12 @@ function StaffAccount() {
 
   const handleAddStaff = useCallback(() => {
     if (!formData.firstName.trim() || !formData.lastName.trim() || !formData.email.trim()) {
-      toast.error("Please fill in required fields (First Name, Last Name, and Email)")
+      showError("Please fill in required fields (First Name, Last Name, and Email)")
       return
     }
 
     if (staff.some(member => member.email.toLowerCase() === formData.email.toLowerCase())) {
-      toast.error("A staff member with this email already exists")
+      showError("A staff member with this email already exists")
       return
     }
 
@@ -182,7 +182,7 @@ function StaffAccount() {
     const roleLimit = roleLimits[formData.role]
     
     if (currentRoleCount >= roleLimit) {
-      toast.error(`Cannot add more ${formData.role} staff. Maximum limit of ${roleLimit} reached.`)
+      showError(`Cannot add more ${formData.role} staff. Maximum limit of ${roleLimit} reached.`)
       return
     }
 
@@ -233,12 +233,12 @@ function StaffAccount() {
     addStaff(newStaff)
     setIsAddDialogOpen(false)
     resetForm()
-    toast.success("Staff member added successfully")
+    showSuccess("Staff member added successfully")
   }, [formData, staff, generateEmployeeId, generateEmpId, resetForm, addStaff, getRoleCount])
 
   const handleEditStaff = useCallback(() => {
     if (!editingStaff || !formData.firstName.trim() || !formData.lastName.trim() || !formData.email.trim()) {
-      toast.error("Please fill in required fields (First Name, Last Name, and Email)")
+      showError("Please fill in required fields (First Name, Last Name, and Email)")
       return
     }
 
@@ -246,7 +246,7 @@ function StaffAccount() {
       member._id !== editingStaff._id && 
       member.email.toLowerCase() === formData.email.toLowerCase()
     )) {
-      toast.error("A staff member with this email already exists")
+      showError("A staff member with this email already exists")
       return
     }
 
@@ -260,7 +260,7 @@ function StaffAccount() {
       const roleLimit = roleLimits[formData.role]
       
       if (currentRoleCount >= roleLimit) {
-        toast.error(`Cannot change to ${formData.role} role. Maximum limit of ${roleLimit} reached.`)
+        showError(`Cannot change to ${formData.role} role. Maximum limit of ${roleLimit} reached.`)
         return
       }
     }
@@ -305,12 +305,12 @@ function StaffAccount() {
     setEditingStaff(null)
     setNewPassword("") // Clear the password field
     resetForm()
-    toast.success("Staff member updated successfully")
+    showSuccess("Staff member updated successfully")
   }, [editingStaff, formData, newPassword, resetForm, updateStaff])
 
   const handleDeleteStaff = useCallback((staffId) => {
     deleteStaff(staffId)
-    toast.success("Staff member removed successfully")
+    showSuccess("Staff member removed successfully")
   }, [deleteStaff])
 
   const openEditDialog = useCallback((member) => {

@@ -21,7 +21,7 @@ import {
 import { useTranslation } from './translations';
 import { useState } from 'react';
 import { CartoonCountDialog } from './p_cartoonCountDialog';
-import { toast } from 'sonner';
+import { showSuccess, showError } from '../../utils/toast'
 
 export function OrderList({ 
   orders, 
@@ -91,7 +91,7 @@ export function OrderList({
     // console.log("updated items",updatedItems)
     
     onUpdateQuantity(order._id, updatedItems);
-    toast.success(t('Quantity updated successfully'));
+    showSuccess(t('Quantity updated successfully'));
   };
 
   const handleQuantityChange = (order, itemId, delta) => {
@@ -396,8 +396,8 @@ export function OrderList({
                   {t('Selected')} {t('Items')}: {totalSelectedItems}
                 </div>
                 <div className="text-xs sm:text-sm text-muted-foreground flex items-center gap-1">
-                  <DollarSign className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
-                  {t('Total Amount')}: ${totalSelectedAmount.toFixed(2)}
+                  <IndianRupeeIcon className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+                  {t('Total Amount')}: ₹{totalSelectedAmount.toFixed(2)}
                 </div>
               </div>
               <Badge variant="secondary" className="text-xs sm:text-sm px-3 py-1.5 w-fit">

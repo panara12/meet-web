@@ -38,7 +38,7 @@ import {
 } from "lucide-react"
 import { useInventory } from "./InventoryContext"
 import { useCompany } from "./CompanyContext"
-import { toast } from "./ui/sonner"
+import { showSuccess, showError } from '../../utils/toast'
 import { useSelector } from "react-redux"
 import { form } from "framer-motion/client"
 
@@ -231,7 +231,7 @@ function Inventory() {
 
   const handleAddCategory = async () =>{
     if(!categoryFormData.name.trim()) {
-      toast.error("Please fill in required fields")
+      showError("Please fill in required fields")
       return
     }
     setIsSubmitting(true)
@@ -250,7 +250,7 @@ function Inventory() {
       resetCategoryForm()
       setShowAddCategoryDialog(false)
     } catch (error) {
-      toast.error("Failed to add category")
+      showError("Failed to add category")
     } finally {
       setIsSubmitting(false)
     }
@@ -258,7 +258,7 @@ function Inventory() {
 
   const handleAddProduct = async () => {
     if (!formData.name.trim() || !formData.category || !formData.companyId) {
-      toast.error("Please fill in required fields")
+      showError("Please fill in required fields")
       return
     }
 
@@ -266,7 +266,7 @@ function Inventory() {
     try {
       const company = companies.find(c => c._id === formData.companyId)
       if (!company) {
-        toast.error("Invalid company selected")
+        showError("Invalid company selected")
         return
       }
 
@@ -341,11 +341,11 @@ function Inventory() {
 
       addProduct(productData)
       incrementProductsCount(formData.companyId)
-      toast.success(`Product "${formData.name}" added successfully`)
+      showSuccess(`Product "${formData.name}" added successfully`)
       resetForm()
       setShowAddDialog(false)
     } catch (error) {
-      toast.error("Failed to add product")
+      showSuccess("Failed to add product")
     } finally {
       setIsSubmitting(false)
     }
@@ -353,7 +353,7 @@ function Inventory() {
 
   const handleEditCategory = async () =>{
     if(!categoryFormData.name.trim()) {
-      toast.error("Please enter a category name")
+      showError("Please enter a category name")
       return
     }
     console.log("upate category called")
@@ -370,12 +370,12 @@ function Inventory() {
 
       console.log("Updating category:", categoryData)
       updateCategory({id: selectedCategory._id, categoryData})
-      toast.success(`Category "${categoryFormData.name}" updated successfully`)
+      showSuccess(`Category "${categoryFormData.name}" updated successfully`)
       setShowEditCategoryDialog(false)
       setSelectedCategory(null)
       resetCategoryForm()
     } catch (error) {
-      toast.error("Failed to update category")
+      showError("Failed to update category")
     } finally {
       setIsSubmitting(false)
     }
@@ -383,7 +383,7 @@ function Inventory() {
 
   const handleEditProduct = async () => {
     if (!selectedProduct || !formData.name.trim() || !formData.category) {
-      toast.error("Please fill in required fields")
+      showError("Please fill in required fields")
       return
     }
 
@@ -391,7 +391,7 @@ function Inventory() {
     try {
       const company = companies.find(c => c._id === formData.companyId)
       if (!company) {
-        toast.error("Invalid company selected")
+        showError("Invalid company selected")
         return
       }
       const formDataToSend = new FormData();
@@ -430,12 +430,12 @@ function Inventory() {
 
       // console.log("Updating product:", formDataToSend)
       updateProduct({id: selectedProduct._id, formDataToSend})
-      toast.success(`Product "${formData.name}" updated successfully`)
+      showSuccess(`Product "${formData.name}" updated successfully`)
       setShowEditDialog(false)
       setSelectedProduct(null)
       resetForm()
     } catch (error) {
-      toast.error("Failed to update product")
+      showError("Failed to update product")
     } finally {
       setIsSubmitting(false)
     }
@@ -447,11 +447,11 @@ function Inventory() {
     setIsSubmitting(true)
     try {
       deleteCategory(selectedCategory._id)
-      toast.success(`Category "${selectedCategory.name}" deleted successfully`)
+      showSuccess(`Category "${selectedCategory.name}" deleted successfully`)
       setShowDeleteCategoryDialog(false)
       setSelectedCategory(null)
     } catch (error) {
-      toast.error("Failed to delete category")
+      showError("Failed to delete category")
     } finally {
       setIsSubmitting(false)
     }
@@ -465,11 +465,11 @@ function Inventory() {
     try {
       await deleteProduct(selectedProduct._id)
       await decrementProductsCount(selectedProduct.companyId)
-      toast.success(`Product "${selectedProduct.name}" deleted successfully`)
+      showSuccess(`Product "${selectedProduct.name}" deleted successfully`)
       setShowDeleteDialog(false)
       setSelectedProduct(null)
     } catch (error) {
-      toast.error("Failed to delete product")
+      showError("Failed to delete product")
     } finally {
       setIsSubmitting(false)
     }
@@ -580,7 +580,7 @@ function Inventory() {
     files.forEach(file => {
       if (file.type.startsWith('image/')) {
         if (file.size > 5 * 1024 * 1024) { // 5MB limit
-          toast.error(`Image ${file.name} is too large. Maximum size is 5MB.`)
+          showError(`Image ${file.name} is too large. Maximum size is 5MB.`)
           return
         }
         // console.log('file data', file)
@@ -589,7 +589,7 @@ function Inventory() {
           images: [...prev.images, file]
         }));
       } else {
-        toast.error(`File ${file.name} is not a valid image format.`)
+        showError(`File ${file.name} is not a valid image format.`)
       }
     })
         // console.log('form img data',formData.images)
@@ -1383,7 +1383,7 @@ function Inventory() {
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="otherDetails">Other details</Label>
+                      <Label htmlFor="otherDetails">CESS</Label>
                       <Input
                         id="otherDetails"
                         value={categoryFormData.other}
@@ -1600,7 +1600,7 @@ function Inventory() {
                     <TableHead>LGST</TableHead>
                     <TableHead>SGST</TableHead>
                     <TableHead>CGST</TableHead>
-                    <TableHead>Other</TableHead>
+                    <TableHead>CESS</TableHead>
                     <TableHead className="text-center">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -2803,7 +2803,7 @@ function Inventory() {
             <AlertDialogAction
               onClick={handleDeleteCategory}
               disabled={isSubmitting}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              className="bg-danger text-destructive-foreground hover:bg-destructive/90"
             >
               {isSubmitting ? (
                 <><RefreshCw className="h-4 w-4 mr-2 animate-spin" />Deleting...</>

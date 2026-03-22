@@ -57,6 +57,7 @@ import {
   DropdownMenuTrigger,
 } from "./ui/dropdown-menu";
 import { toast } from "sonner";
+import { showSuccess, showError } from '../../utils/toast.jsx'
 import { useStaff } from "./StaffContext";
 import { useFileManagement } from "./FileManagementContext";
 import { GoogleMap, Marker } from '@react-google-maps/api';
@@ -116,8 +117,8 @@ const GoogleMapViewWithTracking = ({ latitude, longitude, staffName, address, on
 
   // Handle load error
   if (loadError) {
-    console.error("Map load error:", loadError);
-    toast.error("Failed to load Google Maps");
+    // console.error("Map load error:", loadError);
+    showError("Failed to load Google Maps");
 
     return (
       <div className="h-96 bg-muted rounded-lg flex items-center justify-center">
@@ -347,7 +348,7 @@ function SalesPanel() {
         // console.log("✅ Location request count decremented successfully!");
         toast.success("Request count updated");
       } else {
-        console.error("❌ Failed to decrement location request count");
+        // console.error("❌ Failed to decrement location request count");
         toast.error("Failed to update request count");
       }
     } else {
@@ -375,13 +376,13 @@ function SalesPanel() {
       // File type validation
       const isValidType = file.type.includes('pdf') || file.type.includes('image');
       if (!isValidType) {
-        toast.error(`${file.name} is not a valid file type. Only PDF and image files are allowed.`);
+        showError(`${file.name} is not a valid file type. Only PDF and image files are allowed.`);
         continue;
       }
 
       // File size validation (10MB limit)
       if (file.size > 10 * 1024 * 1024) {
-        toast.error(`${file.name} is too large. Maximum file size is 10MB.`);
+        showError(`${file.name} is too large. Maximum file size is 10MB.`);
         continue;
       }
 
@@ -394,12 +395,12 @@ function SalesPanel() {
 
   const handleUploadFiles = async () => {
     if (!selectedStaff) {
-      toast.error("No staff member selected");
+      showError("No staff member selected");
       return;
     }
 
     if (selectedFiles.length === 0) {
-      toast.error("Please select files to upload");
+      showError("Please select files to upload");
       return;
     }
 
@@ -416,7 +417,7 @@ function SalesPanel() {
       );
 
       if (success) {
-        toast.success(`${selectedFiles.length} file(s) uploaded successfully`);
+        showSuccess(`${selectedFiles.length} file(s) uploaded successfully`);
         setFileDescription('');
         setSelectedFiles([]);
         // Clear file input
@@ -425,11 +426,11 @@ function SalesPanel() {
           fileInput.value = "";
         }
       } else {
-        toast.error('Failed to upload files');
+        showError('Failed to upload files');
       }
     } catch (error) {
-      console.error('Upload error:', error);
-      toast.error("Upload failed: " + (error?.message || 'Unknown error'));
+      // console.error('Upload error:', error);
+      showError("Upload failed: " + (error?.message || 'Unknown error'));
     } finally {
       setIsUploading(false);
     }
@@ -448,7 +449,7 @@ function SalesPanel() {
 
   const handleRequestLocation = useCallback(async () => {
     if (!selectedStaff) {
-      toast.error("No staff member selected");
+      showError("No staff member selected");
       return;
     }
 
@@ -456,7 +457,7 @@ function SalesPanel() {
       selectedStaff?.role?.toLowerCase() === "sales-man";
 
     if (!isSalesman) {
-      toast.error("Location tracking is only available for salesmen");
+      showError("Location tracking is only available for salesmen");
       return;
     }
 
@@ -468,24 +469,23 @@ function SalesPanel() {
 
     try {
       const locationData = await fetchStaffLocation(selectedStaff._id);
-
       if (locationData) {
         // console.log("✅ Location data received:", locationData);
         setFetchedLocation(locationData);
         toast.success("Location fetched successfully");
       } else {
-        console.error("❌ No location data received");
-        toast.error("Failed to fetch location");
+        // console.error("❌ No location data received");
+        showError("Failed to fetch location");
       }
     } catch (error) {
-      console.error("❌ Location fetch error:", error);
+      // console.error("❌ Location fetch error:", error);
 
       if (error.message.includes("limit reached")) {
-        toast.error("Monthly location request limit reached");
+        showError("Monthly location request limit reached");
       } else if (error.message.includes("User ID is required")) {
-        toast.error("Invalid user ID");
+        showError("Invalid user ID");
       } else {
-        toast.error(error.message || "Error fetching location");
+        showError(error?.response?.data?.message || "Error fetching location");
       }
     } finally {
       setIsUpdatingLocation(false);
@@ -494,7 +494,7 @@ function SalesPanel() {
 
   const handleFetchPathPoints = useCallback(async () => {
     if (!selectedStaff) {
-      toast.error("No staff member selected");
+      showError("No staff member selected");
       return;
     }
 
@@ -502,13 +502,13 @@ function SalesPanel() {
       selectedStaff?.role?.toLowerCase() === "sales-man";
 
     if (!isSalesman) {
-      toast.error("Path tracking is only available for salesmen");
+      showError("Path tracking is only available for salesmen");
       return;
     }
 
     const stats = getCommonLocationStats();
     if (stats.pathRemaining <= 0) {
-      toast.error("Monthly path request limit reached");
+      showError("Monthly path request limit reached");
       return;
     }
 
@@ -529,7 +529,7 @@ function SalesPanel() {
           // console.log("✅ Path request count decremented");
           toast.success(`Path loaded with ${coordinates.length} points`);
         } else {
-          console.error("❌ Failed to decrement path request count");
+          // console.error("❌ Failed to decrement path request count");
           toast.success(`Path loaded with ${coordinates.length} points (count update failed)`);
         }
       } else {
@@ -537,7 +537,7 @@ function SalesPanel() {
         setPathPoints([]);
       }
     } catch (error) {
-      console.error("❌ Path fetch error:", error);
+      // console.error("❌ Path fetch error:", error);
       toast.error(error.message || "Error fetching path");
       setPathPoints([]);
     } finally {
@@ -564,7 +564,7 @@ function SalesPanel() {
         document.body.removeChild(link);
         toast.success(`Downloading ${file.name}`);
       } catch (error) {
-        console.error('Download error:', error);
+        // console.error('Download error:', error);
         toast.error('Failed to download file');
       }
     };
@@ -669,7 +669,7 @@ const closePreview = (e) => {
         toast.error('Failed to queue files for upload');
       }
     } catch (error) {
-      console.error('Upload error:', error);
+      // console.error('Upload error:', error);
       toast.error("Upload failed");
     } finally {
       setIsUploading(false);
@@ -703,13 +703,13 @@ const closePreview = (e) => {
     try {
       const success = await deleteFile(fileId);
       if (success) {
-        toast.success(`${fileName} deleted successfully`);
+        showSuccess(`${fileName} deleted successfully`);
       } else {
-        toast.error(`Failed to delete ${fileName}`);
+        showError(`Failed to delete ${fileName}`);
       }
     } catch (error) {
-      console.error('Delete error:', error);
-      toast.error("Delete failed");
+      // console.error('Delete error:', error);
+      showError("Delete failed");
     } finally {
       setDeletingFileId(null);
     }
@@ -756,14 +756,14 @@ const closePreview = (e) => {
       const link = generateShareLink(file);
       await navigator.clipboard.writeText(link);
       setCopiedLink(true);
-      toast.success('Link copied to clipboard!');
+      showSuccess('Link copied to clipboard!');
       
       setTimeout(() => {
         setCopiedLink(false);
       }, 3000);
     } catch (error) {
-      console.error('Failed to copy:', error);
-      toast.error('Failed to copy link');
+      // console.error('Failed to copy:', error);
+      showError('Failed to copy link');
     }
   };
 

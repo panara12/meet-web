@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { useAddSeller } from "../../hooks/seller/useAddSeller";
-import ErrorMessage from "../../component/ui/errorMessage";
-import SuccessMessage from "../../component/ui/successMessage";
+import { showSuccess, showError } from '../../utils/toast'
 
 export default function AddClient() {
   const [formData, setFormData] = useState({
@@ -20,16 +19,18 @@ export default function AddClient() {
     gstNumber: "",
     notes: "",
   });
-  const [successMessage, setSuccessMessage] = useState("");
   const {mutate:addSeller,isPending, isError, error} = useAddSeller({
     onSuccess: (res) => {
-    setSuccessMessage(res.data.message);
+    showSuccess(res.data.message||"client added successfully");
     
         // console.log("Seller added successfully:", formData);
         setTimeout(() => {
-          setSuccessMessage("");
+          showSuccess("client added successfully");
         }, 3000);
     },
+    onError: (error)=>{
+      showError(`Error in client adding`)
+    }
   })
 
   const handleChange = (field, value) => {
@@ -38,6 +39,13 @@ export default function AddClient() {
 
   const handleSubmit = () => {
     addSeller(formData);
+    if(error){
+      console.log(error.response.data.error)
+      if(error.response.data.error=={}) showError(`please  follow this :: ${error.response.data.error[0]}`)
+        else showError("something went wronge")
+    }else {
+      showSuccess("client added successfully");
+    }
     setFormData({
           name: "",
           contactPerson: "",
@@ -328,9 +336,6 @@ export default function AddClient() {
             {isPending ? 'Adding client...' : 'Add client'}
           </button>
         </div>
-
-        {isError && <ErrorMessage message={error?.response?.data?.message} />}
-        {successMessage != "" && <SuccessMessage message={successMessage} />}
     </div>
   </div>
   );

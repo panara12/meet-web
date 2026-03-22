@@ -243,7 +243,8 @@ export function StaffProvider({ children }) {
             }
           },
           onError: (error) => {
-            console.error("Failed to fetch location:", error)
+            // console.error("Failed to fetch location:", error)
+            // console.log("error ",error.response.data.message)
             reject(error)
           }
         }
@@ -257,7 +258,7 @@ export function StaffProvider({ children }) {
     
     // console.log("Decrementing location request count",limits)
     if (!limits) {
-      console.error("Limits not available")
+      // console.error("Limits not available")
       return false
     }
     let reqcount = limits.data[0].liveLocationlimit;
@@ -288,7 +289,7 @@ const decrementPathRequest = () => {
   // console.log("📉 Decrementing path request count", limits)
   
   if (!limits) {
-    console.error("Limits not available")
+    // console.error("Limits not available")
     return false
   }
   
@@ -317,13 +318,13 @@ const decrementPathRequest = () => {
 
   const requestLocationUpdate = async (staffId) => {
     if (!staffId) {
-      console.error("Cannot request location: Invalid staff ID")
+      // console.error("Cannot request location: Invalid staff ID")
       return false
     }
 
     const member = staff.find((s) => s._id === staffId)
     if (!member) {
-      console.error("Staff member not found")
+      // console.error("Staff member not found")
       return false
     }
 
@@ -382,7 +383,7 @@ const decrementPathRequest = () => {
 
       return true
     } catch (error) {
-      console.error("Failed to get location:", error)
+      // console.error("Failed to get location:", error)
       throw error
     }
   }
@@ -415,7 +416,7 @@ const decrementPathRequest = () => {
           }
         },
         onError: (error) => {
-          console.error("❌ Failed to fetch path:", error)
+          // console.error("❌ Failed to fetch path:", error)
           reject(error)
         }
       }
@@ -434,13 +435,13 @@ const decrementPathRequest = () => {
 
   const clearLocationHistory = (staffId) => {
     if (!staffId) {
-      console.error("Cannot clear history: Invalid staff ID")
+      // console.error("Cannot clear history: Invalid staff ID")
       return
     }
 
     const member = staff.find((s) => s._id === staffId)
     if (!member) {
-      console.error("Staff member not found")
+      // console.error("Staff member not found")
       return
     }
 
@@ -457,13 +458,13 @@ const decrementPathRequest = () => {
 
   const toggleLocationTracking = (staffId) => {
     if (!staffId) {
-      console.error("Cannot toggle tracking: Invalid staff ID")
+      // console.error("Cannot toggle tracking: Invalid staff ID")
       return
     }
 
     const member = staff.find((s) => s._id === staffId)
     if (!member) {
-      console.error("Staff member not found")
+      // console.error("Staff member not found")
       return
     }
 

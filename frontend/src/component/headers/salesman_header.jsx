@@ -4,15 +4,17 @@ import { useLogout } from "../../hooks/auth/useLogOut";
 import { useAddLocation } from "../../hooks/location/useAddLocation";
 import { useGeolocation } from "../../hooks/location/useGeolocation";
 import { useSelector } from "react-redux";
+import { showSuccess, showError } from '../../utils/toast'
 
 export default function Header({sidebarOpen,setSidebarOpen}) {
   const userInfo = useSelector((state) => state.app.userInfo);
   const limitsInfo = useSelector((state) => state.app.limits);
-  const {mutate:logout} = useLogout();
+  const {mutate:logout,isPending:islogoutPending,isError:islogoutError,error:logoutError} = useLogout();
   
   const { mutate: addUserLocation,isPending:isAddLocationPending } = useAddLocation({
     onSuccess:()=>{
       logout();
+      showSuccess("Logout successfully")
     }
   });
   const { location } = useGeolocation();
@@ -27,6 +29,7 @@ export default function Header({sidebarOpen,setSidebarOpen}) {
         });
     }
     logout();
+    showSuccess("Logout successfully")
   };
 
   return (

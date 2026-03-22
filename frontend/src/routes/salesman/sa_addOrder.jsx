@@ -51,6 +51,7 @@ import { setLimitsInfo } from '../../store/slice/appSlice';
 import { useGetAllCompany } from '../../hooks/company/useGetAllCompany';
 import { useGetAllCategory } from '../../hooks/category/useGetAllCategory';
 import { useUpdateOrderSeller } from '../../hooks/seller/useUpdateOrderSeller';
+import { showSuccess, showError } from '../../utils/toast'
 
 // ENV CONFIG
 const digital_ocean_url = import.meta.env.VITE_DIGITAL_OCEAN_URL;
@@ -264,7 +265,7 @@ export default function AddOrder() {
     page: currentPage,
     limit: limit ,
     search: debouncedSearch,
-    status: statusFilter,
+    status: "active",
     category: categoryFilter,
     companyId: companyFilter,
     sortField: sortField,
@@ -442,12 +443,12 @@ export default function AddOrder() {
 
 const handleAddToCart = async () => {
   if (!selectedProduct || !selectedSize) {
-    toast.error("Please select size");
+    showError("Please select size");
     return;
   }
 
   if (!activeClientCart) {
-    toast.error("Please select a client first");
+    showError("Please select a client first");
     return;
   }
 
@@ -477,7 +478,7 @@ const handleAddToCart = async () => {
           : item
       )
     };
-    toast.success("Product quantity updated in cart!");
+    showSuccess("Product quantity updated in cart!");
   } else {
     // Add new item to cart
     const cartItem = {
@@ -495,7 +496,7 @@ const handleAddToCart = async () => {
       ...clientCarts,
       [activeClientCart]: [...(clientCarts[activeClientCart] || []), cartItem]
     };
-    toast.success("Product added to cart!");
+    showSuccess("Product added to cart!");
   }
 
   setClientCarts(updatedClientCarts);
@@ -611,7 +612,7 @@ const handleAddToCart = async () => {
     };
 
     updateCart(backendPayload);
-    toast.success("Item removed from cart");
+    showSuccess("Item removed from cart");
   };
 
   
@@ -696,7 +697,7 @@ const handleQuantityChange = (clientId, itemId, newQuantity, total) => {
 
 const handleQuickAddToCart = (product) => {
   if (!activeClientCart) {
-    toast.error("Please select a client first");
+    showError("Please select a client first");
     return;
   }
 
@@ -704,7 +705,7 @@ const handleQuickAddToCart = (product) => {
   const sizesWithQty = Object.entries(productQtys).filter(([_, qty]) => qty > 0);
   
   if (sizesWithQty.length === 0) {
-    toast.error("Please select at least one size with quantity");
+    showError("Please select at least one size with quantity");
     return;
   }
 
@@ -852,12 +853,12 @@ const handleQuickAddToCart = (product) => {
 
   const handleCompleteOrder = () => {
     if (!activeClientCart) {
-      toast.error("Please select a client");
+      showError("Please select a client");
       return;
     }
     
     if (cart.length === 0) {
-      toast.error("Please add items to cart");
+      showError("Please add items to cart");
       return;
     }
 
@@ -868,7 +869,7 @@ const handleQuickAddToCart = (product) => {
   const client = clientsdata.find(c => c._id === activeClientCart);
   
   if (!client || cart.length === 0) {
-    toast.error("Invalid order data");
+    showError("Invalid order data");
     return;
   }
 
@@ -911,7 +912,7 @@ const handleQuickAddToCart = (product) => {
   addOrders(orderData, {
     onSuccess: () => {
       // Order created successfully
-      toast.success("Order created and sent to packing!",orderData);
+      showSuccess("Order created and sent to packing!");
       
       // Remove this client from local cart state
       const updatedLocalCarts = { ...clientCarts };
@@ -974,7 +975,7 @@ const handleQuickAddToCart = (product) => {
       }
     },
     onError: (error) => {
-      toast.error("Failed to create order: " + error.message);
+      showError("Failed to create order");
       console.error("Order creation failed:", error);
     }
   });
@@ -990,12 +991,12 @@ const handleQuickAddToCart = (product) => {
 
   // If user entered partial data, validate it
   if (paymentData.amount && !paymentData.type) {
-    toast.error("Please select payment type");
+    showError("Please select payment type");
     return;
   }
   
   if (!paymentData.amount && paymentData.type) {
-    toast.error("Please enter payment amount");
+    showError("Please enter payment amount");
     return;
   }
 
@@ -1003,7 +1004,7 @@ const handleQuickAddToCart = (product) => {
   const client = clientsdata.find(c => c._id === selectedClient);
   // console.log("selected client for payment",comapletedOrder);
   if (!client) {
-    toast.error("Client information not found");
+    showError("Client information not found");
     return;
   }
 
@@ -1029,7 +1030,7 @@ const handleQuickAddToCart = (product) => {
   // Call payment API
   addPayment(payload, {
     onSuccess: () => {
-      toast.success(`Payment of ${paymentData.amount} recorded for order ${orderId}`);
+      showSuccess(`Payment of ${paymentData.amount} recorded for order ${orderId}`);
       
       // Get order details for WhatsApp
       const orderDetails = `
@@ -1065,7 +1066,7 @@ ${paymentData.note ? `• Note: ${paymentData.note}` : ''}
       cleanupAfterPayment();
     },
     onError: (error) => {
-      toast.error("Failed to record payment: " + error.message);
+      showError("Failed to record payment");
       console.error("Payment recording failed:", error);
     }
   });
@@ -1103,7 +1104,7 @@ ${
     window.open(whatsappUrl, '_blank');
   }
 
-  toast.success("Order completed without payment record");
+  showSuccess("Order completed without payment record");
   cleanupAfterPayment();
 };
 
@@ -1238,7 +1239,7 @@ const handlePaymentDialogClose = (open) => {
                               setSelectedClient("");
                               setClientSearchQuery("");
                             }
-                            toast.success("Cart cleared");
+                            showSuccess("Cart cleared");
                           }}
                           className="h-6 w-6 p-0 text-destructive hover:text-destructive hover:bg-destructive/10"
                         >
@@ -1313,7 +1314,7 @@ const handlePaymentDialogClose = (open) => {
                                 setSelectedClient("");
                                 setClientSearchQuery("");
                               }
-                              toast.success("Cart cleared");
+                              showSuccess("Cart cleared");
                             }}
                             className="h-6 w-6 p-0 text-destructive hover:text-destructive hover:bg-destructive/10"
                           >
@@ -1855,7 +1856,7 @@ const handlePaymentDialogClose = (open) => {
                                 setClientSearchQuery("");
                               }
                               
-                              toast.success("Client cart removed");
+                              showSuccess("Client cart removed");
                             }}
                               className="h-6 w-6 sm:h-7 sm:w-7 p-0 text-destructive hover:text-destructive hover:bg-destructive/10"
                             >

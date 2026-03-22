@@ -17,12 +17,19 @@ import TenantRegistrationPage from './routes/tenant/addtenant'
 import RoleProtectedRoute from './routes/RoleProtectedRoute'
 import NotFound from './routes/NotFound'
 import FileSharing from './routes/filesharing/fileshare'
+import { Toaster } from './routes/distributer/ui/sonner'
 
 
 function App() {
 
   return (
     <>
+      <Toaster 
+        position="top-right"
+        richColors          // enables green/red colors automatically
+        expand={false}
+        duration={3000}
+      />
       <BrowserRouter>
         <Routes>
           <Route path='*' element={<NotFound />}></Route>

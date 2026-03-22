@@ -33,7 +33,11 @@ export default function PaymentUpdate() {
     sortField: "name",
     sortDirection: "asc"
   });
-  const {mutate:addPayment,isPending: isPaymentPending, isError : isPaymentError, error: paymentError} = useAddPayment()
+  const {mutate:addPayment,isPending: isPaymentPending, isError : isPaymentError, error: paymentError} = useAddPayment({
+    onSuccess:()=>{
+      ShowError(paymentError)
+    }
+  })
   const {
   data: salesmanById,
   isPending: isSalesmanByIdPending,

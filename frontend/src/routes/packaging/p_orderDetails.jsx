@@ -19,6 +19,7 @@ import {
   ShoppingBag, 
   IndianRupeeIcon
 } from 'lucide-react';
+import {showError,showSuccess} from '../../utils/toast';
 
 export function OrderDetails({ order, onUpdateOrder, onUpdateQuantity, language }) {
   const { t } = useTranslation(language);
@@ -49,7 +50,7 @@ export function OrderDetails({ order, onUpdateOrder, onUpdateQuantity, language 
     if (onUpdateQuantity) {
       // console.log("called update ")
       onUpdateQuantity(order._id, updatedItems);
-      toast.success(t('Quantity updated successfully'));
+      showSuccess(t('Quantity updated successfully'));
     }
   };
 
@@ -91,7 +92,7 @@ export function OrderDetails({ order, onUpdateOrder, onUpdateQuantity, language 
 
     onUpdateOrder(order._id, updatedItems, cartoonCount);
 
-    toast.success(
+    showSuccess(
       `${newlySelectedCount} ${t('Items')} sent to Dispatch department with ${cartoonCount} cartoons on ${billingDate}`
     );
   };
