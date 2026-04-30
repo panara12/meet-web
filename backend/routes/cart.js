@@ -27,7 +27,13 @@ router.get("/getcart",user_session_checker("get_cart"),async(req,res)=>{
     try {
         const salesman = req.session.user.tenant_user_id;
         const Cart = req.db.model("Cart");
-        const res_data = await Cart.find({salesman_data:salesman}).populate('salesman_data').populate('clients.seller_data').populate("clients.items.product_data");
+        const res_data = await Cart.find({salesman_data:salesman}).populate('salesman_data').populate('clients.seller_data').populate("clients.items.product_data").populate({
+            path: 'clients.items.product_data',
+                populate: {
+                    path: 'companyId',
+                    model: 'Company' // Make sure this matches your Company model name
+                }
+        }).lean();
         manualLog("cart fetched successfully",res_data)
         res.status(200).send({
             message:"cart fetched successfully",
