@@ -981,7 +981,7 @@ const handleQuickAddToCart = (product) => {
   });
 };
 
-  const handleRecordPayment = () => {
+const handleRecordPayment = () => {
   // Validation is optional - can skip payment
   if (!paymentData.amount && !paymentData.type) {
     // User wants to skip payment - just close dialog
@@ -1002,11 +1002,40 @@ const handleQuickAddToCart = (product) => {
 
   // Get client from selectedClient (still available after order creation)
   const client = clientsdata.find(c => c._id === selectedClient);
-  // console.log("selected client for payment",comapletedOrder);
+  
   if (!client) {
     showError("Client information not found");
     return;
   }
+
+  // Group items by company
+  const itemsByCompany = {};
+  orderProdcuts.forEach((item, index) => {
+    console.log("data",item)
+    const companyName = item.product?.companyId?.name || item.product?.company?.name || 'Other';
+    if (!itemsByCompany[companyName]) {
+      itemsByCompany[companyName] = [];
+    }
+    itemsByCompany[companyName].push({
+      name: item.product?.name,
+      size: comapletedOrder.items[index].size,
+      quantity: comapletedOrder.items[index].quantity,
+      price: comapletedOrder.items[index].subtotal,
+      company: companyName
+    });
+  });
+
+  // Build company-wise order details
+  let companyWiseDetails = '';
+  Object.keys(itemsByCompany).sort().forEach((companyName, idx) => {
+    companyWiseDetails += `\n📌 *${companyName}*\n`;
+    itemsByCompany[companyName].forEach(item => {
+      companyWiseDetails += `  • ${item.name} (${item.size}) → ${item.quantity} pcs\n`;
+    });
+    if (idx < Object.keys(itemsByCompany).length - 1) {
+      companyWiseDetails += '\n';
+    }
+  });
 
   // Payment API payload
   const payload = {
@@ -1016,16 +1045,13 @@ const handleQuickAddToCart = (product) => {
     payment_type: paymentData.type,
     payment_date: dayjs(paymentData.date).format("DD-MM-YYYY"),
     order_with_payment: true,
-    order_id: orderId, // Link payment to the order
+    order_id: orderId,
     status: {
       status: "pending",
       adminId: null,
       notes: paymentData.note || ""
     }
   };
-
-  // console.log("Recording payment:", payload);
-  // console.log("completed order data",orderProdcuts);
 
   // Call payment API
   addPayment(payload, {
@@ -1040,19 +1066,19 @@ const handleQuickAddToCart = (product) => {
 📅 *Order Date:* ${new Date().toLocaleDateString()}
 
 👤 *CUSTOMER INFORMATION*
-• Name: ${client?.name}
-• Phone: ${client?.phone}
-• Email: ${client?.email}
+- Name: ${client?.name}
+- Phone: ${client?.phone}
+- Email: ${client?.email}
 
-💰 *ORDER SUMMARY*
-${
-  comapletedOrder.items.map((item,index) => `• ${orderProdcuts[index].product?.name} (${item.size}) -> ${item.quantity}`).join('\n')
-}
+📦 *ORDER DETAILS*
+${companyWiseDetails}
+━━━━━━━━━━━━━━━━━━━
+📊 *Total Items:* ${comapletedOrder.totalItems} pcs
 
-💳 *Payment Details:*
-• Amount: ₹${paymentData.amount}
-• Type: ${paymentData.type}
-• Date: ${new Date(paymentData.date).toLocaleDateString()}
+💳 *PAYMENT DETAILS:*
+- Amount: ₹${paymentData.amount}
+- Type: ${paymentData.type}
+- Date: ${new Date(paymentData.date).toLocaleDateString()}
 ${paymentData.note ? `• Note: ${paymentData.note}` : ''}
 
 ✅ *Status:* Payment Confirmed & Sent to Packing Department
@@ -1074,10 +1100,36 @@ ${paymentData.note ? `• Note: ${paymentData.note}` : ''}
 
 const handleSkipPayment = () => {
   const client = clientsdata.find(c => c._id === selectedClient);
-  // console.log("compaletd order info",comapletedOrder);
-  // console.log("order products info",orderProdcuts);
   
   if (client) {
+    // Group items by company
+    const itemsByCompany = {};
+    orderProdcuts.forEach((item, index) => {
+      const companyName = item.product?.companyId?.name || item.product?.company?.name || 'Other';
+      if (!itemsByCompany[companyName]) {
+        itemsByCompany[companyName] = [];
+      }
+      itemsByCompany[companyName].push({
+        name: item.product?.name,
+        size: comapletedOrder.items[index].size,
+        quantity: comapletedOrder.items[index].quantity,
+        price: comapletedOrder.items[index].subtotal,
+        company: companyName
+      });
+    });
+
+    // Build company-wise order details
+    let companyWiseDetails = '';
+    Object.keys(itemsByCompany).sort().forEach((companyName, idx) => {
+      companyWiseDetails += `\n📌 *${companyName}*\n`;
+      itemsByCompany[companyName].forEach(item => {
+        companyWiseDetails += `  • ${item.name} (${item.size}) → ${item.quantity} pcs\n`;
+      });
+      if (idx < Object.keys(itemsByCompany).length - 1) {
+        companyWiseDetails += '\n';
+      }
+    });
+
     // Send WhatsApp without payment details
     const orderDetails = `
 🛍️ *NEW ORDER CONFIRMATION*
@@ -1085,20 +1137,18 @@ const handleSkipPayment = () => {
 📋 *Order Number:* ${orderId}
 📅 *Order Date:* ${new Date().toLocaleDateString()}
 
-💰 *ORDER SUMMARY*
-${
-  comapletedOrder.items.map((item,index) => `• ${orderProdcuts[index].product?.name} (${item.size}) -> ${item.quantity}`).join('\n')
-}
-
 👤 *CUSTOMER INFORMATION*
-• Name: ${client?.name}
-• Phone: ${client?.phone}
-• Email: ${client?.email}
+- Name: ${client?.name}
+- Phone: ${client?.phone}
+- Email: ${client?.email}
+
+📦 *ORDER DETAILS*
+${companyWiseDetails}
+━━━━━━━━━━━━━━━━━━━
+📊 *Total Items:* ${comapletedOrder.totalItems} pcs
 
 ✅ *Status:* Order Sent to Packing Department
-
-💡 Payment can be recorded later.
-    `.trim();
+`.trim();
 
     const whatsappUrl = `https://wa.me/${client?.phone?.replace(/[^\d]/g, '')}?text=${encodeURIComponent(orderDetails)}`;
     window.open(whatsappUrl, '_blank');
