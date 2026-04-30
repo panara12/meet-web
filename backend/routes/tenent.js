@@ -158,11 +158,23 @@ router.post('/addtenant', async (req, res) => {
         }
          if (tenantDbConnection.readyState !== 1) {
             await new Promise((resolve, reject) => {
-                tenantDbConnection.once('connected', resolve);
-                tenantDbConnection.once('error', reject);
-                
-                // Timeout after 10 seconds
-                setTimeout(() => reject(new Error('Connection timeout')), 10000);
+                // If already connecting, wait for it
+                if (tenantDbConnection.readyState === 2) {
+                    const timeout = setTimeout(() => {
+                        reject(new Error('Connection timeout'));
+                    }, 60000); // ⬆️ Increased to 60 seconds
+
+                    tenantDbConnection.once('connected', () => {
+                        clearTimeout(timeout); // ✅ Clear timeout on success
+                        resolve();
+                    });
+                    tenantDbConnection.once('error', (err) => {
+                        clearTimeout(timeout); // ✅ Clear timeout on error
+                        reject(err);
+                    });
+                } else {
+                    reject(new Error(`DB connection in unexpected state: ${tenantDbConnection.readyState}`));
+                }
             });
         }
 
