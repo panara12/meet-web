@@ -200,16 +200,18 @@ export default function Dashboard({ onNavigate }) {
 
   // Using mock data
   const { staff,limits } = useStaff()
-  const {products} = useInventory()
+  const {getInventoryStats,products} = useInventory()
   const {companies} = useCompany()
   const unreadCount = 2 // Mock unread count
+  const stats = getInventoryStats()
 
   // Calculate metrics from actual data
   const activeStaff = staff.filter(s => s.status === 'Active').length
-  const totalProducts = products.length
+  const totalProducts = stats.totalProducts
+  const totalActive = stats.totalActive
   const activeCompanies = companies.filter(c => c.status === 'active').length
-  const lowStockProducts = products.filter(p => p.stockQuantity <= p.lowStockThreshold).length
-  const outOfStockProducts = products.filter(p => p.stockQuantity === 0).length
+  const lowStockProducts = stats.lowStockProducts
+  const outOfStockProducts = stats.outOfStockProducts
   const userInfo = useSelector((state) => state.app.userInfo)
 
   const [showSubAdminLogin, setShowSubAdminLogin] = useState(false)
@@ -486,11 +488,14 @@ const handleSubAdminLogin = () => {
 
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Total Products</CardTitle>
+                <CardTitle className="text-sm font-medium">Active Products</CardTitle>
                 <Package className="h-4 w-4 text-gray-600" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{totalProducts}</div>
+                <div className="text-2xl font-bold">{totalActive}</div>
+                <p className="text-xs text-gray-600">
+                  <span className="text-yellow-400">●</span> {totalProducts} total products
+                </p>
                 {/* <p className="text-xs text-gray-600">
                   {lowStockProducts > 0 ? (
                     <span className="text-amber-600">
