@@ -245,7 +245,10 @@ export default function AddOrder() {
     });
     
   const [debouncedSearch, setDebouncedSearch] = useState("");
-  const { data: getSellerList, isPending: sellerPending } = useGetAllSeller();
+  const { data: getSellerList, isPending: sellerPending } = useGetAllSeller({
+    page: 1,
+    limit: 10000,
+  });
   const { mutate: updateOrderSeller, isPending: isUpdateOrderSellerPending, isError:isUpdateOrderSellerError,Error:updateOrderSellerError } = useUpdateOrderSeller()
   const {mutate:addPayment,isPending: isPaymentPending, isError : isPaymentError, error: paymentError} = useAddPayment()
   const { data: getCompanyList, isPending: companyListPending, isError: isCompanyListError, error: companyListError } = useGetAllCompany({
