@@ -19,6 +19,7 @@ export function InventoryProvider({ children }) {
   const [limit, setLimit] = useState(10);
   const [totalPages, setTotalPages] = useState(1);
   const [totalRecords, setTotalRecords] = useState(0);
+  const [totalActive, setTotalActive] = useState(0);
   
   // Search & Filter States
   const [searchTerm, setSearchTerm] = useState("");
@@ -75,6 +76,7 @@ export function InventoryProvider({ children }) {
       if (getProductList.pagination) {
         setTotalPages(getProductList.pagination.totalPages);
         setTotalRecords(getProductList.pagination.totalProducts);
+        setTotalActive(getProductList.pagination.totalActive);
       }
     }
   }, [getProductList]);
@@ -186,6 +188,7 @@ export function InventoryProvider({ children }) {
   const getInventoryStats = () => {
     const stats = {
       totalProducts: totalRecords,
+      totalActive:totalActive,
       lowStockProducts: 0,
       outOfStockProducts: 0,
       totalValue: 0,

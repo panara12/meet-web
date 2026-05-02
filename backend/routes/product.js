@@ -471,6 +471,8 @@ router.get(
         { $count: 'count' }
       ]))[0]?.count || 0;
 
+      const totalActive = await Product.countDocuments({ status: 'active' , ...matchStage });
+
       const totalPages = Math.ceil(totalRecords / limit);
 
       manualLog("get all products successfully", productData)
@@ -481,6 +483,7 @@ router.get(
           currentPage: page,
           totalPages,
           totalProducts: totalRecords,
+          totalActive: totalActive,
           hasNextPage: page < totalPages,
           hasPrevPage: page > 1,
         },

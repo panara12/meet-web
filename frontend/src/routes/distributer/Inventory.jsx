@@ -497,6 +497,7 @@ function Inventory() {
       companyId: product.companyId,
       color:product.color||'',
       price: product.price,
+      size:product.size,
       costPrice: product.costPrice,
       stockQuantity: product.stockQuantity,
       lowStockThreshold: product.lowStockThreshold,
@@ -1427,7 +1428,7 @@ function Inventory() {
             <CardContent>
               <div className="text-2xl font-bold">{stats.totalProducts}</div>
               <p className="text-xs text-muted-foreground">
-                {stats.activeProducts} active
+                {stats.totalActive} active
               </p>
             </CardContent>
           </Card>
@@ -1660,6 +1661,7 @@ function Inventory() {
                         </TableHead>
                         <TableHead>Company</TableHead>
                         <TableHead>Category</TableHead>
+                        <TableHead>Status</TableHead>
                         {/* <TableHead 
                           className="cursor-pointer"
                           onClick={() => {
@@ -1715,7 +1717,7 @@ function Inventory() {
                               <Badge variant={stockStatus.variant}>
                                 {product.stockQuantity} units
                               </Badge>
-                            </TableCell>
+                            </TableCell> */}
                             <TableCell>
                               <Badge 
                                 variant={product.status === "active" ? "default" : 
@@ -1723,7 +1725,7 @@ function Inventory() {
                               >
                                 {product.status}
                               </Badge>
-                            </TableCell> */}
+                            </TableCell>
                             <TableCell>
                               <div className="flex justify-center gap-1">
                                 <Button
@@ -1884,8 +1886,18 @@ function Inventory() {
                     }
                     {/* <p className="text-sm">{selectedProduct.skus}</p> */}
                   </div>
+                {selectedProduct.skus.length == 0 && 
+                  <div className="grid grid-cols-2">
+                        <div>
+                          <p className="text-sm"><b>color:</b>{selectedProduct.color}</p>
+                          <p className="text-sm"><b>size:</b>{selectedProduct.size}</p>
+                          <p className="text-sm"><b>price:</b> {selectedProduct.price}</p>
+                          <p className="text-sm"><b>cost price:</b> {selectedProduct.costPrice}</p>
+                        </div>
+                  </div>
+                }
                 <div className="grid grid-cols-2 gap-4">
-                  <div>
+                  <div> 
                     <Label>Company</Label>
                     <p className="text-sm">{selectedProduct?.company.name}</p>
                   </div>
@@ -2367,6 +2379,7 @@ function Inventory() {
                       </div>
                       <div className="space-y-2">
                         <Label htmlFor="size">Size</Label>
+                        {console.log(formData)}
                         <Input
                           id="size"
                           type="text"
