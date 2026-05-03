@@ -28,7 +28,7 @@ export default function PaymentUpdate() {
   },[clientSearchQuery])
   const { data: getSellerList, isPending:sellerPending, isError:issellerError, error:sellerError } = useGetAllSeller({
     page: 1,
-    limit: 10,
+    limit: 10000,
     search: debouncedSearch,
     sortField: "name",
     sortDirection: "asc"
