@@ -146,6 +146,9 @@ export default function AddOrder() {
   // Quick add states
   const [productQuantities, setProductQuantities] = useState({});
   const [productInstructions, setProductInstructions] = useState({});
+  const [bulkMultipliers, setBulkMultipliers] = useState({}); 
+  const [cartBulkMultipliers, setCartBulkMultipliers] = useState({});
+
   // Filter & Sort states
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
@@ -218,6 +221,14 @@ export default function AddOrder() {
   }
 }, [cartPending, getCart]);
     // console.log("active after set up",activeClientCart)
+
+    const getBulkMultiplier = (productId) => {
+      return bulkMultipliers[productId] || 1;
+    };
+
+    const getCartBulkMultiplier = (itemId) => {
+      return cartBulkMultipliers[itemId] || 1;
+    };
 
     const generateCartItemId = (productId, color, size) => {
       return `${productId}-${color}-${size}`;
@@ -679,19 +690,21 @@ const handleQuantityChange = (clientId, itemId, newQuantity, total) => {
 };
 
   const handleProductQuantityChange = (productId, size, delta) => {
-    setProductQuantities(prev => {
-      const current = prev[productId]?.[size] || 0;
-      const newQty = Math.max(0, current + delta);
-      
-      return {
-        ...prev,
-        [productId]: {
-          ...(prev[productId] || {}),
-          [size]: newQty
-        }
-      };
-    });
-  };
+  const multiplier = getBulkMultiplier(productId);
+  
+  setProductQuantities(prev => {
+    const current = prev[productId]?.[size] || 0;
+    const newQty = Math.max(0, current + (delta * multiplier));
+    
+    return {
+      ...prev,
+      [productId]: {
+        ...(prev[productId] || {}),
+        [size]: newQty
+      }
+    };
+  });
+};
 
   const getProductQuantity = (productId, size) => {
     return productQuantities[productId]?.[size] || 0;
@@ -1617,6 +1630,26 @@ const handlePaymentDialogClose = (open) => {
                           <div className="flex items-center gap-1">
                             <Badge variant="outline" className="text-xs">{product?.categoryDetails?.name || product.category}</Badge>
                           </div>
+                          <Select 
+                            value={getBulkMultiplier(product._id).toString()} 
+                            onValueChange={(value) => {
+                              setBulkMultipliers(prev => ({
+                                ...prev,
+                                [product._id]: parseInt(value)
+                              }));
+                            }}
+                          >
+                            <SelectTrigger className="w-20 h-7 text-xs">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent className="bg-white">
+                              <SelectItem value="1">×1</SelectItem>
+                              <SelectItem value="10">×10</SelectItem>
+                              <SelectItem value="20">×20</SelectItem>
+                              <SelectItem value="50">×50</SelectItem>
+                              <SelectItem value="100">×100</SelectItem>
+                            </SelectContent>
+                          </Select>
                         </div>
                       </div>
 
@@ -1921,43 +1954,90 @@ const handlePaymentDialogClose = (open) => {
                       <CardContent className="space-y-2 sm:space-y-3 p-3 sm:p-4 lg:p-6 pt-0">
                         <div className="max-h-64 sm:max-h-80 lg:max-h-96 overflow-y-auto overscroll-contain space-y-2 sm:space-y-3 pr-1">
                           {/* {console.log("side bar cleint cart",clientCart)} */}
-                          {clientCart?.items.map((item,index) => (
+                          {clientCart?.items.map((item, index) => (
                             <div key={index} className="flex gap-2 sm:gap-3 p-2 sm:p-3 border rounded-lg bg-card hover:bg-muted/30 transition-colors">
-                              {/* <div className="w-12 h-12 sm:w-14 sm:h-14 lg:w-16 lg:h-16 overflow-hidden rounded flex-shrink-0 bg-muted">
-                                <ImageWithFallback
-                                  src={item.product_data?.images[0]?.url || item?.product_data?.image[0].url}
-                                  alt={item?.product_data?.name}
-                                  className="w-full h-full object-cover"
-                                />
-                              </div> */}
                               <div className="flex-1 min-w-0 space-y-1">
-                                <h4 className="text-xs sm:text-sm font-medium line-clamp-2">{item.product_data?.name}</h4>
+                                <div className="flex items-center justify-between gap-2">
+                                  <h4 className="text-xs sm:text-sm font-medium line-clamp-2 flex-1">
+                                    {item.product_data?.name}
+                                  </h4>
+                                  {/* Bulk Multiplier Selector */}
+                                  <Select 
+                                    value={getCartBulkMultiplier(item.id).toString()} 
+                                    onValueChange={(value) => {
+                                      setCartBulkMultipliers(prev => ({
+                                        ...prev,
+                                        [item.id]: parseInt(value)
+                                      }));
+                                    }}
+                                  >
+                                    <SelectTrigger className="w-16 h-6 text-xs flex-shrink-0">
+                                      <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent className="bg-white">
+                                      <SelectItem value="1">×1</SelectItem>
+                                      <SelectItem value="2">×2</SelectItem>
+                                      <SelectItem value="5">×5</SelectItem>
+                                      <SelectItem value="10">×10</SelectItem>
+                                      <SelectItem value="20">×20</SelectItem>
+                                      <SelectItem value="50">×50</SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                </div>
+                                
                                 <div className="flex flex-wrap gap-1 text-xs text-muted-foreground">
-                                  {/* <span>Color: {item.color}</span> */}
-                                  <span>•</span>
                                   <span>Size: {item.size}</span>
                                 </div>
+                                
                                 {item.instructions && (
                                   <p className="text-xs text-muted-foreground line-clamp-1">
                                     Instructions: {item.instructions}
                                   </p>
                                 )}
+                                
                                 <div className="flex items-center justify-between pt-1">
-                                  <p className="text-xs sm:text-sm font-semibold text-primary"><IndianRupeeIcon className='w-3 h-3 inline-block' />{item.subtotal}</p>
+                                  <p className="text-xs sm:text-sm font-semibold text-primary">
+                                    <IndianRupeeIcon className='w-3 h-3 inline-block' />{item.subtotal}
+                                  </p>
                                   <div className="flex items-center gap-1">
                                     <Button
                                       size="sm"
                                       variant="outline"
-                                      onClick={() => handleQuantityChange(clientCart.seller_data._id, item.id, Number(item.quantity) - 1,item.subtotal)}
+                                      onClick={(e) => {
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                        const multiplier = getCartBulkMultiplier(item.id);
+                                        const newQuantity = Math.max(1, Number(item.quantity) - multiplier);
+                                        handleQuantityChange(
+                                          clientCart.seller_data._id, 
+                                          item.id, 
+                                          newQuantity,
+                                          item.subtotal
+                                        );
+                                      }}
                                       className="h-6 w-6 sm:h-7 sm:w-7 p-0"
+                                      disabled={item.quantity <= 1}
                                     >
                                       <Minus className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
                                     </Button>
-                                    <span className="w-4 sm:w-6 text-center text-xs sm:text-sm font-medium">{item.quantity}</span>
+                                    <span className="w-6 sm:w-8 text-center text-xs sm:text-sm font-medium">
+                                      {item.quantity}
+                                    </span>
                                     <Button
                                       size="sm"
                                       variant="outline"
-                                      onClick={() => handleQuantityChange(clientCart.seller_data._id, item.id, Number(item.quantity) + 1,item.subtotal)}
+                                      onClick={(e) => {
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                        const multiplier = getCartBulkMultiplier(item.id);
+                                        const newQuantity = Number(item.quantity) + multiplier;
+                                        handleQuantityChange(
+                                          clientCart.seller_data._id, 
+                                          item.id, 
+                                          newQuantity,
+                                          item.subtotal
+                                        );
+                                      }}
                                       className="h-6 w-6 sm:h-7 sm:w-7 p-0"
                                     >
                                       <Plus className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
@@ -1965,7 +2045,11 @@ const handlePaymentDialogClose = (open) => {
                                     <Button
                                       size="sm"
                                       variant="ghost"
-                                      onClick={() => handleRemoveFromCart(clientCart.seller_data._id, item.id)}
+                                      onClick={(e) => {
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                        handleRemoveFromCart(clientCart.seller_data._id, item.id);
+                                      }}
                                       className="text-destructive hover:text-destructive hover:bg-destructive/10 h-6 w-6 sm:h-7 sm:w-7 p-0 ml-0.5 sm:ml-1"
                                     >
                                       <X className="h-2.5 w-2.5 sm:h-3 sm:w-3" />

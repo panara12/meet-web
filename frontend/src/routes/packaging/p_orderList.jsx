@@ -34,6 +34,8 @@ export function OrderList({
   client
 }) {
   const { t } = useTranslation(language);
+
+  const [itemBulkMultipliers, setItemBulkMultipliers] = useState({});
   const [expandedOrders, setExpandedOrders] = useState(new Set());
   const [showCartoonDialog, setShowCartoonDialog] = useState(false);
   // console.log("orders",orders)
@@ -49,6 +51,10 @@ export function OrderList({
       default:
         return <Package className="w-3 h-3 sm:w-4 sm:h-4" />;
     }
+  };
+
+  const getItemBulkMultiplier = (itemId) => {
+    return itemBulkMultipliers[itemId] || 1;
   };
 
   const getStatusColor = (status) => {
@@ -95,12 +101,12 @@ export function OrderList({
   };
 
   const handleQuantityChange = (order, itemId, delta) => {
-    // console.log("handle quentity changed called")
     const item = order.items.find(item => item.id === itemId);
     if (!item || item.sentToBilling) return;
-    
-    const newQuantity = Math.max(1, item.quantity + delta);
-    // console.log("new quantity",newQuantity)
+
+    const multiplier = getItemBulkMultiplier(itemId);
+    const newQuantity = Math.max(1, Number(item.quantity) + (delta * multiplier));
+
     handleQuantityUpdate(order, itemId, newQuantity);
   };
 
@@ -272,14 +278,37 @@ export function OrderList({
 
                                     {/* Price & Quantity */}
                                     <div className="flex-shrink-0 text-right">
-                                      <div className={`text-sm flex justify-end items-center sm:text-base font-semibold mb-2 ${
-                                        item.sentToBilling ? 'text-muted-foreground' : 'text-foreground'
-                                      }`}>
-                                        <IndianRupeeIcon className="w-3 h-3 inline mr-1" />
-                                        {item.price?.toFixed(2) || '0.00'}
-                                      </div>
-                                      
-                                      {!item.sentToBilling ? (
+                                    <div className={`text-sm sm:text-base font-semibold mb-2 ${
+                                      item.sentToBilling ? 'text-muted-foreground' : 'text-foreground'
+                                    }`}>
+                                      <IndianRupeeIcon className="w-3 h-3 inline-block" />{ item.price ||'0.00'}
+                                    </div>
+
+                                    {!item.sentToBilling ? (
+                                      <div className="space-y-2">
+                                        {/* Bulk Multiplier Selector */}
+                                        <div className="flex items-center justify-end gap-2">
+                                          <span className="text-xs text-muted-foreground">Bulk:</span>
+                                          <select
+                                            value={getItemBulkMultiplier(item.id)}
+                                            onChange={(e) => {
+                                              setItemBulkMultipliers(prev => ({
+                                                ...prev,
+                                                [item.id]: parseInt(e.target.value)
+                                              }));
+                                            }}
+                                            className="h-7 w-16 text-xs border border-border rounded-md bg-background px-2 focus:outline-none focus:ring-2 focus:ring-primary"
+                                          >
+                                            <option value="1">×1</option>
+                                            <option value="2">×2</option>
+                                            <option value="5">×5</option>
+                                            <option value="10">×10</option>
+                                            <option value="20">×20</option>
+                                            <option value="50">×50</option>
+                                          </select>
+                                        </div>
+                                        
+                                        {/* Quantity Controls */}
                                         <div className="flex items-center gap-1 sm:gap-1.5 justify-end">
                                           <Button
                                             variant="outline"
@@ -288,8 +317,7 @@ export function OrderList({
                                             onClick={(e) => {
                                               e.preventDefault();
                                               e.stopPropagation();
-                                              // console.log('Minus clicked for item:', item.id);
-                                              handleQuantityChange(order, item.id, -1);
+                                              handleQuantityChange(order, item.id, -1); // ✅ pass order
                                             }}
                                             disabled={item.quantity <= 1}
                                           >
@@ -300,12 +328,7 @@ export function OrderList({
                                             min="1"
                                             max="999"
                                             value={item.quantity}
-                                            onChange={(e) => {
-                                              e.preventDefault();
-                                              e.stopPropagation();
-                                              handleQuantityInputChange(order, item.id, e.target.value);
-                                            }}
-                                            onClick={(e) => e.stopPropagation()}
+                                            onChange={e => handleQuantityInputChange(order,item.id, e.target.value)}
                                             className="w-12 sm:w-14 h-7 sm:h-8 text-center text-xs sm:text-sm font-medium"
                                           />
                                           <Button
@@ -315,19 +338,19 @@ export function OrderList({
                                             onClick={(e) => {
                                               e.preventDefault();
                                               e.stopPropagation();
-                                              // console.log('Plus clicked for item:', item.id);
-                                              handleQuantityChange(order, item.id, 1);
+                                              handleQuantityChange(order, item.id, 1); // ✅ pass order
                                             }}
                                             disabled={item.quantity >= 999}
                                           >
                                             <Plus className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
                                           </Button>
                                         </div>
-                                      ) : (
-                                        <div className="text-muted-foreground text-xs sm:text-sm">
-                                          {t('Qty')}: {item.quantity}
-                                        </div>
-                                      )}
+                                      </div>
+                                    ) : (
+                                      <span className="w-auto text-xs sm:text-sm text-muted-foreground">
+                                        {t('Qty')}: {item.quantity}
+                                      </span>
+                                    )}
                                     </div>
                                   </div>
 
